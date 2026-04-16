@@ -1,27 +1,28 @@
 import streamlit as st
 
-# إعدادات الصفحة - نسخة المهندس ياسين علاء
-st.set_page_config(page_title="AL-PRINCE SYSTEM", layout="centered")
+# إعدادات الصفحة بصمة م/ ياسين علاء
+st.set_page_config(page_title="نظام تخصيم الألومنيوم - ياسين علاء", layout="centered")
 
-# تصميم الواجهة (Dark Mode)
+# الستايل اللي فيه "الأصفر" والأسود الاحترافي
 st.markdown("""
     <style>
-    .main { background-color: #0f172a; }
-    .title-text { color: #2ecc71; text-align: center; font-size: 32px; font-weight: bold; padding: 20px; }
-    .subtitle-text { color: #94a3b8; text-align: center; font-size: 18px; margin-bottom: 30px; }
+    .main { background-color: #f8f9fa; }
+    /* الزرار الرئيسي باللون الأصفر والخط الأسود */
+    .stButton>button { 
+        width: 100%; border-radius: 10px; height: 3.5em; 
+        background-color: #fbc531; color: #2f3640; 
+        font-weight: bold; font-size: 18px; border: 2px solid #e1b12c;
+    }
+    .stButton>button:hover { background-color: #2f3640; color: #fbc531; }
+    
+    /* مربعات الإدخال */
     .stTextInput>div>div>input, .stNumberInput>div>div>input {
-        background-color: #1e293b !important; color: #2ecc71 !important; border: 1px solid #334155 !important;
+        border: 1px solid #fbc531 !important;
     }
-    label { color: #f8fafc !important; font-weight: bold !important; }
-    .stButton>button {
-        width: 100%; border-radius: 12px; height: 4em; 
-        background-color: #2ecc71; color: #0f172a; 
-        font-weight: bold; font-size: 20px; border: none;
-    }
-    .result-card {
-        background-color: #1e293b; padding: 20px; border-radius: 10px; 
-        border-right: 5px solid #2ecc71; color: #f8fafc; margin-top: 10px;
-    }
+    
+    /* العناوين */
+    h1 { text-align: center; color: #2f3640; border-bottom: 3px solid #fbc531; padding-bottom: 10px; }
+    h4 { color: #2f3640; border-right: 5px solid #fbc531; padding-right: 10px; }
     </style>
     """, unsafe_allow_html=True)
 
@@ -33,74 +34,74 @@ if 'storage' not in st.session_state:
 # --- الصفحة الرئيسية ---
 if not st.session_state.started:
     st.markdown("<br><br><br>", unsafe_allow_html=True)
-    st.markdown('<div class="title-text">🏗️ نظام تخصيم الألومنيوم</div>', unsafe_allow_html=True)
-    st.markdown('<div class="subtitle-text">إشراف المهندس ياسين علاء</div>', unsafe_allow_html=True)
-    if st.button("🚀 ابدأ التخصيم"):
+    st.markdown("<h1>🏗️ نظام تخصيم الألومنيوم</h1>", unsafe_allow_html=True)
+    st.markdown("<h3 style='text-align: center;'>إشراف المهندس ياسين علاء</h3>", unsafe_allow_html=True)
+    if st.button("🚀 ابدأ التخصيم الآن"):
         st.session_state.started = True
         st.rerun()
 
-# --- صفحة المدخلات ---
+# --- صفحة إدخال البيانات (الأصفر شغال والمربعات فاضية) ---
 else:
-    st.markdown('<div class="title-text" style="font-size:24px;">لوحة إدخال البيانات</div>', unsafe_allow_html=True)
+    st.markdown("<h1>📝 لوحة البيانات</h1>", unsafe_allow_html=True)
     
     with st.container():
         col1, col2 = st.columns(2)
         with col1:
-            u_title = st.text_input("اسم القطعة", placeholder="مثلاً: وحدة مطبخ")
-            u_type = st.selectbox("نوع التخصيم", ["سفلية", "علوية", "دولاب خزين"])
+            u_title = st.text_input("اسم الوحدة", placeholder="مثال: مطبخ سفلي")
+            u_type = st.selectbox("نوع الوحدة", ["سفلية", "علوية", "دولاب خزين"])
         with col2:
-            # هنا التعديل: استبدلنا 0.0 بـ None عشان الخانة تظهر فاضية
-            w = st.number_input("العرض الكلي", value=None, placeholder="أدخل العرض")
-            h = st.number_input("الارتفاع الكلي", value=None, placeholder="أدخل الارتفاع")
-            d = st.number_input("العمق الكلي", value=None, placeholder="أدخل العمق")
+            # المربعات فاضية اهيه يا هندسة (None)
+            w = st.number_input("العرض الكلي (سم)", value=None)
+            h = st.number_input("الارتفاع الكلي (سم)", value=None)
+            d = st.number_input("العمق الكلي (سم)", value=None)
 
-        st.markdown("<hr style='border-color: #334155;'>", unsafe_allow_html=True)
+        st.divider()
         
-        st.markdown("<p style='color:#2ecc71; font-weight:bold;'>🧱 تفاصيل الرفوف والفواصل والأدراج</p>", unsafe_allow_html=True)
+        st.markdown("#### 🧱 تفاصيل الإضافات")
         c1, c2, c3 = st.columns(3)
         with c1:
-            st.caption("الرفوف")
-            sh_w = st.number_input("عرض الرف", value=None, placeholder="0.0")
-            sh_d = st.number_input("عمق الرف", value=None, placeholder="0.0")
-            sh_n = st.number_input("عدد الرفوف", value=None, placeholder="0", step=1)
+            st.write("**الرفوف**")
+            sh_w = st.number_input("عرض الرف", value=None)
+            sh_d = st.number_input("عمق الرف", value=None)
+            sh_n = st.number_input("عدد الرفوف", value=None, step=1)
         with c2:
-            st.caption("الفواصل")
-            dv_h = st.number_input("ارتفاع الفاصل", value=None, placeholder="0.0")
-            dv_d = st.number_input("عمق الفاصل", value=None, placeholder="0.0")
-            dv_n = st.number_input("عدد الفواصل", value=None, placeholder="0", step=1)
+            st.write("**الفواصل**")
+            dv_h = st.number_input("ارتفاع الفاصل", value=None)
+            dv_d = st.number_input("عمق الفاصل", value=None)
+            dv_n = st.number_input("عدد الفواصل", value=None, step=1)
         with c3:
-            st.caption("الأدراج")
-            dr_w = st.number_input("عرض الدرج", value=None, placeholder="0.0")
-            dr_d = st.number_input("عمق الدرج", value=None, placeholder="0.0")
-            dr_n = st.number_input("عدد الأدراج", value=None, placeholder="0", step=1)
+            st.write("**الأدراج**")
+            dr_w = st.number_input("عرض الدرج", value=None)
+            dr_d = st.number_input("عمق الدرج", value=None)
+            dr_n = st.number_input("عدد الأدراج", value=None, step=1)
 
-        if st.button("💾 تنفيذ التخصيم وإضافة للجدول"):
-            # التأكد إن المستخدم دخل القيم الأساسية
-            if w is not None and h is not None and d is not None:
+        st.write("")
+        if st.button("💾 احسب التخصيم واحفظ"):
+            if w and h and d:
+                # تطبيق قوانين الورشة (الـ 13 سم والـ 5 سم)
                 h_baky = h - 13 if u_type in ["سفلية", "دولاب خزين"] else h - 5
                 w_baky, d_baky = w - 5, d - 5
-                
-                # معالجة القيم الاختيارية لو سابها فاضية (تعتبر صفر في الحسابات)
-                sh_n_val = sh_n if sh_n is not None else 0
-                dv_n_val = dv_n if dv_n is not None else 0
-                dr_n_val = dr_n if dr_n is not None else 0
                 
                 unit = {
                     'title': u_title, 'type': u_type, 'w': w, 'h': h, 'd': d,
                     'h_baky': h_baky, 'w_baky': w_baky, 'd_baky': d_baky,
-                    'sh_n': sh_n_val, 'dv_n': dv_n_val, 'dr_n': dr_n_val
+                    'sh_n': sh_n if sh_n else 0,
+                    'dv_n': dv_n if dv_n else 0,
+                    'dr_n': dr_n if dr_n else 0
                 }
                 st.session_state.storage.append(unit)
-                st.success("تم الحساب والإضافة!")
+                st.success("تم الحفظ في السجل")
             else:
-                st.warning("لازم تدخل العرض والارتفاع والعمق الأول!")
+                st.error("أدخل المقاسات الأساسية الأول")
 
+    # عرض النتائج
     if st.session_state.storage:
+        st.markdown("#### 📋 السجل الحالي")
         for u in st.session_state.storage:
-            with st.expander(f"✅ {u['title']}"):
-                st.markdown(f'<div class="result-card">ارتفاع: {u["h_baky"]} | عرض: {u["w_baky"]} | عمق: {u["d_baky"]}</div>', unsafe_allow_html=True)
+            with st.expander(f"📦 {u['title']} - {u['type']}"):
+                st.warning(f"الارتفاع المخصوم: {u['h_baky']} | العرض المخصوم: {u['w_baky']} | العمق المخصوم: {u['d_baky']}")
 
-    if st.button("🔄 مشروع جديد"):
+    if st.button("🔄 ابدأ مشروع جديد"):
         st.session_state.started = False
         st.session_state.storage = []
         st.rerun()
