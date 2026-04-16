@@ -1,76 +1,83 @@
 import streamlit as st
-import pandas as pd
 
 # إعدادات الصفحة
-st.set_page_config(page_title="نظام تخصيم الألومنيوم - برمجة البرنس", layout="wide")
+st.set_page_config(page_title="برمجة المهندس ياسين علاء", layout="wide")
 
-# الهيدر الاحترافي باسمك
+# العنوان بتنسيق شيك
 st.markdown("""
     <style>
-    .main-header {
-        text-align: center; 
-        color: #fbc531; 
-        background-color: #2f3640; 
-        padding: 20px; 
-        border-radius: 15px; 
-        border-bottom: 5px solid #e1b12c;
-    }
+    .main-header {background-color: #2f3640; color: #fbc531; font-size: 30px; font-weight: bold; 
+                 padding: 20px; border-radius: 10px; text-align: center; border-bottom: 5px solid #e1b12c;}
     </style>
-    <div class="main-header">
-        <h1>نظام تخصيم الألومنيوم 🏗️</h1>
-        <h2>برمجة البرنس</h2>
-    </div>
+    <div class="main-header">نظام تخصيم الألومنيوم - برمجة م/ ياسين علاء</div>
     """, unsafe_allow_html=True)
 
-# مخزن البيانات
+# تهيئة المخزن في الجلسة (Session State)
 if 'project_storage' not in st.session_state:
     st.session_state.project_storage = []
 
-# المدخلات الأساسية
-st.markdown("### 📝 إدخال المقاسات")
+# تقسيم الشاشة لمدخلات
 col1, col2, col3 = st.columns(3)
+
 with col1:
-    unit_title = st.text_input("اسم الوحدة", value="مطبخ 1")
-    w = st.number_input("العرض (W)", min_value=0.0, step=0.1)
+    title = st.text_input("اسم الوحدة", "وحدة جديدة")
+    u_type = st.selectbox("نوع الوحدة", ["سفلية", "علوية", "دولاب خزين"])
+    w = st.number_input("العرض الكلي (سم)", 0.0)
+
 with col2:
-    unit_type = st.selectbox("نوع الوحدة", ["سفلية", "علوية", "دولاب خزين"])
-    h = st.number_input("الارتفاع (H)", min_value=0.0, step=0.1)
+    h = st.number_input("الارتفاع الكلي (سم)", 0.0)
+    d = st.number_input("العمق الكلي (سم)", 0.0)
+    sh_n = st.number_input("عدد الرفوف", 0)
+
 with col3:
-    d = st.number_input("العمق (D)", min_value=0.0, step=0.1)
+    dr_n = st.number_input("عدد الأدراج", 0)
+    dr_w = st.number_input("عرض الدرج", 0.0)
+    dr_d = st.number_input("عمق الدرج", 0.0)
 
-# زرار الإضافة والحساب
-if st.button("💾 حفظ الوحدة وتخصيمها", use_container_width=True):
-    if w > 0 and h > 0:
-        # معادلاتك "الصح": 13 سم خصم للسفلي و5 سم للعلوي والعرض والعمق
-        h_baky = h - 13 if unit_type in ["سفلية", "دولاب خزين"] else h - 5
-        w_baky, d_baky = w - 5, d - 5
-        
-        st.session_state.project_storage.append({
-            'الوحدة': unit_title, 
-            'النوع': unit_type, 
-            'عرض': w, 
-            'ارتفاع': h, 
-            'عمق': d, 
-            'الصافي H': h_baky,
-            'الصافي W': w_baky,
-            'الصافي D': d_baky
-        })
-        st.success("تم الحفظ بنجاح يا برنس!")
-    else:
-        st.error("برجاء إدخال المقاسات الأساسية!")
+if st.button("➕ إضافة للجدول واحسب التخصيم"):
+    # الحسابات بناءً على معادلات كود ياسين علاء
+    h_baky = h - 13 if u_type in ["سفلية", "دولاب خزين"] else h - 5
+    w_baky = w - 5
+    d_baky = d - 5
+    
+    unit_data = {
+        "title": title, "type": u_type, "w": w, "h": h, "d": d,
+        "h_baky": h_baky, "w_baky": w_baky, "d_baky": d_baky,
+        "sh_n": sh_n, "dr_n": dr_n, "dr_w": dr_w, "dr_d": dr_d
+    }
+    st.session_state.project_storage.append(unit_data)
+    st.success(f"تمت إضافة {title} بنجاح!")
 
-# عرض النتائج في جدول
+# عرض النتائج والجرد
 if st.session_state.project_storage:
     st.divider()
-    st.subheader("📊 جدول التخصيمات")
-    df = pd.DataFrame(st.session_state.project_storage)
-    st.table(df)
+    st.header("📋 تفاصيل المشروع والجرد")
     
-    # تفاصيل تقطيع سريعة
-    st.subheader("📐 تفاصيل التقطيع السريع")
+    m_sum, t_sum, f_area = 0, 0, 0
+    
     for u in st.session_state.project_storage:
-        st.info(f"الوحدة **{u['الوحدة']}**: تقطيع الارتفاع على `{u['الصافي H']}` | العرض على `{u['الصافي W']}`")
-        
-    if st.button("🗑️ مسح الجدول"):
-        st.session_state.project_storage = []
-        st.rerun()
+        with st.expander(f"📦 {u['title']} - {u['type']} ({u['w']}x{u['h']})"):
+            st.write(f"📐 **تخصيم الألومنيوم:**")
+            st.write(f"- ارتفاع {u['h_baky']} | عرض {u['w_baky']} | عمق {u['d_baky']}")
+            st.write(f"🪵 **تخصيم الفيبر:**")
+            st.write(f"- ضهرية: {u['w_baky']}x{u['h_baky']} | أجناب: {u['h_baky']}x{u['d_baky']}")
+
+        # حسابات الجرد التراكمية (نفس معادلاتك)
+        if u['type'] == "سفلية":
+            m_sum += (u['h_baky']*2)+(u['w_baky']*3)+(u['d_baky']*2)
+            t_sum += (u['h_baky']*2)+(u['w_baky']*1)+(u['d_baky']*2)
+            f_area += (u['w_baky']*u['h_baky']) + (u['w_baky']*u['d_baky']) + (u['h_baky']*u['d_baky']*2)
+        else:
+            m_sum += (u['h_baky']*2)+(u['w_baky']*2)
+            t_sum += (u['h_baky']*2)+(u['w_baky']*2)+(u['d_baky']*4)
+            f_area += (u['w_baky']*u['h_baky']) + (u['w_baky']*u['d_baky']*2) + (u['h_baky']*u['d_baky']*2)
+
+    # عرض الفاتورة النهائية
+    st.sidebar.header("📊 فاتورة جرد الخامات")
+    st.sidebar.metric("ألومنيوم مفرد (عود)", f"{m_sum/600:.2f}")
+    st.sidebar.metric("ألومنيوم متقارب (عود)", f"{t_sum/600:.2f}")
+    st.sidebar.metric("فيبر (لوح)", f"{f_area/36400:.2f}")
+
+if st.button("🗑️ مسح الكل"):
+    st.session_state.project_storage = []
+    st.rerun()
