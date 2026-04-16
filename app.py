@@ -4,7 +4,7 @@ from PyQt5.QtWidgets import (QApplication, QWidget, QVBoxLayout, QHBoxLayout,
                              QComboBox, QGroupBox, QTableWidget, QTableWidgetItem, QHeaderView, 
                              QGridLayout, QMessageBox, QDialog, QFileDialog)
 from PyQt5.QtGui import QFont
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt 
 
 class SummaryDialog(QDialog):
     def __init__(self, report):
