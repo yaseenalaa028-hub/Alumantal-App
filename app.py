@@ -1,159 +1,262 @@
-import streamlit as st
+import sys
+from PyQt5.QtWidgets import (QApplication, QWidget, QVBoxLayout, QHBoxLayout, 
+                             QLabel, QLineEdit, QPushButton, QTextEdit, 
+                             QComboBox, QGroupBox, QTableWidget, QTableWidgetItem, 
+                             QHeaderView, QGridLayout, QMessageBox, QDialog, QFileDialog)
+from PyQt5.QtGui import QFont, QIcon, QColor
+from PyQt5.QtCore import Qt
 
-# إعدادات الصفحة
-st.set_page_config(page_title="AL-PRINCE PROFESSIONAL SYSTEM", layout="wide")
+class SummaryDialog(QDialog):                                                 
+    def __init__(self, report):
+        super().__init__()
+        self.setWindowTitle("📊 فاتورة جرد خامات المشروع")
+        self.setMinimumSize(600, 500)
+        layout = QVBoxLayout()
+        view = QTextEdit()
+        view.setReadOnly(True)
+        # ستايل شاشة الجرد
+        view.setStyleSheet("""
+            background-color: #1e272e; 
+            color: #f1c40f; 
+            font-family: 'Consolas', 'Segoe UI'; 
+            font-size: 14pt; 
+            padding: 20px;
+            border-radius: 10px;
+        """)
+        view.setText(report)
+        layout.addWidget(view)
+        self.setLayout(layout)
 
-# الستايل البروفيشينال (أصفر ورشة + أسود ملكي + تصميم فخم)
-st.markdown("""
-    <style>
-    .main { background-color: #f4f7f6; }
-    .stButton>button { 
-        width: 100%; border-radius: 12px; height: 3.5em; 
-        background-color: #fbc531; color: #2f3640; font-weight: bold; 
-        border: 2px solid #2f3640; font-size: 19px; transition: 0.3s;
-    }
-    .stButton>button:hover { background-color: #2f3640; color: #fbc531; }
-    
-    .report-card {
-        background-color: white; padding: 35px; border-radius: 20px;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.15); direction: rtl; text-align: right;
-        border-right: 15px solid #fbc531; margin-bottom: 30px; border-left: 1px solid #dcdde1;
-    }
-    .welcome-card {
-        background: linear-gradient(135deg, #2f3640 0%, #1e272e 100%);
-        padding: 60px; border-radius: 30px; color: #fbc531; text-align: center;
-        box-shadow: 0 20px 40px rgba(0,0,0,0.4); margin-top: 50px;
-    }
-    .title-line { font-size: 30px; font-weight: bold; color: #1e3799; border-bottom: 4px solid #fbc531; padding-bottom: 12px; margin-bottom: 25px; }
-    .section-label { color: #e84118; font-size: 24px; margin-top: 30px; font-weight: bold; border-right: 8px solid #e84118; padding-right: 15px; background: #fff5f5; }
-    .data-line { font-size: 21px; margin: 15px 0; color: #2f3640; font-weight: bold; border-bottom: 1px solid #eee; padding-bottom: 8px; }
-    .highlight-blue { color: #0984e3; }
-    .header-text { color: #2f3640; font-weight: bold; text-align: center; margin-bottom: 40px; font-size: 32px; }
-    </style>
-    """, unsafe_allow_html=True)
+class AluminumMasterApp(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.project_storage = [] 
+        self.initUI()
 
-if 'started' not in st.session_state:
-    st.session_state.started = False
-if 'storage' not in st.session_state:
-    st.session_state.storage = []
+    def initUI(self):
+        self.setWindowTitle('نظام الألومنيوم الاحترافي - م/ ياسين علاء')
+        self.setGeometry(50, 50, 1300, 900)
+        self.setFont(QFont("Segoe UI", 11))
+        self.setStyleSheet("background-color: #ecf0f1;")
 
-# --- 1. واجهة الترحيب البروفيشينال ---
-if not st.session_state.started:
-    st.markdown("""
-        <div class="welcome-card">
-            <h1 style='font-size: 50px; margin-bottom: 10px;'>🏗️ نظام التخصيم الهندسي</h1>
-            <p style='font-size: 28px; color: #f5f6fa;'>إدارة المهندس ياسين علاء</p>
-            <hr style='border: 1px solid #fbc531; width: 40%; margin: 25px auto;'>
-            <p style='font-size: 20px; letter-spacing: 2px;'>دقة تقنية . معايير احترافية . جودة تنفيذ</p>
-        </div>
-    """, unsafe_allow_html=True)
-    st.markdown("<br>", unsafe_allow_html=True)
-    if st.button("🚀 دخول النظام الاحترافي"):
-        st.session_state.started = True
-        st.rerun()
+        main_layout = QVBoxLayout()
 
-# --- 2. واجهة إدخال البيانات المفصلة ---
-else:
-    with st.sidebar:
-        st.markdown("<h2 style='text-align: center;'>⚙️ لوحة التحكم</h2>", unsafe_allow_html=True)
-        if st.button("🗑️ مسح السجل والعودة"):
-            st.session_state.storage = []
-            st.session_state.started = False
-            st.rerun()
-        st.markdown("---")
-        st.write("يتم حفظ جميع التخصيمات في الشيت السفلي.")
+        # --- الهيدر (العنوان العلوي) ---
+        header_label = QLabel("نظام التخصيم الفني | إدارة المهندس ياسين علاء")
+        header_label.setAlignment(Qt.AlignCenter)
+        header_label.setStyleSheet("""
+            background-color: #2c3e50; color: #f1c40f;
+            font-size: 24pt; font-weight: bold; padding: 20px;
+            border-bottom: 5px solid #f1c40f;
+            border-radius: 15px; margin-bottom: 15px;
+        """)
+        main_layout.addWidget(header_label)
 
-    st.markdown("<h2 class='header-text'>📝 مدخلات المواصفات الفنية</h2>", unsafe_allow_html=True)
-    
-    with st.container():
-        st.markdown("### 🏷️ تعريف القطعة")
-        c_title, c_type = st.columns(2)
-        with c_title: u_title = st.text_input("اسم الوحدة / العميل", "وحدة مطبخ")
-        with c_type: u_type = st.selectbox("تصنيف الوحدة الفني", ["وحدة سفلية", "وحدة علوية", "دولاب خزين", "أخرى"])
+        # --- أزرار العمليات الكبرى ---
+        top_btns = QHBoxLayout()
         
-        st.markdown("### 📐 الأبعاد الكلية للوحدة (سم)")
-        m1, m2, m3 = st.columns(3)
-        with m1: w = st.number_input("إجمالي العرض الخارجي", value=None)
-        with m2: h = st.number_input("إجمالي الارتفاع الخارجي", value=None)
-        with m3: d = st.number_input("إجمالي العمق الخارجي", value=None)
+        self.total_btn = QPushButton("📊 جرد خامات المشروع (فاتورة قص)")
+        self.total_btn.setStyleSheet("""
+            QPushButton { background-color: #e67e22; color: white; font-weight: bold; height: 65px; font-size: 15pt; border-radius: 12px; }
+            QPushButton:hover { background-color: #d35400; }
+        """)
+        self.total_btn.clicked.connect(self.show_project_totals)
 
-        st.markdown("---")
-        st.markdown("### 🧱 تفاصيل الإضافات (أرفف - فواصل - أدراج)")
+        self.save_btn = QPushButton("💾 حفظ التخصيم والجرد (PDF/Text)")
+        self.save_btn.setStyleSheet("""
+            QPushButton { background-color: #2980b9; color: white; font-weight: bold; height: 65px; font-size: 15pt; border-radius: 12px; }
+            QPushButton:hover { background-color: #2471a3; }
+        """)
+        self.save_btn.clicked.connect(self.save_project_report)
+
+        top_btns.addWidget(self.total_btn)
+        top_btns.addWidget(self.save_btn)
+        main_layout.addLayout(top_btns)
+
+        # --- منطقة المدخلات ---
+        input_container = QHBoxLayout()
         
-        t1, t2, t3 = st.tabs(["💎 الرفوف", "💎 الفواصل", "💎 الأدراج"])
+        # مجموعة المقاسات الأساسية
+        basic_group = QGroupBox("📏 المقاسات الأساسية")
+        basic_group.setStyleSheet("QGroupBox { font-weight: bold; color: #2c3e50; border: 2px solid #bdc3c7; border-radius: 10px; margin-top: 10px; padding-top: 20px; }")
+        basic_grid = QGridLayout()
         
-        with t1:
-            r1, r2, r3 = st.columns(3)
-            with r1: sh_w_in = st.number_input("عرض الرف الفعلي", value=0.0, key="shw")
-            with r2: sh_d_in = st.number_input("عمق الرف الفعلي", value=0.0, key="shd")
-            with r3: sh_n_in = st.number_input("إجمالي عدد الرفوف", value=0, step=1, key="shn")
-            
-        with t2:
-            v1, v2, v3 = st.columns(3)
-            with v1: dv_h_in = st.number_input("ارتفاع الفاصل الفعلي", value=0.0, key="dvh")
-            with v2: dv_d_in = st.number_input("عمق الفاصل الفعلي", value=0.0, key="dvd")
-            with v3: dv_n_in = st.number_input("إجمالي عدد الفواصل", value=0, step=1, key="dvn")
-            
-        with t3:
-            d1, d2, d3 = st.columns(3)
-            with d1: dr_w_in = st.number_input("عرض الدرج الخارجي", value=0.0, key="drw")
-            with d2: dr_d_in = st.number_input("عمق الدرج الخارجي", value=0.0, key="drd")
-            with d3: dr_n_in = st.number_input("إجمالي عدد الأدراج", value=0, step=1, key="drn")
+        self.unit_title = QLineEdit(); self.unit_title.setPlaceholderText("اسم الوحدة")
+        self.unit_type = QComboBox(); self.unit_type.addItems(["سفلية", "علوية", "دولاب خزين", "وحدة أخرى"])
+        self.w = QLineEdit(); self.w.setPlaceholderText("العرض الكلي (W)")
+        self.h = QLineEdit(); self.h.setPlaceholderText("الارتفاع الكلي (H)")
+        self.d = QLineEdit(); self.d.setPlaceholderText("العمق الكلي (D)")
 
-        if st.button("📊 توليد شيت التخصيم الاحترافي"):
-            if w and h and d:
-                # تطبيق قواعد التخصيم الصارمة (13 سم للسفلي والخزين / 5 سم للباقي)
-                h_c = h - 13 if u_type in ["وحدة سفلية", "دولاب خزين"] else h - 5
-                w_c = w - 5
-                d_c = d - 5
+        # استايل موحد لكل الـ LineEdit
+        input_style = "QLineEdit { padding: 8px; font-size: 12pt; border: 1px solid #bdc3c7; border-radius: 5px; background: white; } QLineEdit:focus { border: 2px solid #f1c40f; }"
+        for widget in [self.unit_title, self.w, self.h, self.d]: widget.setStyleSheet(input_style)
+        self.unit_type.setStyleSheet("QComboBox { padding: 8px; font-size: 12pt; }")
 
-                unit_entry = {
-                    'title': u_title, 'type': u_type, 'w': w, 'h': h, 'd': d,
-                    'h_c': h_c, 'w_c': w_c, 'd_c': d_c,
-                    'sh_w': sh_w_in, 'sh_d': sh_d_in, 'sh_n': sh_n_in,
-                    'dv_h': dv_h_in, 'dv_d': dv_d_in, 'dv_n': dv_n_in,
-                    'dr_w': dr_w_in, 'dr_d': dr_d_in, 'dr_n': dr_n_in
-                }
-                st.session_state.storage.append(unit_entry)
+        basic_grid.addWidget(QLabel("اسم الوحدة:"), 0, 0); basic_grid.addWidget(self.unit_title, 0, 1)
+        basic_grid.addWidget(QLabel("النوع:"), 0, 2); basic_grid.addWidget(self.unit_type, 0, 3)
+        basic_grid.addWidget(QLabel("العرض:"), 1, 0); basic_grid.addWidget(self.w, 1, 1)
+        basic_grid.addWidget(QLabel("الارتفاع:"), 1, 2); basic_grid.addWidget(self.h, 1, 3)
+        basic_grid.addWidget(QLabel("العمق:"), 2, 0); basic_grid.addWidget(self.d, 2, 1)
+        basic_group.setLayout(basic_grid)
+
+        # مجموعة الإضافات (أرفف، فواصل، أدراج)
+        extra_group = QGroupBox("🧱 الإضافات الفنية")
+        extra_group.setStyleSheet("QGroupBox { font-weight: bold; color: #c0392b; border: 2px solid #bdc3c7; border-radius: 10px; margin-top: 10px; padding-top: 20px; }")
+        extra_grid = QGridLayout()
+
+        self.sh_w = QLineEdit(); self.sh_w.setPlaceholderText("الرف (ع)")
+        self.sh_d = QLineEdit(); self.sh_d.setPlaceholderText("الرف (ق)")
+        self.sh_n = QLineEdit(); self.sh_n.setPlaceholderText("العدد")
+        self.dv_h = QLineEdit(); self.dv_h.setPlaceholderText("الفاصل (ت)")
+        self.dv_d = QLineEdit(); self.dv_d.setPlaceholderText("الفاصل (ق)")
+        self.dv_n = QLineEdit(); self.dv_n.setPlaceholderText("العدد")
+        self.dr_w = QLineEdit(); self.dr_w.setPlaceholderText("الدرج (ع)")
+        self.dr_d = QLineEdit(); self.dr_d.setPlaceholderText("الدرج (ق)")
+        self.dr_n = QLineEdit(); self.dr_n.setPlaceholderText("العدد")
+
+        for w_ex in [self.sh_w, self.sh_d, self.sh_n, self.dv_h, self.dv_d, self.dv_n, self.dr_w, self.dr_d, self.dr_n]: w_ex.setStyleSheet(input_style)
+
+        extra_grid.addWidget(QLabel("الرفوف:"), 0, 0); extra_grid.addWidget(self.sh_w, 0, 1); extra_grid.addWidget(self.sh_d, 0, 2); extra_grid.addWidget(self.sh_n, 0, 3)
+        extra_grid.addWidget(QLabel("الفواصل:"), 1, 0); extra_grid.addWidget(self.dv_h, 1, 1); extra_grid.addWidget(self.dv_d, 1, 2); extra_grid.addWidget(self.dv_n, 1, 3)
+        extra_grid.addWidget(QLabel("الأدراج:"), 2, 0); extra_grid.addWidget(self.dr_w, 2, 1); extra_grid.addWidget(self.dr_d, 2, 2); extra_grid.addWidget(self.dr_n, 2, 3)
+        extra_group.setLayout(extra_grid)
+
+        input_container.addWidget(basic_group, 5)
+        input_container.addWidget(extra_group, 5)
+        main_layout.addLayout(input_container)
+
+        # خريطة التنقل (نفس منطقك الأصلي)
+        self.nav_map = [
+            [self.unit_title, self.unit_title, self.unit_type],
+            [self.w, self.h, self.d],
+            [self.sh_w, self.sh_d, self.sh_n],
+            [self.dv_h, self.dv_d, self.dv_n],
+            [self.dr_w, self.dr_d, self.dr_n]
+        ]
+
+        # أزرار الإضافة والمسح
+        btns = QHBoxLayout()
+        self.add_btn = QPushButton("✅ إضافة الوحدة (Enter)")
+        self.add_btn.setStyleSheet("""
+            QPushButton { background-color: #27ae60; color: white; height: 55px; font-weight: bold; font-size: 14pt; border-radius: 10px; }
+            QPushButton:hover { background-color: #219150; }
+        """)
+        self.add_btn.clicked.connect(self.process_unit)
+
+        self.clear_btn = QPushButton("🗑️ تفريغ البيانات")
+        self.clear_btn.setStyleSheet("""
+            QPushButton { background-color: #c0392b; color: white; height: 55px; font-weight: bold; font-size: 14pt; border-radius: 10px; }
+            QPushButton:hover { background-color: #a93226; }
+        """)
+        self.clear_btn.clicked.connect(self.clear_all)
+
+        btns.addWidget(self.add_btn, 7); btns.addWidget(self.clear_btn, 3)
+        main_layout.addLayout(btns)
+
+        # منطقة عرض النتائج والجدول
+        display = QHBoxLayout()
+        self.result_sheet = QTextEdit(); self.result_sheet.setReadOnly(True)
+        self.result_sheet.setStyleSheet("""
+            background-color: white; 
+            border: 3px solid #2c3e50; 
+            border-radius: 10px;
+            font-family: 'Consolas', 'Courier New'; 
+            font-size: 12pt; 
+            padding: 15px;
+        """)
+
+        self.table = QTableWidget(); self.table.setColumnCount(4)
+        self.table.setHorizontalHeaderLabels(["الوحدة", "العرض", "الارتفاع", "العمق"])
+        self.table.setStyleSheet("QTableWidget { background-color: white; border-radius: 10px; border: 1px solid #bdc3c7; }")
+        self.table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self.table.horizontalHeader().setStyleSheet("QHeaderView::section { background-color: #34495e; color: white; font-weight: bold; }")
+
+        display.addWidget(self.result_sheet, 6)
+        display.addWidget(self.table, 4)
+        main_layout.addLayout(display)
+
+        self.setLayout(main_layout)
+
+    # --- (باقي الميثودز زي ما هي بالظبط عشان منطق الحساب ميتغيرش) ---
+
+    def keyPressEvent(self, event):
+        curr = self.focusWidget()
+        r, c = -1, -1
+        for row in range(5):
+            if curr in self.nav_map[row]: r, c = row, self.nav_map[row].index(curr); break
+        if r != -1:
+            if event.key() == Qt.Key_Right: self.nav_map[r][min(c+1, 2)].setFocus()
+            elif event.key() == Qt.Key_Left: self.nav_map[r][max(c-1, 0)].setFocus()
+            elif event.key() == Qt.Key_Down:
+                if r < 4: self.nav_map[r+1][c].setFocus()
+                else: self.add_btn.setFocus()
+            elif event.key() == Qt.Key_Up:
+                if r > 0: self.nav_map[r-1][c].setFocus()
+            elif event.key() == Qt.Key_Return:
+                if r < 4: self.nav_map[r+1][c].setFocus()
+                else: self.process_unit()
+
+    def process_unit(self):
+        try:
+            u = {
+                'title': self.unit_title.text() or "وحدة", 'type': self.unit_type.currentText(),
+                'w': float(self.w.text() or 0), 'h': float(self.h.text() or 0), 'd': float(self.d.text() or 0),
+                'sh_w': float(self.sh_w.text() or 0), 'sh_d': float(self.sh_d.text() or 0), 'sh_n': int(self.sh_n.text() or 0),
+                'dv_h': float(self.dv_h.text() or 0), 'dv_d': float(self.dv_d.text() or 0), 'dv_n': int(self.dv_n.text() or 0),
+                'dr_w': float(self.dr_w.text() or 0), 'dr_d': float(self.dr_d.text() or 0), 'dr_n': int(self.dr_n.text() or 0)
+            }
+            h_baky = u['h'] - 13 if u['type'] in ["سفلية", "دولاب خزين"] else u['h'] - 5
+            w_baky, d_baky = u['w'] - 5, u['d'] - 5
+
+            txt = f"\n📦 {u['title']} | {u['type']} | {u['w']}x{u['h']}x{u['d']}\n"
+            txt += "━" * 55 + "\n"
+            txt += "📐 [1] تخصيم الألومنيوم (2*8):\n"
+            if u['type'] == "سفلية":
+                txt += f"   - ارتفاع {h_baky}: [2 مفرد] [2 متقارب]\n"
+                txt += f"   - عــــرض {w_baky}: [3 مفرد] [1 متقارب]\n"
+                txt += f"   - عمــــق {d_baky}: [2 مفرد] [2 متقارب]\n"
             else:
-                st.error("برجاء إدخال الأبعاد الأساسية أولاً!")
+                txt += f"   - ارتفاع {h_baky}: [2 مفرد] [2 متقارب]\n"
+                txt += f"   - عــــرض {w_baky}: [2 مفرد] [2 متقارب]\n"
+                txt += f"   - عمــــق {d_baky}: [4 متقارب]\n"
 
-    # --- 3. عرض شيت النتائج البروفيشينال ---
-    if st.session_state.storage:
-        st.markdown("<h2 class='header-text'>📋 سجل تقارير التخصيم المعتمدة</h2>", unsafe_allow_html=True)
-        for u in st.session_state.storage:
-            st.markdown(f"""
-            <div class="report-card">
-                <div class="title-line">📄 تقرير فني: {u['title']} ({u['type']})</div>
-                
-                <div class="section-label">🪵 أولاً: شيت قص الفيبر (الخشب/الكلادينج)</div>
-                <div class="data-line">🔹 الضهرية: <span class="highlight-blue">{u['w_c']} × {u['h_c']}</span> (عدد 1)</div>
-                <div class="data-line">🔹 الارضية: <span class="highlight-blue">{u['w_c']} × {u['d_c']}</span> (عدد 1)</div>
-                <div class="data-line">🔹 الاجناب: <span class="highlight-blue">{u['h_c']} × {u['d_c']}</span> (عدد 2)</div>
-            """, unsafe_allow_html=True)
-            
-            # تفاصيل الفيبر للإضافات
+            txt += "\n🪵 [2] تخصيم الفيبر (التقطيع):\n"
+            txt += f"   - ضهرية: {w_baky} × {h_baky} (1)\n"
+            txt += f"   - أرضية: {w_baky} × {d_baky} ({'1' if u['type']=='سفلية' else '2'})\n"
+            txt += f"   - أجناب: {h_baky} × {d_baky} (2)\n"
+
             if u['sh_n'] > 0:
-                st.markdown(f'<div class="data-line">🔹 الارفف (فيبر): <span class="highlight-blue">{u["sh_w"]-5} × {u["sh_d"]-5}</span> (عدد {u["sh_n"]})</div>', unsafe_allow_html=True)
-            if u['dv_n'] > 0:
-                st.markdown(f'<div class="data-line">🔹 الفواصل (فيبر): <span class="highlight-blue">{u["dv_h"]-5} × {u["dv_d"]-5}</span> (عدد {u["dv_n"]})</div>', unsafe_allow_html=True)
-            if u['dr_n'] > 0:
-                st.markdown(f'<div class="data-line">🔹 الأدراج: العرض <span class="highlight-blue">{u["dr_w"]-2.5}</span> | العمق <span class="highlight-blue">{u["dr_d"]}</span> (عدد {u["dr_n"]})</div>', unsafe_allow_html=True)
+                txt += f"\n🧱 [3] الرفوف ({u['sh_n']}):\n"
+                txt += f"   - ألومنيوم: {u['sh_w']} × {u['sh_n']*2} قطعة | {u['sh_d']} × {u['sh_n']*2} قطعة [مفرد]\n"
+                txt += f"   - فيبر الرف: {u['sh_w']-5} × {u['sh_d']-5} ({u['sh_n']} قطعة)\n"
 
-            st.markdown('<div class="section-label">📐 ثانياً: قائمة قص أعواد الألومنيوم (قطاع 2*8)</div>', unsafe_allow_html=True)
-            st.markdown(f'<div class="data-line">🛠️ مقاس الارتفاع الصافي: <span class="highlight-blue">{u["h_c"]} سم</span> (عدد 2 مفرد + 2 متقارب)</div>', unsafe_allow_html=True)
+            if u['dv_n'] > 0:
+                txt += f"\n📐 [4] الفواصل ({u['dv_n']}):\n"
+                txt += f"   - ألومنيوم: {u['dv_h']} × {u['dv_n']*2} قطعة | {u['dv_d']} × {u['dv_n']*2} قطعة [مفرد]\n"
+                txt += f"   - فيبر الفاصل: {u['dv_h']-5} × {u['dv_d']-5} ({u['dv_n']} قطعة)\n"
+
+            if u['dr_n'] > 0:
+                txt += f"\n🗄️ [5] الأدراج ({u['dr_n']}):\n"
+                txt += f"   - ألومنيوم العرض: {u['dr_w']-2.5} × {u['dr_n']*2} | العمق: {u['dr_d']} × {u['dr_n']*2}\n"
+
+            txt += "━" * 55
+            self.result_sheet.append(txt); self.project_storage.append(u)
+            row = self.table.rowCount(); self.table.insertRow(row)
+            self.table.setItem(row, 0, QTableWidgetItem(u['title']))
+            self.table.setItem(row, 1, QTableWidgetItem(str(u['w'])))
+            self.table.setItem(row, 2, QTableWidgetItem(str(u['h'])))
+            self.table.setItem(row, 3, QTableWidgetItem(str(u['d'])))
             
-            # العرض والعمق حسب التصنيف الفني
-            if u['type'] == "وحدة سفلية":
-                st.markdown(f'<div class="data-line">🛠️ مقاس العرض الصافي: <span class="highlight-blue">{u["w_c"]} سم</span> (عدد 3 مفرد + 1 متقارب)</div>', unsafe_allow_html=True)
-                st.markdown(f'<div class="data-line">🛠️ مقاس العمق الصافي: <span class="highlight-blue">{u["d_c"]} سم</span> (عدد 2 مفرد + 2 متقارب)</div>', unsafe_allow_html=True)
+            self.unit_title.clear(); self.w.clear(); self.h.clear(); self.d.clear(); self.unit_title.setFocus()
+        except: QMessageBox.critical(self, "خطأ", "برجاء مراجعة المقاسات")
+
+    def calculate_project_data(self):
+        m_sum, t_sum, f_area = 0, 0, 0
+        for u in self.project_storage:
+            h_b = u['h'] - 13 if u['type'] in ["سفلية", "دولاب خزين"] else u['h'] - 5
+            w_b, d_b = u['w'] - 5, u['d'] - 5
+            if u['type'] == "سفلية":
+                m_sum += (h_b*2)+(w_b*3)+(d_b*2); t_sum += (h_b*2)+(w_b*1)+(d_b*2)
+                f_area += (w_b*h_b) + (w_b*d_b) + (h_b*d_b*2)
             else:
-                st.markdown(f'<div class="data-line">🛠️ مقاس العرض الصافي: <span class="highlight-blue">{u["w_c"]} سم</span> (عدد 2 مفرد + 2 متقارب)</div>', unsafe_allow_html=True)
-                st.markdown(f'<div class="data-line">🛠️ مقاس العمق الصافي: <span class="highlight-blue">{u["d_c"]} سم</span> (عدد 4 متقارب)</div>', unsafe_allow_html=True)
-            
-            # ألومنيا الإضافات
-            if u['sh_n'] > 0 or u['dv_n'] > 0:
-                count = (u['sh_n'] + u['dv_n']) * 4
-                st.markdown(f'<div class="data-line">🛠️ ألومنيا الرفوف/الفواصل: <span class="highlight-blue">{u["d_c"]} سم</span> (عدد {count} قطعة مفرد)</div>', unsafe_allow_html=True)
-            
-            st.markdown("</div>", unsafe_allow_html=True)
+                m_sum += (h_b*2)+(w_b*2); t_sum += (
