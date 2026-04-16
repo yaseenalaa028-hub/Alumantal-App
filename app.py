@@ -8,112 +8,135 @@ st.set_page_config(page_title="DOGGA SYSTEM | م/ ياسين علاء", layout="
 if 'project_list' not in st.session_state:
     st.session_state.project_list = []
 
-# --- التصميم (CSS) ---
+# --- التصميم (CSS) - تقليل حجم اللوجو وتنسيق الجداول ---
 st.markdown("""
     <style>
     .stApp { direction: rtl !important; text-align: right; }
-    .unit-card { border-right: 10px solid #f1c40f; padding: 15px; background: #1c1f26; border-radius: 10px; margin-bottom: 20px; }
-    .section-head { color: #f1c40f; border-bottom: 1px solid #f1c40f; margin-bottom: 10px; }
+    /* تصغير اللوجو */
+    .mini-logo {
+        border: 1px solid #f1c40f;
+        padding: 5px 15px;
+        border-radius: 5px;
+        display: inline-block;
+        margin-bottom: 10px;
+    }
+    .unit-card { border-right: 5px solid #f1c40f; padding: 10px; background: #1c1f26; border-radius: 8px; margin-bottom: 15px; }
+    .inventory-box { background-color: #f1c40f; color: #000; padding: 15px; border-radius: 10px; font-weight: bold; }
+    header, footer { visibility: hidden; }
     </style>
 """, unsafe_allow_html=True)
 
-st.title("🛠️ منظومة DOGGA SYSTEM للتخصيم الفني")
-st.caption("تطوير المهندس ياسين علاء")
+# لوجو صغير في الأعلى
+st.markdown('<div class="mini-logo"><b style="color:#f1c40f;">DOGGA SYSTEM</b> | م/ ياسين علاء</div>', unsafe_allow_html=True)
 
-# --- مدخلات البيانات ---
-with st.expander("📝 إضافة وحدة جديدة", expanded=True):
-    c1, c2, c3 = st.columns(3)
-    with c1:
-        u_name = st.text_input("اسم/كود الوحدة")
+# --- خانات الإدخال بالترتيب الجديد ---
+with st.container():
+    st.subheader("📝 إدخال بيانات الوحدة")
+    r1_c1, r1_c2, r1_c3, r1_c4, r1_c5 = st.columns([2, 2, 1, 1, 1])
+    
+    with r1_c1:
+        u_name = st.text_input("اسم العميل / كود الوحدة")
+    with r1_c2:
         u_type = st.selectbox("نوع الوحدة", ["وحدة سفلية", "وحدة علوية / أخرى", "دولاب خزين"])
-    with c2:
-        w_in = st.number_input("العرض الكلي (سم)", value=0.0)
-        h_in = st.number_input("الارتفاع الكلي (سم)", value=0.0)
-    with c3:
-        d_in = st.number_input("العمق الكلي (سم)", value=0.0)
+    with r1_c3:
+        w_in = st.number_input("العرض (W)", value=0.0)
+    with r1_c4:
+        h_in = st.number_input("الارتفاع (H)", value=0.0)
+    with r1_c5:
+        d_in = st.number_input("العمق (D)", value=0.0)
 
     st.markdown("---")
-    cx, cy, cz = st.columns(3)
-    with cx:
-        sh_n = st.number_input("عدد الأرفف", value=0, step=1)
-        sh_w = st.number_input("عرض الرف", value=0.0)
-        sh_d = st.number_input("عمق الرف", value=0.0)
-    with cy:
-        v_n = st.number_input("عدد الفواصل", value=0, step=1)
-        v_h = st.number_input("ارتفاع الفاصل", value=0.0)
-        v_d = st.number_input("عمق الفاصل", value=0.0)
-    with cz:
-        dr_n = st.number_input("عدد الأدراج", value=0, step=1)
-        dr_w = st.number_input("عرض الدرج", value=0.0)
-        dr_d = st.number_input("عمق الدرج", value=0.0)
+    # خانات الرفوف والأدراج والفواصل
+    r2_c1, r2_c2, r2_c3 = st.columns(3)
+    with r2_c1:
+        st.caption("➕ الأرفف")
+        sh_n = st.number_input("العدد", key="shn", value=0)
+        sh_w = st.number_input("عرض الرف", key="shw", value=0.0)
+        sh_d = st.number_input("عمق الرف", key="shd", value=0.0)
+    with r2_c2:
+        st.caption("➕ الفواصل")
+        v_n = st.number_input("العدد", key="vn", value=0)
+        v_h = st.number_input("ارتفاع الفاصل", key="vh", value=0.0)
+        v_d = st.number_input("عمق الفاصل", key="vd", value=0.0)
+    with r2_c3:
+        st.caption("➕ الأدراج")
+        dr_n = st.number_input("العدد", key="drn", value=0)
+        dr_w = st.number_input("عرض الدرج", key="drw", value=0.0)
+        dr_d = st.number_input("عمق الدرج", key="drd", value=0.0)
 
-    if st.button("🚀 تنفيذ التخصيم وحفظ الوحدة", use_container_width=True):
+    if st.button("✅ حفظ وتخصيم الوحدة", use_container_width=True):
         if w_in > 0 and h_in > 0:
-            # 1. حسابات الألومنيوم الأساسية
-            # السفلية ودولاب الخزين يشيلوا 13 سم من الارتفاع، الباقي 5 سم
+            # الحسابات بناءً على القائمة اللي بعتها
             h_ded = 13 if (u_type == "وحدة سفلية" or u_type == "دولاب خزين") else 5
-            h_net = h_in - h_ded
-            w_net = w_in - 5
-            d_net = d_in - 5
+            h_net, w_net, d_net = int(h_in - h_ded), int(w_in - 5), int(d_in - 5)
 
-            # توزيع الألومنيوم (مفرد ومتقارب)
+            # 1. تخصيم الألومنيوم
             if u_type == "وحدة سفلية":
-                alum_data = [
-                    {"البيان": "قوايم الارتفاع", "المقاس": h_net, "مفرد": 2, "متقارب": 2},
-                    {"البيان": "عوارض العرض", "المقاس": w_net, "مفرد": 3, "متقارب": 1},
-                    {"البيان": "عوارض العمق", "المقاس": d_net, "مفرد": 2, "متقارب": 2}
+                alum_list = [
+                    ["قوايم ارتفاع", h_net, 2, 2],
+                    ["عوارض عرض", w_net, 3, 1],
+                    ["عوارض عمق", d_net, 2, 2]
                 ]
             else:
-                alum_data = [
-                    {"البيان": "قوايم الارتفاع", "المقاس": h_net, "مفرد": 2, "متقارب": 2},
-                    {"البيان": "عوارض العرض", "المقاس": w_net, "مفرد": 2, "متقارب": 2},
-                    {"البيان": "عوارض العمق", "المقاس": d_net, "مفرد": 0, "متقارب": 4}
+                alum_list = [
+                    ["قوايم ارتفاع", h_net, 2, 2],
+                    ["عوارض عرض", w_net, 2, 2],
+                    ["عوارض عمق", d_net, 0, 4]
                 ]
+            
+            # إضافة الرفوف والفواصل (ألومنيوم 4 قطع لكل وحدة)
+            if sh_n > 0: alum_list.append([f"أعواد رفوف ({sh_n})", f"ع:{int(sh_w)}/عق:{int(sh_d)}", sh_n*4, 0])
+            if v_n > 0: alum_list.append([f"أعواد فواصل ({v_n})", int(v_h), v_n*4, 0])
+            if dr_n > 0: alum_list.append([f"براويز أدراج ({dr_n})", f"ع:{dr_w-2.5}/عق:{dr_d}", dr_n*4, 0])
 
-            # إضافات الأرفف والفواصل (العدد في 4 ألومنيوم)
-            if sh_n > 0: alum_data.append({"البيان": f"أعواد أرفف ({sh_n})", "المقاس": f"ع:{int(sh_w)}/عق:{int(sh_d)}", "مفرد": sh_n*4, "متقارب": 0})
-            if v_n > 0: alum_data.append({"البيان": f"أعواد فواصل ({v_n})", "المقاس": f"{int(v_h)}", "مفرد": v_n*4, "متقارب": 0})
-            if dr_n > 0: 
-                # تخصيم الدرج: العرض -2.5 والعمق كما هو
-                alum_data.append({"البيان": f"براويز أدراج ({dr_n})", "المقاس": f"ع:{dr_w-2.5}/عق:{dr_d}", "مفرد": dr_n*4, "متقارب": 0})
-
-            # 2. حسابات الفيبر
-            fiber_data = [
-                {"القطعة": "الظهرية", "المقاس": f"{int(w_net)} × {int(h_net)}", "العدد": 1},
-                {"القطعة": "الأرضية", "المقاس": f"{int(w_net)} × {int(d_net)}", "العدد": 1},
-                {"القطعة": "الأجناب", "المقاس": f"{int(h_net)} × {int(d_net)}", "العدد": 2}
+            # 2. تخصيم الفيبر
+            fiber_list = [
+                ["الظهرية", f"{w_net} × {h_net}", 1],
+                ["الأرضية", f"{w_net} × {d_net}", 1],
+                ["الأجناب", f"{h_net} × {d_net}", 2]
             ]
-            if sh_n > 0: fiber_data.append({"القطعة": "فيبر أرفف", "المقاس": f"{int(sh_w-5)} × {int(sh_d-5)}", "العدد": sh_n})
-            if v_n > 0: fiber_data.append({"القطعة": "فيبر فواصل", "المقاس": f"{int(v_h-5)} × {int(v_d-5)}", "العدد": v_n})
+            if sh_n > 0: fiber_list.append(["فيبر أرفف", f"{int(sh_w-5)} × {int(sh_d-5)}", sh_n])
+            if v_n > 0: fiber_list.append(["فيبر فواصل", f"{int(v_h-5)} × {int(v_d-5)}", v_n])
 
-            # حفظ البيانات
             st.session_state.project_list.append({
-                "info": f"{u_name} ({u_type}) - {w_in}x{h_in}x{d_in}",
-                "alum": pd.DataFrame(alum_data),
-                "fiber": pd.DataFrame(fiber_data),
-                "total_m": (h_net*4 + w_net*4 + d_net*4) / 100 # تقريبي للمتر
+                "client": u_name,
+                "type": u_type,
+                "dims": f"{w_in}x{h_in}x{d_in}",
+                "alum": pd.DataFrame(alum_list, columns=["البيان", "المقاس", "مفرد", "متقارب"]),
+                "fiber": pd.DataFrame(fiber_list, columns=["القطعة", "المقاس", "العدد"]),
+                "raw_m": (h_net*4 + w_net*4 + d_net*4) # للجرد الكلي
             })
             st.rerun()
 
-# --- عرض النتائج وفاتورة الخامات ---
+# --- عرض النتائج والقائمة الخارجية ---
 if st.session_state.project_list:
-    st.write("---")
-    st.header("📋 شيت التفصيل الكامل")
+    st.divider()
     
-    for item in st.session_state.project_list:
-        with st.container():
-            st.markdown(f'<div class="unit-card"><b>📌 {item["info"]}</b></div>', unsafe_allow_html=True)
-            col_alum, col_fiber = st.columns([3, 2])
-            with col_alum:
-                st.markdown("**🔍 تخصيم الألومنيوم**")
-                st.table(item['alum'])
-            with col_fiber:
-                st.markdown("**✨ تخصيم الفيبر**")
-                st.table(item['fiber'])
+    # القائمة الخارجية (الجرد الكلي للمشروع)
+    st.subheader("📊 قائمة جرد خامات المشروع (فاتورة المورد)")
+    total_rods = sum([x['raw_m'] for x in st.session_state.project_list]) / 600
+    
+    c_inv1, c_inv2 = st.columns(2)
+    with c_inv1:
+        st.markdown(f'<div class="inventory-box">إجمالي الألومنيوم المطلوب: {round(total_rods, 1)} عود (6 متر)</div>', unsafe_allow_html=True)
+    with c_inv2:
+        total_fiber_units = len(st.session_state.project_list)
+        st.markdown(f'<div class="inventory-box">عدد الوحدات الجاري تفصيلها: {total_fiber_units} وحدة</div>', unsafe_allow_html=True)
 
     st.write("---")
-    if st.button("🗑️ مسح جميع البيانات"):
+    
+    # تفاصيل كل وحدة
+    for i, item in enumerate(st.session_state.project_list):
+        with st.container():
+            st.markdown(f'<div class="unit-card"><b>وحدة #{i+1}: {item["client"]} | {item["type"]} | {item["dims"]}</b></div>', unsafe_allow_html=True)
+            res_c1, res_c2 = st.columns([3, 2])
+            with res_c1:
+                st.table(item['alum'])
+            with res_c2:
+                st.table(item['fiber'])
+
+    if st.button("🗑️ تفريغ المشروع بالكامل"):
         st.session_state.project_list = []
         st.rerun()
 
-st.markdown("<p style='text-align:center;'>DOGGA SYSTEM 2026 | المهندس ياسين علاء</p>", unsafe_allow_html=True)
+st.markdown("<br><p style='text-align:center; font-size:0.8em;'>DOGGA SYSTEM 2026 | م/ ياسين علاء</p>", unsafe_allow_html=True)
