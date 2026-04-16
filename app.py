@@ -1,4 +1,4 @@
-\import sys
+import sys
 from PyQt5.QtWidgets import (QApplication, QWidget, QVBoxLayout, QHBoxLayout, 
                              QLabel, QLineEdit, QPushButton, QTextEdit, 
                              QComboBox, QGroupBox, QTableWidget, QTableWidgetItem, 
@@ -6,6 +6,7 @@ from PyQt5.QtWidgets import (QApplication, QWidget, QVBoxLayout, QHBoxLayout,
 from PyQt5.QtGui import QFont
 from PyQt5.QtCore import Qt
 
+# --- 1. نافذة جرد الخامات (الفاتورة) ---
 class SummaryDialog(QDialog):                                                 
     def __init__(self, report):
         super().__init__()
@@ -19,6 +20,7 @@ class SummaryDialog(QDialog):
         layout.addWidget(view)
         self.setLayout(layout)
 
+# --- 2. البرنامج الرئيسي ---
 class AluminumMasterApp(QWidget):
     def __init__(self):
         super().__init__()
@@ -33,6 +35,7 @@ class AluminumMasterApp(QWidget):
 
         main_layout = QVBoxLayout()
 
+        # العنوان العلوي
         header_label = QLabel("نظام التخصيم الفني | إدارة المهندس ياسين علاء")
         header_label.setAlignment(Qt.AlignCenter)
         header_label.setStyleSheet("""
@@ -42,6 +45,7 @@ class AluminumMasterApp(QWidget):
         """)
         main_layout.addWidget(header_label)
 
+        # أزرار التقارير
         top_btns = QHBoxLayout()
         self.total_btn = QPushButton("📊 جرد خامات المشروع (فاتورة قص)")
         self.total_btn.setStyleSheet("background-color: #d35400; color: white; font-weight: bold; height: 60px; font-size: 14pt; border-radius: 10px;")
@@ -66,13 +70,14 @@ class AluminumMasterApp(QWidget):
         self.h = QLineEdit(); self.h.setPlaceholderText("الارتفاع الكلي")
         self.d = QLineEdit(); self.d.setPlaceholderText("العمق الكلي")
         
-        # الإضافات
         self.sh_w = QLineEdit(); self.sh_w.setPlaceholderText("الرف (عرض)")
         self.sh_d = QLineEdit(); self.sh_d.setPlaceholderText("الرف (عمق)")
         self.sh_n = QLineEdit(); self.sh_n.setPlaceholderText("الرفوف (عدد)")
+        
         self.dv_h = QLineEdit(); self.dv_h.setPlaceholderText("الفاصل (ارتفاع)")
         self.dv_d = QLineEdit(); self.dv_d.setPlaceholderText("الفاصل (عمق)")
         self.dv_n = QLineEdit(); self.dv_n.setPlaceholderText("الفواصل (عدد)")
+        
         self.dr_w = QLineEdit(); self.dr_w.setPlaceholderText("الدرج (عرض)")
         self.dr_d = QLineEdit(); self.dr_d.setPlaceholderText("الدرج (عمق)")
         self.dr_n = QLineEdit(); self.dr_n.setPlaceholderText("الأدراج (عدد)")
@@ -85,8 +90,10 @@ class AluminumMasterApp(QWidget):
         input_group.setLayout(grid)
         main_layout.addWidget(input_group)
 
+        # خريطة التنقل بالأسهم
         self.nav_map = [[self.unit_title, self.unit_title, self.unit_type], [self.w, self.h, self.d], [self.sh_w, self.sh_d, self.sh_n], [self.dv_h, self.dv_d, self.dv_n], [self.dr_w, self.dr_d, self.dr_n]]
 
+        # أزرار التحكم
         btns = QHBoxLayout()
         self.add_btn = QPushButton("✅ إضافة للجدول (Enter)")
         self.add_btn.setStyleSheet("background-color: #27ae60; color: white; height: 50px; font-weight: bold; border-radius: 8px;")
@@ -97,6 +104,7 @@ class AluminumMasterApp(QWidget):
         btns.addWidget(self.add_btn); btns.addWidget(self.clear_btn)
         main_layout.addLayout(btns)
 
+        # عرض النتائج
         display = QHBoxLayout()
         self.result_sheet = QTextEdit(); self.result_sheet.setReadOnly(True)
         self.result_sheet.setStyleSheet("background-color: #ffffff; border: 2px solid #2ecc71; font-family: 'Courier New'; font-size: 11pt; padding: 10px;")
@@ -134,6 +142,7 @@ class AluminumMasterApp(QWidget):
                 'dv_h': float(self.dv_h.text() or 0), 'dv_d': float(self.dv_d.text() or 0), 'dv_n': int(self.dv_n.text() or 0),
                 'dr_w': float(self.dr_w.text() or 0), 'dr_d': float(self.dr_d.text() or 0), 'dr_n': int(self.dr_n.text() or 0)
             }
+            # معادلات التخصيم (المتردد عليها)
             h_baky = u['h'] - 13 if u['type'] in ["سفلية", "دولاب خزين"] else u['h'] - 5
             w_baky, d_baky = u['w'] - 5, u['d'] - 5
 
@@ -156,12 +165,12 @@ class AluminumMasterApp(QWidget):
 
             if u['sh_n'] > 0:
                 txt += f"\n🧱 [3] الرفوف ({u['sh_n']}):\n"
-                txt += f"  - ألومنيوم: {u['sh_w']} × {u['sh_n']*2} قطعة | {u['sh_d']} × {u['sh_n']*2} قطعة [مفرد]\n"
+                txt += f"  - ألومنيوم: {u['sh_w']} × {u['sh_n']*2} | {u['sh_d']} × {u['sh_n']*2} [مفرد]\n"
                 txt += f"  - فيبر الرف: {u['sh_w']-5} × {u['sh_d']-5} ({u['sh_n']} قطعة)\n"
 
             if u['dv_n'] > 0:
                 txt += f"\n📐 [4] الفواصل ({u['dv_n']}):\n"
-                txt += f"  - ألومنيوم: {u['dv_h']} × {u['dv_n']*2} قطعة | {u['dv_d']} × {u['dv_n']*2} قطعة [مفرد]\n"
+                txt += f"  - ألومنيوم: {u['dv_h']} × {u['dv_n']*2} | {u['dv_d']} × {u['dv_n']*2} [مفرد]\n"
                 txt += f"  - فيبر الفاصل: {u['dv_h']-5} × {u['dv_d']-5} ({u['dv_n']} قطعة)\n"
 
             if u['dr_n'] > 0:
@@ -184,12 +193,10 @@ class AluminumMasterApp(QWidget):
             h_b = u['h'] - 13 if u['type'] in ["سفلية", "دولاب خزين"] else u['h'] - 5
             w_b, d_b = u['w'] - 5, u['d'] - 5
             if u['type'] == "سفلية":
-                m_sum += (h_b*2)+(w_b*3)+(d_b*2)
-                t_sum += (h_b*2)+(w_b*1)+(d_b*2)
+                m_sum += (h_b*2)+(w_b*3)+(d_b*2); t_sum += (h_b*2)+(w_b*1)+(d_b*2)
                 f_area += (w_b*h_b) + (w_b*d_b) + (h_b*d_b*2)
             else:
-                m_sum += (h_b*2)+(w_b*2)
-                t_sum += (h_b*2)+(w_b*2)+(d_b*4)
+                m_sum += (h_b*2)+(w_b*2); t_sum += (h_b*2)+(w_b*2)+(d_b*4)
                 f_area += (w_b*h_b) + (w_b*d_b*2) + (h_b*d_b*2)
             
             m_sum += (u['sh_w']*2 + u['sh_d']*2) * u['sh_n']
