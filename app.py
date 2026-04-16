@@ -3,9 +3,9 @@ import pandas as pd
 import math
 
 # ==========================================
-# 1. الإعدادات وتصميم الواجهة (UI)
+# 1. إعدادات المنظومة والواجهة
 # ==========================================
-st.set_page_config(page_title="DOGGA SYSTEM PRO", layout="wide")
+st.set_page_config(page_title="DOGGA PRO SYSTEM", layout="wide")
 
 if 'project_list' not in st.session_state: st.session_state.project_list = []
 if 'dark_mode' not in st.session_state: st.session_state.dark_mode = True
@@ -18,13 +18,12 @@ st.markdown(f"""
     .main {{ direction: rtl !important; text-align: right; }}
     .stApp {{ background-color: {"#0e1117" if st.session_state.dark_mode else "#ffffff"}; }}
     .section-header {{ 
-        background: {accent}; color: #000; padding: 10px; 
-        border-radius: 8px; font-weight: bold; margin: 20px 0;
-        text-align: center;
+        background: {accent}; color: #000; padding: 12px; 
+        border-radius: 10px; font-weight: bold; margin: 20px 0; text-align: center;
     }}
     .unit-box {{ 
         background: {bg_card}; border: 1px solid {accent}; 
-        padding: 15px; border-radius: 10px; margin-bottom: 10px;
+        padding: 15px; border-radius: 10px; margin-bottom: 15px;
     }}
     </style>
 """, unsafe_allow_html=True)
@@ -38,7 +37,7 @@ with h2:
         st.rerun()
 
 # ==========================================
-# 2. منطقة إدخال البيانات (Sidebar)
+# 2. منطقة الإدخال (Sidebar) - بدون أصفار
 # ==========================================
 with st.sidebar:
     st.markdown(f"<h3 style='color:{accent};'>➕ إضافة وحدة جديدة</h3>", unsafe_allow_html=True)
@@ -49,7 +48,6 @@ with st.sidebar:
         st.write("---")
         st.write("📐 الأبعاد الأساسية")
         c1, c2, c3 = st.columns(3)
-        # تم ضبط value=None لإزالة الصفر
         W = c1.number_input("العرض", value=None, placeholder="0")
         H = c2.number_input("الارتفاع", value=None, placeholder="0")
         D = c3.number_input("العمق", value=None, placeholder="0")
@@ -61,13 +59,15 @@ with st.sidebar:
             st.divider()
             v_n = st.number_input("عدد الفواصل", min_value=0, value=0)
             v_h = st.number_input("ارتفاع الفاصل", value=None, placeholder="0")
+            v_d = st.number_input("عمق الفاصل", value=None, placeholder="0")
             st.divider()
             dr_n = st.number_input("عدد الأدراج", min_value=0, value=0)
-            dr_w = st.number_input("عرض الدرج", value=None, placeholder="0")
+            dr_w = st.number_input("عرض برواز الدرج", value=None, placeholder="0")
             dr_d = st.number_input("عمق الدرج", value=None, placeholder="0")
 
-        if st.form_submit_button("✅ حفظ وتخصيم", use_container_width=True):
+        if st.form_submit_button("✅ حفظ وحساب التخصيم", use_container_width=True):
             if W and H and D:
+                # منطق التخصيم الثابت
                 h_ded = 13 if u_type in ["وحدة سفلية", "دولاب خزين"] else 5
                 hn, wn, dn = H - h_ded, W - 5, D - 5
                 
@@ -79,12 +79,12 @@ with st.sidebar:
                     ["وزرة / فرشة", int(wn), 1 if u_type == "وحدة سفلية" else 0, "متقارب"]
                 ]
                 
-                if sh_n > 0 and sh_w and sh_d: 
-                    alum.append([f"أعواد أرفف ({sh_n})", int(sh_w), int(sh_n*4), "مفرد"])
-                if v_n > 0 and v_h: 
-                    alum.append([f"أعواد فواصل ({v_n})", int(v_h), int(v_n*4), "مفرد"])
-                if dr_n > 0 and dr_w and dr_d: 
-                    alum.append([f"براويز درج ({dr_n})", int(dr_w - 2.5), int(dr_n*4), "مفرد"])
+                if sh_n > 0: 
+                    alum.append([f"أعواد أرفف ({sh_n})", int(sh_w if sh_w else 0), int(sh_n*4), "مفرد"])
+                if v_n > 0: 
+                    alum.append([f"أعواد فواصل ({v_n})", int(v_h if v_h else 0), int(v_n*4), "مفرد"])
+                if dr_n > 0: 
+                    alum.append([f"براويز درج ({dr_n})", int((dr_w if dr_w else 0) - 2.5), int(dr_n*4), "مفرد"])
 
                 # تخصيم الفيبر
                 fiber = [
@@ -92,8 +92,7 @@ with st.sidebar:
                     ["أرضية", f"{int(wn)}x{int(dn)}", 1],
                     ["أجناب", f"{int(hn)}x{int(dn)}", 2]
                 ]
-                if sh_n > 0 and sh_w and sh_d: 
-                    fiber.append(["فيبر أرفف", f"{int(sh_w-0.5)}x{int(sh_d-0.5)}", sh_n])
+                if sh_n > 0: fiber.append(["فيبر أرفف", f"{int((sh_w if sh_w else 0.5)-0.5)}x{int((sh_d if sh_d else 0.5)-0.5)}", sh_n])
 
                 st.session_state.project_list.append({
                     "client": u_client if u_client else "بدون اسم",
@@ -107,7 +106,7 @@ with st.sidebar:
         st.rerun()
 
 # ==========================================
-# 3. عرض النتائج والجرد الاحترافي
+# 3. عرض النتائج والجرد الاحترافي المنفصل
 # ==========================================
 if not st.session_state.project_list:
     st.info("👈 ابدأ بإضافة الوحدات من القائمة الجانبية")
@@ -121,30 +120,30 @@ else:
             for row in unit.get("alum", []):
                 item = {"المقاس": row[1], "العدد": row[2]}
                 if row[3] == "مفرد": muf_list.append(item)
-                else: mut_list.append(item)
+                elif row[3] == "متقارب": mut_list.append(item)
             for row in unit.get("fiber", []):
                 fib_list.append({"البيان": row[0], "المقاس": row[1], "العدد": row[2]})
 
         c_muf, c_mut, c_fib = st.columns(3)
         
         with c_muf:
-            st.markdown("<div class='section-header'>📋 جرد المفرد</div>", unsafe_allow_html=True)
+            st.markdown("<div class='section-header'>📋 جرد المــفـرد</div>", unsafe_allow_html=True)
             if muf_list:
                 df_muf = pd.DataFrame(muf_list).groupby("المقاس").sum().reset_index()
                 st.table(df_muf)
                 total_muf = (df_muf['المقاس'] * df_muf['العدد']).sum()
-                st.success(f"الأعواد: {math.ceil(total_muf/600)} (6م)")
+                st.success(f"إجمالي: {total_muf/100:.2f}م | {math.ceil(total_muf/600)} عود")
 
         with c_mut:
-            st.markdown("<div class='section-header'>📋 جرد المتقارب</div>", unsafe_allow_html=True)
+            st.markdown("<div class='section-header'>📋 جرد المـتقارب</div>", unsafe_allow_html=True)
             if mut_list:
                 df_mut = pd.DataFrame(mut_list).groupby("المقاس").sum().reset_index()
                 st.table(df_mut)
                 total_mut = (df_mut['المقاس'] * df_mut['العدد']).sum()
-                st.success(f"الأعواد: {math.ceil(total_mut/600)} (6م)")
+                st.success(f"إجمالي: {total_mut/100:.2f}م | {math.ceil(total_mut/600)} عود")
 
         with c_fib:
-            st.markdown("<div class='section-header'>🖼️ جرد الفيبر</div>", unsafe_allow_html=True)
+            st.markdown("<div class='section-header'>🖼️ جرد الفيـبـر</div>", unsafe_allow_html=True)
             if fib_list:
                 st.table(pd.DataFrame(fib_list))
 
