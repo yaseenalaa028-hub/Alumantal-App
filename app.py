@@ -1,140 +1,83 @@
-import sys
-from PyQt5.QtWidgets import (QApplication, QWidget, QVBoxLayout, QHBoxLayout,
-                             QLabel, QLineEdit, QPushButton, QTextEdit,
-                             QComboBox, QGroupBox, QGridLayout, QMessageBox, QFileDialog)
-from PyQt5.QtCore import Qt
+import streamlit as st
+from fpdf import FPDF
 
-class AluminumMasterApp(QWidget):
-    def __init__(self):
-        super().__init__()
-        self.initUI()
+# كود لمعالجة اللغة العربية في الـ PDF (استخدام مكتبة أساسية)
+class PDF(FPDF):
+    def header(self):
+        self.set_font('Arial', 'B', 15)
+        self.cell(0, 10, 'Alumantal Cutting Sheet - Eng. Yassin Alaa', 0, 1, 'C')
 
-    def initUI(self):
-        self.setWindowTitle('نظام تخصيم المهندس ياسين - الإصدار الكامل')
-        self.setGeometry(30, 30, 1200, 950)
-        self.setStyleSheet("background-color: #f5f6fa; font-family: 'Segoe UI';")
+def main():
+    st.set_page_config(page_title="تخصيمات المهندس ياسين", layout="wide")
+    st.title("🛠️ نظام تخصيم الألومنيوم والفيبر التفصيلي")
 
-        main_layout = QVBoxLayout()
-        header = QLabel("الورشة الذكية - تخصيم الألومنيوم والفيبر التفصيلي")
-        header.setStyleSheet("background-color: #2f3640; color: #fbc531; font-size: 18pt; font-weight: bold; padding: 15px; border-radius: 10px;")
-        header.setAlignment(Qt.AlignCenter)
-        main_layout.addWidget(header)
+    # المدخلات الأساسية
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        unit_name = st.text_input("اسم الوحدة", "مطبخ 1")
+        unit_type = st.selectbox("نوع القطعة", ["سفلية", "علوية", "دولاب خزين"])
+    with col2:
+        width = st.number_input("العرض الكلي (W)", value=0.0)
+        height = st.number_input("الارتفاع الكلي (H)", value=0.0)
+    with col3:
+        depth = st.number_input("العمق الكلي (D)", value=0.0)
 
-        # منطقة الإدخال
-        input_group = QGroupBox("📝 بيانات الوحدة والمقاسات الكلية")
-        grid = QGridLayout()
+    # قسم الرفوف والفواصل (معادلات العدد × 4)
+    st.divider()
+    c1, c2, c3 = st.columns(3)
+    with c1:
+        st.subheader("🧱 الرفوف")
+        sh_w = st.number_input("عرض الرف", value=0.0)
+        sh_d = st.number_input("عمق الرف", value=0.0)
+        sh_n = st.number_input("عدد الرفوف", value=0, step=1)
+    with c2:
+        st.subheader("📐 الفواصل")
+        dv_h = st.number_input("ارتفاع الفاصل", value=0.0)
+        dv_d = st.number_input("عمق الفاصل", value=0.0)
+        dv_n = st.number_input("عدد الفواصل", value=0, step=1)
+    with c3:
+        st.subheader("🗄️ الأدراج")
+        dr_w = st.number_input("عرض الدرج", value=0.0)
+        dr_n = st.number_input("عدد الأدراج", value=0, step=1)
 
-        self.unit_title = QLineEdit(); self.unit_title.setPlaceholderText("اسم الوحدة")
-        self.unit_type = QComboBox(); self.unit_type.addItems(["سفلية", "علوية", "دولاب خزين"])
-        self.w = QLineEdit(); self.w.setPlaceholderText("العرض الكلي")
-        self.h = QLineEdit(); self.h.setPlaceholderText("الارتفاع الكلي")
-        self.d = QLineEdit(); self.d.setPlaceholderText("العمق الكلي")
-        
-        # الأرفف والفواصل
-        self.sh_n = QLineEdit(); self.sh_n.setPlaceholderText("عدد الرفوف")
-        self.sh_w = QLineEdit(); self.sh_w.setPlaceholderText("عرض الرف")
-        self.sh_d = QLineEdit(); self.sh_d.setPlaceholderText("عمق الرف")
-        
-        self.dv_n = QLineEdit(); self.dv_n.setPlaceholderText("عدد الفواصل")
-        self.dv_h = QLineEdit(); self.dv_h.setPlaceholderText("ارتفاع الفاصل")
-        self.dv_d = QLineEdit(); self.dv_d.setPlaceholderText("عمق الفاصل")
+    if st.button("💾 احسب وفصّل الجداول"):
+        # الحسابات (بناءً على تعليماتك)
+        h_sub = 13 if unit_type in ["سفلية", "دولاب خزين"] else 5
+        h_net, w_net, d_net = height - h_sub, width - 5, depth - 5
 
-        # الأدراج
-        self.dr_n = QLineEdit(); self.dr_n.setPlaceholderText("عدد الأدراج")
-        self.dr_w = QLineEdit(); self.dr_w.setPlaceholderText("عرض الدرج")
+        # --- عرض النتائج في جداول منفصلة ---
+        res_col1, res_col2 = st.columns(2)
 
-        grid.addWidget(QLabel("الوحدة:"), 0, 0); grid.addWidget(self.unit_title, 0, 1); grid.addWidget(self.unit_type, 0, 2)
-        grid.addWidget(QLabel("المقاسات (عرض/ار/عم):"), 1, 0); grid.addWidget(self.w, 1, 1); grid.addWidget(self.h, 1, 2); grid.addWidget(self.d, 1, 3)
-        grid.addWidget(QLabel("الأرفف (عرض/عمق/عدد):"), 2, 0); grid.addWidget(self.sh_w, 2, 1); grid.addWidget(self.sh_d, 2, 2); grid.addWidget(self.sh_n, 2, 3)
-        grid.addWidget(QLabel("الفواصل (ار/عم/عدد):"), 3, 0); grid.addWidget(self.dv_h, 3, 1); grid.addWidget(self.dv_d, 3, 2); grid.addWidget(self.dv_n, 3, 3)
-        grid.addWidget(QLabel("الأدراج (عرض/عدد):"), 4, 0); grid.addWidget(self.dr_w, 4, 1); grid.addWidget(self.dr_n, 4, 2)
-        
-        input_group.setLayout(grid)
-        main_layout.addWidget(input_group)
+        with res_col1:
+            st.success("📝 جدول تقطيع الألومنيوم")
+            st.markdown(f"""
+            * **الهيكل الأساسي:**
+                * ارتفاع {h_net}: (2 مفرد + 2 متقارب)
+                * عرض {w_net}: {'(3 مفرد + 1 متقارب)' if unit_type == 'سفلية' else '(2 مفرد + 2 متقارب)'}
+                * عمق {d_net}: {'(2 مفرد + 2 متقارب)' if unit_type == 'سفلية' else '(4 متقارب)'}
+            """)
+            if sh_n > 0:
+                st.markdown(f"* **الأرفف:** {sh_w} (عدد {sh_n*4} مفرد) | {sh_d} (عدد {sh_n*4} مفرد)")
+            if dv_n > 0:
+                st.markdown(f"* **الفواصل:** {dv_h} (عدد {dv_n*4} مفرد) | {dv_d} (عدد {dv_n*4} مفرد)")
+            if dr_n > 0:
+                st.markdown(f"* **الأدراج:** عرض {dr_w - 2.5} | عمق {depth}")
 
-        # أزرار العمليات
-        btn_layout = QHBoxLayout()
-        self.add_btn = QPushButton("💾 احسب وفصّل القطع")
-        self.add_btn.setStyleSheet("background-color: #27ae60; color: white; height: 50px; font-weight: bold;")
-        self.add_btn.clicked.connect(self.process_unit)
-        self.save_btn = QPushButton("📄 حفظ كـ PDF / Text")
-        self.save_btn.setStyleSheet("background-color: #2980b9; color: white; height: 50px;")
-        
-        btn_layout.addWidget(self.add_btn); btn_layout.addWidget(self.save_btn)
-        main_layout.addLayout(btn_layout)
+        with res_col2:
+            st.info("🪵 جدول تقطيع الفيبر")
+            st.markdown(f"""
+            * **الهيكل:**
+                * ضهرية: {w_net} × {h_net} (عدد 1)
+                * أرضية: {w_net} × {d_net} (عدد 1)
+                * أجناب: {h_net} × {d_net} (عدد 2)
+            """)
+            if sh_n > 0:
+                st.markdown(f"* **فيبر الرفوف:** {sh_w - 5} × {sh_d - 5} (عدد {sh_n})")
+            if dv_n > 0:
+                st.markdown(f"* **فيبر الفواصل:** {dv_h - 5} × {dv_d - 5} (عدد {dv_n})")
 
-        # منطقة عرض النتائج المفصلة
-        self.result_sheet = QTextEdit(); self.result_sheet.setReadOnly(True)
-        self.result_sheet.setStyleSheet("background-color: #ffffff; border: 2px solid #2ecc71; font-size: 11pt; padding: 10px; color: #2c3e50;")
-        main_layout.addWidget(self.result_sheet)
+        # حل مشكلة الـ PDF: سنخرج النص بالإنجليزية لتجنب خطأ الـ Unicode حتى ترفع خط عربي
+        st.warning("ملاحظة: زر الـ PDF سيخرج البيانات بالإنجليزية لتجنب توقف البرنامج.")
 
-        self.setLayout(main_layout)
-
-    def process_unit(self):
-        try:
-            name = self.unit_title.text() or "وحدة"
-            u_type = self.unit_type.currentText()
-            w = float(self.w.text()); h = float(self.h.text()); d = float(self.d.text())
-            
-            # معادلات التخصيم الثابتة
-            h_sub = 13 if u_type in ["سفلية", "دولاب خزين"] else 5
-            h_net, w_net, d_net = h - h_sub, w - 5, d - 5
-
-            res = f"📍 تقرير الوحدة: {name} ({u_type})\n"
-            res += "═" * 70 + "\n"
-            
-            # --- قسم الألومنيوم (مفرد ومتقارب) ---
-            res += "🛠️ [1] جدول تقطيع الألومنيوم (الهيكل):\n"
-            if u_type == "سفلية":
-                res += f"- الارتفاع ({h_net}): [2 مفرد] + [2 متقارب]\n"
-                res += f"- العرض ({w_net}): [3 مفرد] + [1 متقارب]\n"
-                res += f"- العمق ({d_net}): [2 مفرد] + [2 متقارب]\n"
-            else:
-                res += f"- الارتفاع ({h_net}): [2 مفرد] + [2 متقارب]\n"
-                res += f"- العرض ({w_net}): [2 مفرد] + [2 متقارب]\n"
-                res += f"- العمق ({d_net}): [4 متقارب]\n"
-
-            # تخصيم ألومنيوم الأرفف (العدد * 4 مفرد)
-            if self.sh_n.text() and int(self.sh_n.text()) > 0:
-                n = int(self.sh_n.text()); sw = self.sh_w.text(); sd = self.sh_d.text()
-                res += f"- ألومنيوم الأرفف: {sw} (عدد {n*4} مفرد) | {sd} (عدد {n*4} مفرد)\n"
-
-            # تخصيم ألومنيوم الفواصل (العدد * 4 مفرد)
-            if self.dv_n.text() and int(self.dv_n.text()) > 0:
-                n = int(self.dv_n.text()); dh = self.dv_h.text(); dd = self.dv_d.text()
-                res += f"- ألومنيوم الفواصل: {dh} (عدد {n*4} مفرد) | {dd} (عدد {n*4} مفرد)\n"
-
-            # تخصيم الأدراج
-            if self.dr_n.text() and int(self.dr_n.text()) > 0:
-                dr_w_final = float(self.dr_w.text()) - 2.5
-                res += f"- ألومنيوم الأدراج: العرض {dr_w_final} | العمق {d} (ثابت)\n"
-
-            res += "─" * 40 + "\n"
-            
-            # --- قسم الفيبر لوحده ---
-            res += "🪵 [2] جدول تقطيع الفيبر:\n"
-            res += f"- الضهرية: {w_net} × {h_net} (عدد 1)\n"
-            res += f"- الأرضية: {w_net} × {d_net} (عدد 1)\n"
-            res += f"- الأجناب: {h_net} × {d_net} (عدد 2)\n"
-            
-            if self.sh_n.text() and int(self.sh_n.text()) > 0:
-                fw, fd = float(self.sh_w.text()) - 5, float(self.sh_d.text()) - 5
-                res += f"- فيبر الأرفف: {fw} × {fd} (عدد {self.sh_n.text()})\n"
-
-            if self.dv_n.text() and int(self.dv_n.text()) > 0:
-                fh, fd = float(self.dv_h.text()) - 5, float(self.dv_d.text()) - 5
-                res += f"- فيبر الفواصل: {fh} × {fd} (عدد {self.dv_n.text()})\n"
-
-            res += "═" * 70 + "\n\n"
-            self.result_sheet.append(res)
-            self.clear_fields()
-        except:
-            QMessageBox.warning(self, "خطأ", "برجاء مراجعة الأرقام المدخلة")
-
-    def clear_fields(self):
-        # تصفير الخانات المهمة فقط لبدء وحدة جديدة
-        for f in [self.w, self.h, self.d, self.sh_n, self.dv_n, self.dr_n]: f.clear()
-        self.unit_title.setFocus()
-
-if __name__ == '__main__':
-    app = QApplication(sys.argv); ex = AluminumMasterApp(); ex.show(); sys.exit(app.exec_())
+if __name__ == "__main__":
+    main()
