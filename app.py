@@ -1,25 +1,23 @@
 import streamlit as st
 import pandas as pd
 
-# 1. إعدادات الصفحة والستايل
+# 1. إعدادات الصفحة والستايل الاحترافي (حل مشكلة وضوح الكلام)
 st.set_page_config(page_title="DOGGA SYSTEM | م/ ياسين علاء", layout="wide")
 
 st.markdown("""
     <style>
-    .header-box { background-color: #1e272e; padding: 25px; border-radius: 15px; border-bottom: 8px solid #f1c40f; text-align: center; margin-bottom: 25px; }
-    .unit-card { background-color: #f8f9fa; padding: 20px; border-radius: 15px; border-right: 10px solid #2c3e50; margin-bottom: 25px; box-shadow: 0px 4px 10px rgba(0,0,0,0.1); }
-    .footer-text { text-align: center; color: #2c3e50; padding: 15px; font-weight: bold; background: #f1c40f; border-radius: 10px; margin-top: 30px; }
-    
-    /* تحسين عرض الجدول وتوسيع خانة النوع */
-    .stTable { width: 100% !important; }
+    /* تحسين الخطوط والألوان */
     .stTable td { 
-        font-size: 1.15em !important; 
+        font-size: 20px !important; 
         font-weight: bold !important; 
-        padding: 12px !important; 
-        white-space: pre-line !important; 
-        color: #2c3e50 !important;
+        color: #1e272e !important;
+        padding: 12px !important;
+        white-space: pre-line !important; /* للسماح بنزول الكلام في سطر جديد */
     }
-    .stTable th { background-color: #f1f2f6 !important; color: #2f3542 !important; font-size: 1.1em !important; }
+    .stTable th { background-color: #2c3e50 !important; color: white !important; font-size: 18px !important; }
+    .header-box { background-color: #1e272e; padding: 25px; border-radius: 15px; border-bottom: 8px solid #f1c40f; text-align: center; margin-bottom: 25px; }
+    .unit-card { background-color: #ffffff; padding: 20px; border-radius: 15px; border-right: 12px solid #2c3e50; margin-bottom: 30px; box-shadow: 0px 5px 15px rgba(0,0,0,0.1); }
+    .footer-text { text-align: center; color: #2c3e50; padding: 15px; font-weight: bold; background: #f1c40f; border-radius: 10px; margin-top: 30px; }
     </style>
 """, unsafe_allow_html=True)
 
@@ -30,7 +28,7 @@ if 'project_list' not in st.session_state: st.session_state.project_list = []
 if st.session_state.page == 'welcome':
     st.markdown("""
         <div class="header-box">
-            <h1 style="color: #f1c40f; font-size: 4em; margin:0; font-family: 'Arial';">DOGGA SYSTEM</h1>
+            <h1 style="color: #f1c40f; font-size: 4em; margin:0;">DOGGA SYSTEM</h1>
             <h2 style="color: white; margin:0;">نظام التخصيم الفني المتكامل</h2>
             <p style="color: #bdc3c7; font-size: 1.6em; margin-top: 10px;">برمجة المهندس ياسين علاء</p>
         </div>
@@ -43,11 +41,11 @@ if st.session_state.page == 'welcome':
 
 # --- صفحة التطبيق ---
 elif st.session_state.page == 'app':
-    st.sidebar.markdown("<h2 style='text-align:center;'>📊 جرد الخامات</h2>", unsafe_allow_html=True)
+    st.sidebar.markdown("<h2 style='text-align:center; color:#f1c40f;'>📊 جرد الخامات</h2>", unsafe_allow_html=True)
     st.sidebar.markdown("<p style='text-align:center;'>برمجة م/ ياسين علاء</p>", unsafe_allow_html=True)
     st.sidebar.markdown("---")
     
-    with st.expander("➕ إضافة وحدة جديدة للمشروع", expanded=True):
+    with st.expander("➕ إضافة وحدة جديدة (أدخل البيانات هنا)", expanded=True):
         c1, c2, c3 = st.columns(3)
         with c1:
             u_name = st.text_input("اسم الوحدة", placeholder="مثلاً: وحدة حوض")
@@ -59,56 +57,55 @@ elif st.session_state.page == 'app':
             st.write("**🧱 الرفوف والفواصل**")
             sh_w = st.number_input("عرض الرف", value=None)
             sh_d = st.number_input("عمق الرف", value=None)
-            sh_n = st.number_input("عدد الرفوف", value=None, step=1)
+            sh_n = st.number_input("عدد الرفوف", value=0, step=1)
             dv_h = st.number_input("ارتفاع الفاصل", value=None)
             dv_d = st.number_input("عمق الفاصل", value=None)
-            dv_n = st.number_input("عدد الفواصل", value=None, step=1)
+            dv_n = st.number_input("عدد الفواصل", value=0, step=1)
         with c3:
             st.write("**🗄️ الأدراج**")
             dr_w = st.number_input("عرض الدرج", value=None)
             dr_d = st.number_input("عمق الدرج", value=None)
-            dr_n = st.number_input("عدد الأدراج", value=None, step=1)
+            dr_n = st.number_input("عدد الأدراج", value=0, step=1)
             u_notes = st.text_area("ملاحظات إضافية")
             
             if st.button("✅ تحسيب وحفظ الوحدة"):
                 if w and h:
-                    # 1. معادلات التخصيم المعتمدة
+                    # 1. معادلات التخصيم الأساسية (إلغاء الأصفار باستخدام int)
                     h_b = int(h - 13) if u_type in ["سفلية", "دولاب خزين"] else int(h - 5)
                     w_b, d_b = int(w - 5), int(d - 5)
                     
-                    # 2. تحديد نوع الخصام (مفرد/متقارب) بشكل سطر جديد
+                    # 2. تحديد نوع الخصام (فصل في أسطر)
                     if u_type == "سفلية":
                         type_h, type_w, type_d = "2 مفرد\n2 متقارب", "3 مفرد\n1 متقارب", "2 مفرد\n2 متقارب"
                     else:
                         type_h, type_w, type_d = "2 مفرد\n2 متقارب", "2 مفرد\n2 متقارب", "4 متقارب"
 
-                    # 3. بناء جدول الألومنيوم التفصيلي
+                    # 3. بناء جدول الألومنيوم
                     alum_data = [
                         {"البند": "قوايم الارتفاع", "المقاس": h_b, "العدد": "4 ق", "النوع": type_h},
                         {"البند": "عوارض العرض", "المقاس": w_b, "العدد": "4 ق", "النوع": type_w},
                         {"البند": "عوارض العمق", "المقاس": d_b, "العدد": "4 ق", "النوع": type_d}
                     ]
-                    # إضافات الرفوف والفواصل والأدراج
-                    if sh_n:
+                    if sh_n > 0:
                         alum_data.append({"البند": "عوارض رف (عرض)", "المقاس": int(sh_w), "العدد": f"{int(sh_n*2)} ق", "النوع": "مفرد"})
                         alum_data.append({"البند": "عوارض رف (عمق)", "المقاس": int(sh_d), "العدد": f"{int(sh_n*2)} ق", "النوع": "مفرد"})
-                    if dv_n:
+                    if dv_n > 0:
                         alum_data.append({"البند": "عوارض فاصل (ارتفاع)", "المقاس": int(dv_h), "العدد": f"{int(dv_n*2)} ق", "النوع": "مفرد"})
                         alum_data.append({"البند": "عوارض فاصل (عمق)", "المقاس": int(dv_d), "العدد": f"{int(dv_n*2)} ق", "النوع": "مفرد"})
-                    if dr_n:
+                    if dr_n > 0:
                         alum_data.append({"البند": "إطار درج (عرض-2.5)", "المقاس": int(dr_w-2.5), "العدد": f"{int(dr_n*2)} ق", "النوع": "مفرد"})
                         alum_data.append({"البند": "إطار درج (عمق)", "المقاس": int(dr_d), "العدد": f"{int(dr_n*2)} ق", "النوع": "مفرد"})
 
-                    # 4. بناء جدول الفيبر التفصيلي
+                    # 4. بناء جدول الفيبر (إلغاء الأصفار)
                     fiber_data = [
-                        {"القطعة": "فيبر ضهرية", "المقاس": f"{w_b} x {h_b}", "العدد": "1"},
-                        {"القطعة": "فيبر أجناب", "المقاس": f"{h_b} x {d_b}", "العدد": "2"},
-                        {"القطعة": "فيبر أرضية/سقف", "المقاس": f"{w_b} x {d_b}", "العدد": "1" if u_type=="سفلية" else "2"}
+                        {"القطعة": "ضهرية", "المقاس": f"{w_b} x {h_b}", "العدد": "1"},
+                        {"القطعة": "أجناب", "المقاس": f"{h_b} x {d_b}", "العدد": "2"},
+                        {"القطعة": "أرضية/سقف", "المقاس": f"{w_b} x {d_b}", "العدد": "1" if u_type=="سفلية" else "2"}
                     ]
-                    if sh_n: fiber_data.append({"القطعة": "فيبر رف", "المقاس": f"{int(sh_w-5)} x {int(sh_d-5)}", "العدد": int(sh_n)})
-                    if dv_n: fiber_data.append({"القطعة": "فيبر فاصل", "المقاس": f"{int(dv_h-5)} x {int(dv_d-5)}", "العدد": int(dv_n)})
+                    if sh_n > 0: fiber_data.append({"القطعة": "فيبر رف", "المقاس": f"{int(sh_w-5)} x {int(sh_d-5)}", "العدد": int(sh_n)})
+                    if dv_n > 0: fiber_data.append({"القطعة": "فيبر فاصل", "المقاس": f"{int(dv_h-5)} x {int(dv_d-5)}", "العدد": int(dv_n)})
 
-                    # 5. حسابات الجرد (العود 600سم واللوح 280x130)
+                    # 5. حسابات الجرد المستمرة
                     m_m = (h_b*2) + (w_b*(3 if u_type=="سفلية" else 2)) + (d_b*2 if u_type=="سفلية" else 0)
                     m_t = (h_b*2) + (w_b*(1 if u_type=="سفلية" else 2)) + (d_b*(2 if u_type=="سفلية" else 4))
                     if sh_n: m_m += (sh_w*2 + sh_d*2) * sh_n
@@ -125,27 +122,27 @@ elif st.session_state.page == 'app':
                     })
                     st.rerun()
 
-    # تحديث السايد بار بالجرد المستمر
+    # تحديث السايد بار بالجرد
     if st.session_state.project_list:
         tot_m = sum([x['m_m'] for x in st.session_state.project_list]) / 600
         tot_t = sum([x['m_t'] for x in st.session_state.project_list]) / 600
         tot_f = sum([x['f_a'] for x in st.session_state.project_list]) / (280*130)
         
-        st.sidebar.metric("أعواد مفرد (6م)", f"{round(tot_m, 1)} عود")
-        st.sidebar.metric("أعواد متقارب (6م)", f"{round(tot_t, 1)} عود")
-        st.sidebar.metric("ألواح فيبر (280x130)", f"{round(tot_f, 1)} لوح")
-        if st.sidebar.button("🗑️ مسح الكل"):
+        st.sidebar.metric("أعواد مفرد", f"{round(tot_m, 1)} عود")
+        st.sidebar.metric("أعواد متقارب", f"{round(tot_t, 1)} عود")
+        st.sidebar.metric("ألواح فيبر", f"{round(tot_f, 1)} لوح")
+        if st.sidebar.button("🗑️ مسح المشروع"):
             st.session_state.project_list = []
             st.rerun()
 
-    # عرض كشوف التقطيع
+    # عرض النتائج النهائية
     for idx, item in enumerate(st.session_state.project_list):
-        st.markdown(f'<div class="unit-card"><h3>#{idx+1} {item["name"]} - {item["dims"]} سم</h3>', unsafe_allow_html=True)
-        col_a, col_f = st.columns([3, 2])
-        with col_a:
+        st.markdown(f'<div class="unit-card"><h3>#{idx+1} {item["name"]} ({item["dims"]})</h3>', unsafe_allow_html=True)
+        c_alum, c_fiber = st.columns([3, 2])
+        with c_alum:
             st.write("**⚔️ تقطيع الألومنيوم:**")
             st.table(item['alum_df'])
-        with col_f:
+        with c_fiber:
             st.write("**🪵 تقطيع الفيبر:**")
             st.table(item['fiber_df'])
             if item['notes']: st.warning(f"📌 ملاحظة: {item['notes']}")
