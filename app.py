@@ -56,7 +56,7 @@ st.markdown(f"""
         padding: 15px;
         border-radius: 10px;
         border-right: 10px solid {accent};
-        margin-bottom: 10px;
+        margin-bottom: 15px;
     }}
     header, footer {{visibility: hidden !important;}}
     .section-head {{
@@ -66,6 +66,10 @@ st.markdown(f"""
         margin-bottom: 15px;
         padding-bottom: 5px;
         text-align: center;
+    }}
+    /* تحسين عرض الجداول */
+    .stTable {{
+        width: 100% !important;
     }}
     </style>
 """, unsafe_allow_html=True)
@@ -106,24 +110,24 @@ if st.session_state.page == 'welcome':
 # --- لوحة العمل الداخلية (app) ---
 elif st.session_state.page == 'app':
     # زرار الرجوع والاسم الملموم فوق
-    n_col1, n_col2, n_col3 = st.columns([1, 6, 1])
+    n_col1, n_col2 = st.columns([1, 8])
     with n_col1:
         if st.button("⬅️ رجوع"):
             st.session_state.page = 'welcome'
             st.rerun()
     with n_col2:
-        st.markdown(f"<h2 style='color:{accent}; text-align:center; margin:0;'>📋 DOGGA SYSTEM | لوحة التخصيم</h2>", unsafe_allow_html=True)
+        st.markdown(f"<h2 style='color:{accent}; margin:0;'>📋 لوحة التخصيم الفني الشاملة</h2>", unsafe_allow_html=True)
 
     st.write("---")
 
-    # نموذج الإدخال المرتب
+    # نموذج الإدخال التفصيلي (كل بند لوحده)
     with st.container():
         c1, c2, c3, c4 = st.columns(4)
         
         with c1:
             st.markdown('<p class="section-head">📏 المقاسات الأساسية</p>', unsafe_allow_html=True)
             u_name = st.text_input("اسم الوحدة")
-            u_type = st.selectbox("نوع الخصم", ["سفلية (13سم)", "علوية (5سم)", "دولاب (13سم)"])
+            u_type = st.selectbox("نوع الخصم", ["سفلية (خصم 13سم)", "علوية (خصم 5سم)", "دولاب (خصم 13سم)"])
             w = st.number_input("العرض الكلي (W)", value=None)
             h = st.number_input("الارتفاع الكلي (H)", value=None)
             d = st.number_input("العمق الكلي (D)", value=None)
@@ -131,65 +135,98 @@ elif st.session_state.page == 'app':
         with c2:
             st.markdown('<p class="section-head">🧱 الرفوف</p>', unsafe_allow_html=True)
             sh_w = st.number_input("عرض الرف", value=None)
-            sh_d = st.number_input("عمق الرف", value=None)
+            sh_d = st.number_input("عمق الرفوف", value=None)
             sh_n = st.number_input("عدد الرفوف", value=None, step=1)
             
         with c3:
             st.markdown('<p class="section-head">↕️ الفواصل</p>', unsafe_allow_html=True)
             v_h = st.number_input("ارتفاع الفاصل", value=None)
-            v_d = st.number_input("عمق الفاصل", value=None)
+            v_d = st.number_input("عمق الفواصل", value=None)
             v_n = st.number_input("عدد الفواصل", value=None, step=1)
             
         with c4:
             st.markdown('<p class="section-head">🗄️ الأدراج</p>', unsafe_allow_html=True)
             dr_w = st.number_input("عرض برواز الدرج", value=None)
-            dr_d = st.number_input("عمق الدرج", value=None)
+            dr_d = st.number_input("عمق الأدراج", value=None)
             dr_n = st.number_input("عدد الأدراج", value=None, step=1)
             
             st.write("")
             if st.button("✅ حفظ وحساب التخصيم", use_container_width=True):
                 if w and h:
+                    # معادلات التخصيم الثابتة (م/ ياسين علاء)
                     ded = 13 if "13" in u_type else 5
-                    h_n, w_n, d_n = int(h - ded), int(w - 5), int((d or 0) - 5)
+                    h_net = int(h - ded)
+                    w_net, d_net = int(w - 5), int((d or 0) - 5)
                     
-                    alum = [
-                        {"البيان": "قوايم رئيسية", "المقاس": h_n, "العدد": "4 ق"},
-                        {"البيان": "عوارض عرض", "المقاس": w_n, "العدد": "4 ق"},
-                        {"البيان": "عوارض عمق", "المقاس": d_n, "العدد": "4 ق"}
+                    # 1. جدول الألومنيوم التفصيلي
+                    alum_data = [
+                        {"البيان": "قوايم الارتفاع الرئيسية", "المقاس": h_net, "العدد": "4 ق"},
+                        {"البيان": "عوارض العرض", "المقاس": w_net, "العدد": "4 ق"},
+                        {"البيان": "عوارض العمق", "المقاس": d_net, "العدد": "4 ق"}
                     ]
                     
-                    if sh_n: alum.append({"البيان": "أعواد رفوف", "المقاس": f"{int(sh_w)}x{int(sh_d or 0)}", "العدد": int(sh_n*4)})
-                    if v_n: alum.append({"البيان": "أعواد فواصل", "المقاس": f"{int(v_h)}x{int(v_d or 0)}", "العدد": int(v_n*4)})
-                    if dr_n: alum.append({"البيان": "إطار درج", "المقاس": f"{int(dr_w)}x{int(dr_d or 0)}", "العدد": int(dr_n*4)})
+                    # إضافة تفاصيل الرفوف للجدول
+                    if sh_n:
+                        alum_data.append({"البيان": "أعواد عرض الرفوف", "المقاس": int(sh_w or 0), "العدد": int(sh_n*2)})
+                        alum_data.append({"البيان": "أعواد عمق الرفوف", "المقاس": int(sh_d or 0), "العدد": int(sh_n*2)})
                     
+                    # إضافة تفاصيل الفواصل للجدول
+                    if v_n:
+                        alum_data.append({"البيان": "أعواد ارتفاع الفواصل", "المقاس": int(v_h or 0), "العدد": int(v_n*2)})
+                        alum_data.append({"البيان": "أعواد عمق الفواصل", "المقاس": int(v_d or 0), "العدد": int(v_n*2)})
+                    
+                    # إضافة تفاصيل الأدراج للجدول
+                    if dr_n:
+                        alum_data.append({"البيان": "أعواد عرض برواز الدرج", "المقاس": int(dr_w or 0), "العدد": int(dr_n*2)})
+                        alum_data.append({"البيان": "أعواد عمق الدرج", "المقاس": int(dr_d or 0), "العدد": int(dr_n*2)})
+
+                    # حساب إجمالي الأمتار الطولية للوحدة (للجرد)
+                    total_unit_m = (h_net*4 + w_net*4 + d_net*4)
+                    if sh_n: total_unit_m += (int(sh_w or 0)*2 + int(sh_d or 0)*2) * sh_n
+                    if v_n: total_unit_m += (int(v_h or 0)*2 + int(v_d or 0)*2) * v_n
+                    if dr_n: total_unit_m += (int(dr_w or 0)*2 + int(dr_d or 0)*2) * dr_n
+
                     st.session_state.project_list.append({
                         "name": u_name, "dims": f"{w}x{h}x{d}", "type": u_type,
-                        "alum_df": pd.DataFrame(alum),
-                        "m_m": (h_n*4 + w_n*4 + d_n*4)
+                        "alum_df": pd.DataFrame(alum_data),
+                        "m_m": total_unit_m,
+                        "f_a": (w_net * h_net) + (h_net * d_net * 2) # مساحة تقريبية للفيبر
                     })
                     st.rerun()
 
-    # عرض الجداول
+    # عرض الجداول التفصيلية (بعد التخصيم)
     st.write("---")
     for i, item in enumerate(st.session_state.project_list):
-        st.markdown(f'<div class="unit-card"><b>#{i+1} {item["name"]} - {item["dims"]}</b></div>', unsafe_allow_html=True)
-        st.table(item['alum_df'])
-
-    # زرار الحساب النهائي
-    if st.session_state.project_list:
-        st.write("---")
-        if st.button("📊 حساب إجمالي خامات المشروع", use_container_width=True):
-            total_m = sum([x['m_m'] for x in st.session_state.project_list]) / 600
+        with st.container():
             st.markdown(f"""
-                <div style="background-color:{accent}; color:#000; padding:20px; border-radius:10px; text-align:center;">
-                    <h3>التقرير النهائي</h3>
-                    <p style="font-size:1.5em;">إجمالي الألومنيوم المطلوبة: <b>{round(total_m, 1)} عود</b></p>
+                <div class="unit-card">
+                    <h3 style="color:{accent}; margin:0;">#{i+1} {item['name']} | مقاس {item['dims']} | ({item['type']})</h3>
                 </div>
             """, unsafe_allow_html=True)
             
-            if st.button("🗑️ مسح البيانات"):
+            res_c1, res_c2 = st.columns([4, 1])
+            with res_c1:
+                st.table(item['alum_df']) # الجداول كاملة بدون اختصار
+            with res_c2:
+                st.metric("فيبر الوحدة (سم²)", item['f_a'])
+
+    # زرار حساب الخامات النهائي (في نهاية الجداول)
+    if st.session_state.project_list:
+        st.write("---")
+        if st.button("📊 حساب إجمالي خامات المشروع بالكامل", use_container_width=True):
+            total_m_linear = sum([x['m_m'] for x in st.session_state.project_list]) / 600
+            st.markdown(f"""
+                <div style="background-color:{accent}; color:#000; padding:30px; border-radius:15px; text-align:center;">
+                    <h2>تقرير جرد المشروع النهائي</h2>
+                    <hr style="border:1px solid #000">
+                    <p style="font-size:1.8em;">إجمالي أعواد الألومنيوم (6 متر): <b>{round(total_m_linear, 1)} عود</b></p>
+                    <p style="font-size:1.2em;">* هذا الجرد يشمل القوايم والعوارض والرفوف والفواصل والأدراج المضافة.</p>
+                </div>
+            """, unsafe_allow_html=True)
+            
+            if st.button("🗑️ تفريغ بيانات المشروع"):
                 st.session_state.project_list = []
                 st.rerun()
 
-# التذييل
+# التذييل الثابت
 st.markdown(f"<p style='text-align:center; color:{accent}; margin-top:50px;'>DOGGA SYSTEM 2026 | م/ ياسين علاء</p>", unsafe_allow_html=True)
