@@ -1,20 +1,19 @@
 import streamlit as st
 import pandas as pd
-import datetime
 
-# ==============================================================================
-# 1. إعدادات المنظومة الأساسية - م/ ياسين علاء
-# ==============================================================================
+# =========================================================
+# 1. إعدادات المنظومة (إجبار العرض الكامل)
+# =========================================================
 st.set_page_config(
-    page_title="DOGGA SYSTEM 2026",
+    page_title="DOGGA SYSTEM | م/ ياسين علاء",
     page_icon="📐",
-    layout="wide",  # فرش الشاشة بالعرض
+    layout="wide", # دي بتفرد الصفحة
     initial_sidebar_state="expanded"
 )
 
-# ==============================================================================
-# 2. إدارة الحالة (Session State) لضمان استقرار السيستم
-# ==============================================================================
+# =========================================================
+# 2. نظام الـ Dark Mode وتخزين البيانات
+# =========================================================
 if 'dark_mode' not in st.session_state:
     st.session_state.dark_mode = True
 if 'project_list' not in st.session_state:
@@ -22,78 +21,69 @@ if 'project_list' not in st.session_state:
 if 'page' not in st.session_state:
     st.session_state.page = 'welcome'
 
-# ==============================================================================
-# 3. محرك التصميم الديناميكي (CSS & Themes) - حل مشكلة "مط" الكلام
-# ==============================================================================
+# توزيع الألوان الذكي
 if st.session_state.dark_mode:
-    main_bg = "#0e1117"
-    card_bg = "#161b22"
-    text_col = "#ffffff"
-    accent = "#f1c40f"  # الذهبي المميز لـ DOGGA
+    bg, card, txt, accent = "#0e1117", "#161b22", "#ffffff", "#f1c40f"
 else:
-    main_bg = "#ffffff"
-    card_bg = "#f0f2f6"
-    text_col = "#1e1e1e"
-    accent = "#d4ac0d"
+    bg, card, txt, accent = "#ffffff", "#f8f9fa", "#1e1e1e", "#d4ac0d"
 
+# =========================================================
+# 3. الـ CSS الاحترافي (حل مشكلة "الكلام في النص")
+# =========================================================
 st.markdown(f"""
     <style>
-    /* أهم جزء: جعل المحتوى يملأ 98% من عرض الشاشة مهما كان الجهاز */
+    /* منع الـ Streamlit من تضييق المحتوى في المنتصف */
     .block-container {{
-        max-width: 98% !important;
-        padding-top: 1rem !important;
-        padding-right: 1.5rem !important;
-        padding-left: 1.5rem !important;
+        max-width: 100% !important;
+        padding: 1rem 3rem !important;
     }}
     
-    /* ضبط الاتجاه والخطوط */
+    /* ضبط اتجاه الصفحة بالكامل */
     .stApp {{
-        background-color: {main_bg} !important;
-        color: {text_col} !important;
+        background-color: {bg} !important;
+        color: {txt} !important;
         direction: rtl !important;
     }}
 
-    /* تصميم الكروت العريضة للوحدات */
+    /* تصميم الكروت العريضة للنتائج */
     .unit-card {{
-        background-color: {card_bg};
-        padding: 30px;
-        border-radius: 20px;
-        border-right: 15px solid {accent};
+        background-color: {card};
+        padding: 25px;
+        border-radius: 15px;
+        border-right: 12px solid {accent};
         margin-bottom: 25px;
-        box-shadow: 0px 10px 30px rgba(0,0,0,0.4);
+        box-shadow: 0px 8px 20px rgba(0,0,0,0.4);
     }}
 
-    /* تحسين الجداول لتكون واضحة وعريضة */
-    .stTable td {{
-        font-size: 18px !important;
-        font-weight: bold !important;
-        border: 1px solid {accent} !important;
-        text-align: center !important;
+    /* تنظيف الواجهة من أي عناصر عشوائية */
+    header, footer {{visibility: hidden !important;}}
+    
+    /* تحسين شكل الجداول لتملأ الشاشة */
+    .stTable {{
+        width: 100% !important;
+        margin-top: 10px;
     }}
     
-    /* إخفاء عناصر ستريمليت ليكون البرنامج باسمك فقط */
-    header, footer {{visibility: hidden !important;}}
-    .stDeployButton {{display:none !important;}}
-    
-    /* تنسيق أزرار الإدخال */
-    .stButton>button {{
-        border-radius: 10px !important;
+    /* تكبير نصوص الإدخال عشان تبقى واضحة في الورشة */
+    label {{
+        font-size: 1.2rem !important;
         font-weight: bold !important;
+        color: {accent} !important;
     }}
     </style>
 """, unsafe_allow_html=True)
 
-# ==============================================================================
-# 4. القائمة الجانبية (Sidebar) - لوحة التحكم والمخزن
-# ==============================================================================
+# =========================================================
+# 4. القائمة الجانبية (Sidebar)
+# =========================================================
 with st.sidebar:
     st.markdown(f"<h1 style='text-align:center; color:{accent};'>DOGGA 2026</h1>", unsafe_allow_html=True)
-    st.markdown(f"<p style='text-align:center;'>تطوير المهندس: <b>ياسين علاء</b></p>", unsafe_allow_html=True)
-    st.markdown("<hr style='border: 1px solid #f1c40f;'>", unsafe_allow_html=True)
+    st.markdown(f"<p style='text-align:center;'>تطوير م/ ياسين علاء</p>", unsafe_allow_html=True)
+    st.markdown("<hr>", unsafe_allow_html=True)
     
-    # --- تشغيل زرار الـ Dark Mode الحقيقي ---
-    label = "☀️ الوضع النهاري" if st.session_state.dark_mode else "🌙 الوضع الليلي"
-    if st.button(label, use_container_width=True):
+    # تفعيل زرار الوضع الليلي (Dark Mode)
+    mode_label = "☀️ الوضع النهاري" if st.session_state.dark_mode else "🌙 الوضع الليلي"
+    if st.button(mode_label, use_container_width=True):
         st.session_state.dark_mode = not st.session_state.dark_mode
         st.rerun()
 
@@ -101,121 +91,102 @@ with st.sidebar:
         st.session_state.page = 'welcome'
         st.rerun()
 
-    # --- مخزن جرد الخامات الكلي ---
+    # مخزن المشروع التراكمي
     if st.session_state.project_list:
         st.markdown("<hr>", unsafe_allow_html=True)
-        st.markdown(f"<h3 style='color:{accent};'>📦 جرد المشروع</h3>", unsafe_allow_html=True)
-        
-        # حسابات الأمتار الطولية الإجمالية
+        st.subheader("📦 جرد الخامات")
         total_m = sum([x['m_m'] for x in st.session_state.project_list]) / 600
-        total_f = sum([x['f_a'] for x in st.session_state.project_list]) / (280*122)
-        
-        st.metric("أعواد ألومنيوم (6م)", f"{round(total_m, 1)} عود")
-        st.metric("ألواح فيبر (لوح)", f"{round(total_f, 1)} لوح")
-        
-        if st.button("🗑️ مسح المشروع والبدء من جديد", use_container_width=True):
+        st.metric("أعواد ألومنيوم (6م)", f"{round(total_m, 1)}")
+        if st.button("🗑️ مسح المشروع", use_container_width=True):
             st.session_state.project_list = []
             st.rerun()
 
-# ==============================================================================
-# 5. إدارة الشاشات والمحتوى الرئيسي
-# ==============================================================================
+# =========================================================
+# 5. إدارة الصفحات والمحتوى
+# =========================================================
 
-# --- شاشة الترحيب الفخمة ---
+# --- شاشة الترحيب ---
 if st.session_state.page == 'welcome':
     st.markdown(f"""
-        <div style="text-align:center; padding-top:120px;">
-            <h1 style="color:{accent}; font-size:6em; font-weight:900; margin:0;">DOGGA SYSTEM</h1>
-            <h2 style="color:{text_col}; font-size:2.5em;">المنظومة الاحترافية لتخصيمات المطابخ</h2>
-            <p style="font-size:1.8em; color:{accent};">برمجة وتطوير م/ ياسين علاء</p>
+        <div style="text-align:center; padding-top:100px;">
+            <h1 style="color:{accent}; font-size:5em; font-weight:900;">DOGGA SYSTEM</h1>
+            <h2 style="color:{txt};">منظومة التخصيم الفني للمطابخ</h2>
+            <p style="font-size:1.5em; color:{accent};">برمجة المهندس ياسين علاء</p>
         </div>
     """, unsafe_allow_html=True)
     
     _, col_btn, _ = st.columns([1, 1, 1])
     with col_btn:
-        if st.button("🚀 دخول لوحة التخصيم", use_container_width=True):
+        if st.button("🚀 ابدأ العمل الآن", use_container_width=True):
             st.session_state.page = 'app'
             st.rerun()
 
-# --- شاشة العمل الرئيسية (لوحة الإدخال) ---
+# --- شاشة التطبيق (التخصيم) ---
 elif st.session_state.page == 'app':
-    st.markdown(f"<h2 style='color:{accent};'>📋 لوحة إضافة الوحدات والتخصيم الفني</h2>", unsafe_allow_html=True)
+    st.markdown(f"<h2 style='color:{accent};'>📋 لوحة إضافة الوحدات</h2>", unsafe_allow_html=True)
     
-    with st.expander("🛠️ إدخال بيانات الوحدة (الخانات جاهزة بدون أصفار تعطل الكتابة)", expanded=True):
-        # توزيع الخانات بعرض الشاشة لمنع "المط" الطولي
+    # استخدام Container لتنظيم الخانات بعيداً عن تداخل الموبايل
+    with st.container():
+        # 3 أعمدة عريضة جداً
         c1, c2, c3 = st.columns([1, 1, 1])
         
         with c1:
-            st.markdown(f"<b style='color:{accent};'>📏 المقاسات الرئيسية</b>", unsafe_allow_html=True)
-            u_name = st.text_input("اسم الوحدة (كود الوحدة)")
-            u_type = st.selectbox("نوع التخصيم", ["سفلية (خصم 13سم)", "علوية (خصم 5سم)", "دولاب (خصم 13سم)"])
-            # تم إزالة الأصفار باستخدام value=None
-            w_val = st.number_input("العرض الكلي (W)", value=None, placeholder="0.0")
-            h_val = st.number_input("الارتفاع الكلي (H)", value=None, placeholder="0.0")
-            d_val = st.number_input("العمق الكلي (D)", value=None, placeholder="0.0")
+            st.markdown("### 📏 المقاسات")
+            u_name = st.text_input("اسم الوحدة / الكود")
+            u_type = st.selectbox("نوع الوحدة", ["سفلية (خصم 13سم)", "علوية (خصم 5سم)", "دولاب (خصم 13سم)"])
+            w = st.number_input("العرض الكلي (W)", value=None, placeholder="0.0")
+            h = st.number_input("الارتفاع الكلي (H)", value=None, placeholder="0.0")
+            d = st.number_input("العمق الكلي (D)", value=None, placeholder="0.0")
             
         with c2:
-            st.markdown(f"<b style='color:{accent};'>🧱 الرفوف والفواصل</b>", unsafe_allow_html=True)
-            r_w = st.number_input("عرض الرف", value=None, placeholder="0.0")
-            r_d = st.number_input("عمق الرف", value=None, placeholder="0.0")
-            r_n = st.number_input("عدد الرفوف", value=None, placeholder="0")
+            st.markdown("### 🧱 الرفوف والفواصل")
+            s_w = st.number_input("عرض الرف", value=None)
+            s_d = st.number_input("عمق الرف", value=None)
+            s_n = st.number_input("عدد الرفوف", value=None)
             st.write("---")
-            v_h = st.number_input("ارتفاع الفاصل", value=None, placeholder="0.0")
-            v_d = st.number_input("عمق الفاصل", value=None, placeholder="0.0")
-            v_n = st.number_input("عدد الفواصل", value=None, placeholder="0")
+            v_h = st.number_input("ارتفاع الفاصل", value=None)
+            v_n = st.number_input("عدد الفواصل", value=None)
 
         with c3:
-            st.markdown(f"<b style='color:{accent};'>🗄️ الأدراج والملاحظات</b>", unsafe_allow_html=True)
-            dr_w = st.number_input("عرض برواز الدرج", value=None, placeholder="0.0")
-            dr_d = st.number_input("عمق برواز الدرج", value=None, placeholder="0.0")
-            dr_n = st.number_input("عدد الأدراج المطلوبة", value=None, placeholder="0")
+            st.markdown("### 🗄️ الأدراج")
+            dr_w = st.number_input("عرض الدرج", value=None)
+            dr_n = st.number_input("عدد الأدراج", value=None)
             st.write("---")
-            tech_note = st.text_area("ملاحظات فنية للتقطيع")
+            notes = st.text_area("ملاحظات إضافية")
             
-            if st.button("✅ تنفيذ التخصيم وجرد الخامات", use_container_width=True):
-                if w_val and h_val:
-                    # منطق التخصيم (حسب ما تم تعديله من قبل م/ ياسين)
+            if st.button("✅ حفظ وحساب التخصيم", use_container_width=True):
+                if w and h:
+                    # معادلات التخصيم
                     deduction = 13 if "13" in u_type else 5
-                    h_net = int(h_val - deduction)
-                    w_net, d_net = int(w_val - 5), int((d_val or 0) - 5)
+                    h_net = int(h - deduction)
+                    w_net, d_net = int(w - 5), int((d or 0) - 5)
                     
-                    # جداول التقطيع
-                    alum_data = [
-                        {"البيان": "قوايم رئيسية", "المقاس": h_net, "العدد": "4 ق"},
-                        {"البيان": "عوارض عرض", "المقاس": w_net, "العدد": "4 ق"},
-                        {"البيان": "عوارض عمق", "المقاس": d_net, "العدد": "4 ق"}
+                    # جداول الألومنيوم
+                    alum = [
+                        {"البيان": "قوايم الارتفاع", "المقاس": h_net, "العدد": "4"},
+                        {"البيان": "عوارض العرض", "المقاس": w_net, "العدد": "4"},
+                        {"البيان": "عوارض العمق", "المقاس": d_net, "العدد": "4"}
                     ]
-                    # إضافات
-                    if r_n: alum_data.append({"البيان": "أعواد رفوف", "المقاس": f"{int(r_w)}x{int(r_d)}", "العدد": f"{int(r_n)*4}"})
-                    if v_n: alum_data.append({"البيان": "أعواد فواصل", "المقاس": f"{int(v_h)}x{int(v_d)}", "العدد": f"{int(v_n)*4}"})
-                    if dr_n: alum_data.append({"البيان": "إطار درج", "المقاس": f"{int(dr_w-2.5)}x{int(dr_d)}", "العدد": f"{int(dr_n)*4}"})
-
-                    # حسابات المخزن
-                    m_total = (h_net*4 + w_net*4 + d_net*4) + (int(v_h or 0)*4*int(v_n or 0))
-                    f_area = (w_net*h_net) + (h_net*d_net*2) + (w_net*d_net*2)
-
+                    if v_n: alum.append({"البيان": "فواصل", "المقاس": int(v_h), "العدد": int(v_n*4)})
+                    
                     st.session_state.project_list.append({
-                        "name": u_name, "dims": f"{w_val}x{h_val}x{d_val}", "type": u_type,
-                        "alum_df": pd.DataFrame(alum_data), "m_m": m_total, "f_a": f_area, "note": tech_note
+                        "name": u_name, "dims": f"{w}x{h}x{d}", "type": u_type,
+                        "alum_df": pd.DataFrame(alum),
+                        "m_m": (h_net*4 + w_net*4 + d_net*4),
+                        "f_a": (w_net*h_net) + (h_net*d_net*2)
                     })
                     st.rerun()
 
-    # --- عرض الوحدات المحفوظة (بشكل عريض) ---
+    # عرض كشوفات التقطيع
     st.write("---")
     for i, item in enumerate(st.session_state.project_list):
-        st.markdown(f"""
-            <div class="unit-card">
-                <h2 style="color:{accent}; margin:0;">#{i+1} {item['name']} | مقاس: {item['dims']} | ({item['type']})</h2>
-            </div>
-        """, unsafe_allow_html=True)
-        
+        st.markdown(f'<div class="unit-card"><h2>#{i+1} {item["name"]} - {item["dims"]} ({item["type"]})</h2></div>', unsafe_allow_html=True)
         res_c1, res_c2 = st.columns([3, 1])
         with res_c1:
             st.table(item['alum_df'])
         with res_c2:
-            st.info(f"📍 ملاحظة: {item['note']}" if item['note'] else "لا يوجد ملاحظات")
-            st.metric("أمتار ألومنيوم", f"{round(item['m_m']/100, 2)} متر")
+            st.metric("مساحة الفيبر", f"{item['f_a']} سم²")
 
-# تذييل المنظومة
+# تذييل الصفحة
 st.markdown("<br><hr>", unsafe_allow_html=True)
-st.markdown(f"<p style='text-align:center; color:{accent}; font-weight:bold; font-size:1.5em;'>DOGGA SYSTEM 2026 | م/ ياسين علاء</p>", unsafe_allow_html=True)
+st.markdown(f"<p style='text-align:center; color:{accent}; font-weight:bold; font-size:1.3em;'>DOGGA SYSTEM 2026 | تطوير م/ ياسين علاء</p>", unsafe_allow_html=True)
