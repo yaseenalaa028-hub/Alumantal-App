@@ -1,7 +1,6 @@
 import streamlit as st
-from fpdf import FPDF
 
-# إعداد الصفحة وحل مشكلة الموبايل
+# إعدادات الصفحة وحل مشكلة الموبايل
 st.set_page_config(page_title="نظام المهندس ياسين علاء", layout="wide")
 
 st.markdown("""
@@ -26,7 +25,7 @@ st.markdown("""
         text-align: center;
         border-bottom: 4px solid #e1b12c;
         border-radius: 10px;
-        margin-bottom: 10px;
+        margin-bottom: 15px;
     }
     .result-view {
         background-color: #ffffff;
@@ -39,98 +38,111 @@ st.markdown("""
         white-space: pre-wrap;
         margin-bottom: 10px;
     }
-    /* تنسيق زرار الإضافة الرئيسي */
-    .stButton>button {
+    /* تحسين شكل الأزرار */
+    div.stButton > button {
         width: 100%;
-        border-radius: 10px;
+        background-color: #27ae60 !important;
+        color: white !important;
         font-weight: bold;
+        border-radius: 10px;
+        height: 3.5em;
     }
     </style>
     """, unsafe_allow_html=True)
 
 st.markdown('<div class="header-label">نظام تخصيم الألومنيوم - المهندس ياسين علاء</div>', unsafe_allow_html=True)
 
-# إدارة حالة الصفحة (إظهار/إخفاء خانات الإدخال)
-if 'show_inputs' not in st.session_state:
-    st.session_state.show_inputs = False
 if 'project_storage' not in st.session_state:
     st.session_state.project_storage = []
+if 'show_inputs' not in st.session_state:
+    st.session_state.show_inputs = False
 
-# الزرار الرئيسي لفتح الإدخال
+# زرار الإضافة الرئيسي
 if st.button("➕ إضافة مقاسات جديدة"):
     st.session_state.show_inputs = not st.session_state.show_inputs
 
-# --- شاشة إدخال البيانات (بتظهر لما تدوس على الزرار) ---
+# --- خانات الإدخال (الكلام بداخل الخانات) ---
 if st.session_state.show_inputs:
     with st.container():
-        st.subheader("📝 أدخل بيانات الوحدة:")
-        u_title = st.text_input("اسم الوحدة", placeholder="مثال: وحدة حوض، وحدة علوية...")
+        st.subheader("📝 تفاصيل الوحدة")
+        u_title = st.text_input("اسم الوحدة", placeholder="اكتب اسم الوحدة هنا...")
         u_type = st.selectbox("نوع الوحدة", ["سفلية", "علوية", "دولاب خزين", "وحدة أخرى"])
         
         c1, c2, c3 = st.columns(3)
-        with c1: w = st.number_input("العرض الكلي (W)", value=0.0, format="%.1f")
-        with c2: h = st.number_input("الارتفاع الكلي (H)", value=0.0, format="%.1f")
-        with c3: d = st.number_input("العمق الكلي (D)", value=0.0, format="%.1f")
+        with c1: w = st.number_input("العرض الكلي", value=0.0, placeholder="أدخل العرض (W)")
+        with c2: h = st.number_input("الارتفاع الكلي", value=0.0, placeholder="أدخل الارتفاع (H)")
+        with c3: d = st.number_input("العمق الكلي", value=0.0, placeholder="أدخل العمق (D)")
         
-        with st.expander("🧱 تفاصيل الرفوف والأدراج"):
-            col_sh1, col_sh2, col_sh3 = st.columns(3)
-            with col_sh1: sh_w = st.number_input("عرض الرف", value=0.0, placeholder="العرض")
-            with col_sh2: sh_d = st.number_input("عمق الرف", value=0.0, placeholder="العمق")
-            with col_sh3: sh_n = st.number_input("عدد الرفوف", value=0)
+        # خانات الرفوف
+        with st.expander("🧱 الرفوف"):
+            rs1, rs2, rs3 = st.columns(3)
+            with rs1: sh_w = st.number_input("عرض الرف", value=0.0, placeholder="عرض الرف")
+            with rs2: sh_d = st.number_input("عمق الرف", value=0.0, placeholder="عمق الرف")
+            with rs3: sh_n = st.number_input("عدد الرفوف", value=0, step=1)
             
-            st.divider()
+        # خانات الفواصل (اللي كانت ناقصة)
+        with st.expander("📐 الفواصل"):
+            dv1, dv2, dv3 = st.columns(3)
+            with dv1: dv_h = st.number_input("ارتفاع الفاصل", value=0.0, placeholder="ارتفاع الفاصل")
+            with dv2: dv_d = st.number_input("عمق الفاصل", value=0.0, placeholder="عمق الفاصل")
+            with dv3: dv_n = st.number_input("عدد الفواصل", value=0, step=1)
             
-            col_dr1, col_dr2 = st.columns(2)
-            with col_dr1: dr_w = st.number_input("عرض الدرج", value=0.0, placeholder="العرض - 2.5")
-            with col_dr2: dr_n = st.number_input("عدد الأدراج", value=0)
+        # خانات الأدراج
+        with st.expander("🗄️ الأدراج"):
+            dr1, dr2, dr3 = st.columns(3)
+            with dr1: dr_w = st.number_input("عرض الدرج", value=0.0, placeholder="عرض الدرج - 2.5")
+            with dr2: dr_d = st.number_input("عمق الدرج", value=0.0, placeholder="عمق الدرج")
+            with dr3: dr_n = st.number_input("عدد الأدراج", value=0, step=1)
 
-        if st.button("💾 حفظ الوحدة في الجدول"):
+        if st.button("💾 حفظ البيانات"):
             st.session_state.project_storage.append({
                 'title': u_title, 'type': u_type, 'w': w, 'h': h, 'd': d,
                 'sh_w': sh_w, 'sh_d': sh_d, 'sh_n': sh_n,
-                'dr_w': dr_w, 'dr_n': dr_n, 'dr_d': d, # العمق ثابت من عمق الوحدة
-                'dv_h': 0, 'dv_d': 0, 'dv_n': 0 # فواصل اختيارية
+                'dv_h': dv_h, 'dv_d': dv_d, 'dv_n': dv_n,
+                'dr_w': dr_w, 'dr_d': dr_d, 'dr_n': dr_n
             })
-            st.session_state.show_inputs = False # إخفاء الخانات بعد الحفظ
-            st.success("تمت الإضافة بنجاح!")
+            st.session_state.show_inputs = False
             st.rerun()
 
-# --- الحسابات وعرض النتائج (نفس معادلات كودك بالظبط) ---
+# --- جرد الخامات (نفس حساباتك) ---
 if st.session_state.project_storage:
     st.divider()
-    col_act1, col_act2 = st.columns(2)
-    with col_act1:
+    c_act1, c_act2 = st.columns(2)
+    with c_act1:
         if st.button("📊 جرد خامات المشروع"):
-            m_total, t_total = 0, 0
+            m_sum, t_sum = 0, 0
             for u in st.session_state.project_storage:
-                h_net = u['h'] - 13 if u['type'] in ["سفلية", "دولاب خزين"] else u['h'] - 5
-                w_net, d_net = u['w'] - 5, u['d'] - 5
+                h_b = u['h'] - 13 if u['type'] in ["سفلية", "دولاب خزين"] else u['h'] - 5
+                w_b, d_b = u['w'] - 5, u['d'] - 5
                 if u['type'] == "سفلية":
-                    m_total += (h_net*2) + (w_net*3) + (d_net*2); t_total += (h_net*2) + (w_net*1) + (d_net*2)
+                    m_sum += (h_b*2)+(w_b*3)+(d_b*2); t_sum += (h_b*2)+(w_b*1)+(d_b*2)
                 else:
-                    m_total += (h_net*2) + (w_net*2); t_total += (h_net*2) + (w_net*2) + (d_net*4)
-                m_total += ((u['dr_w']-2.5)*2 + u['d']*2) * u['dr_n'] # تخصيم الأدراج
-            st.warning(f"مفرد: {m_total/600:.2f} عود | متقارب: {t_total/600:.2f} عود")
+                    m_sum += (h_b*2)+(w_b*2); t_sum += (h_b*2)+(w_b*2)+(d_b*4)
+                # حساب الرفوف والفواصل والأدراج في الجرد
+                m_sum += (u['sh_w']*2 + u['sh_d']*2) * u['sh_n']
+                m_sum += (u['dv_h']*2 + u['dv_d']*2) * u['dv_n']
+                m_sum += ((u['dr_w']-2.5)*2 + u['dr_d']*2) * u['dr_n']
+            st.warning(f"مفرد: {m_sum/600:.2f} عود | متقارب: {t_sum/600:.2f} عود")
 
-    with col_act2:
+    with c_act2:
         if st.button("🗑️ مسح الجدول"):
             st.session_state.project_storage = []
             st.rerun()
 
+    # عرض النتائج
     for u in st.session_state.project_storage:
         h_baky = u['h'] - 13 if u['type'] in ["سفلية", "دولاب خزين"] else u['h'] - 5
         w_baky, d_baky = u['w'] - 5, u['d'] - 5
         
         res = f"وحدة: {u['title']} | النوع: {u['type']}\n"
         res += "━" * 45 + "\n"
-        res += f"📐 تخصيم الهيكل:\n- ارتفاع: {h_baky} | عرض: {w_baky} | عمق: {d_baky}\n"
+        res += f"📐 تخصيم الهيكل: {h_baky} ارتفاع | {w_baky} عرض | {d_baky} عمق\n"
         
         if u['sh_n'] > 0:
-            res += f"🧱 الرفوف ({u['sh_n']}): {u['sh_w']-5} × {u['sh_d']-5}\n"
+            res += f"🧱 الرفوف ({u['sh_n']}): ألومنيوم {u['sh_w']}×{u['sh_d']} | فيبر {u['sh_w']-5}×{u['sh_d']-5}\n"
+        if u['dv_n'] > 0:
+            res += f"📐 الفواصل ({u['dv_n']}): {u['dv_h']} × {u['dv_d']}\n"
         if u['dr_n'] > 0:
-            res += f"🗄️ الأدراج ({u['dr_n']}): عرض {u['dr_w']-2.5} × عمق {u['d']}\n"
+            res += f"🗄️ الأدراج ({u['dr_n']}): عرض {u['dr_w']-2.5} × عمق {u['dr_d']}\n"
             
         st.markdown(f'<div class="result-view">{res}</div>', unsafe_allow_html=True)
-else:
-    if not st.session_state.show_inputs:
-        st.info("اضغط على 'إضافة مقاسات جديدة' للبدء.")
