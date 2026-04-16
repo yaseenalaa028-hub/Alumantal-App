@@ -1,11 +1,12 @@
 import streamlit as st
 import pandas as pd
 
-# 1. إعدادات الصفحة والستايل الفني (م/ ياسين علاء)
+# 1. إعدادات الصفحة والستايل الفني المطور (Professional Branding)
 st.set_page_config(page_title="DOGGA SYSTEM | م/ ياسين علاء", layout="wide")
 
 st.markdown("""
     <style>
+    /* تنسيق الجداول: وضوح تام وأرقام بارزة */
     .stTable td { 
         font-size: 22px !important; 
         font-weight: bold !important; 
@@ -20,20 +21,57 @@ st.markdown("""
         font-size: 19px !important; 
         text-align: center !important;
     }
+    /* الهيدر المنسق الجديد */
+    .header-box { 
+        background-color: #1e272e; 
+        padding: 20px; 
+        border-radius: 12px; 
+        border-bottom: 5px solid #f1c40f; 
+        text-align: center; 
+        margin-bottom: 25px; 
+    }
+    .main-title { 
+        color: #f1c40f; 
+        font-size: 2.8em; 
+        margin: 0; 
+        letter-spacing: 2px;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    .sub-title { 
+        color: #ecf0f1; 
+        font-size: 1.2em; 
+        margin-top: 5px; 
+        opacity: 0.9;
+    }
+    /* برواز الوحدات */
     .table-header {
         background-color: #f1c40f;
         color: #2c3e50;
-        padding: 10px;
-        border-radius: 8px;
+        padding: 8px 15px;
+        border-radius: 5px;
         font-weight: bold;
-        font-size: 1.5em;
-        margin-top: 20px;
+        font-size: 1.3em;
+        margin-top: 15px;
         margin-bottom: 10px;
-        border-right: 10px solid #2c3e50;
+        border-right: 8px solid #2c3e50;
     }
-    .header-box { background-color: #1e272e; padding: 25px; border-radius: 15px; border-bottom: 8px solid #f1c40f; text-align: center; margin-bottom: 25px; }
-    .unit-card { background-color: #ffffff; padding: 25px; border-radius: 20px; border-right: 15px solid #2c3e50; margin-bottom: 35px; box-shadow: 0px 8px 20px rgba(0,0,0,0.1); }
-    .footer-text { text-align: center; color: #2c3e50; padding: 15px; font-weight: bold; background: #f1c40f; border-radius: 10px; margin-top: 40px; }
+    .unit-card { 
+        background-color: #ffffff; 
+        padding: 20px; 
+        border-radius: 15px; 
+        border-right: 12px solid #2c3e50; 
+        margin-bottom: 30px; 
+        box-shadow: 0px 4px 15px rgba(0,0,0,0.05); 
+    }
+    .footer-text { 
+        text-align: center; 
+        color: #2c3e50; 
+        padding: 10px; 
+        font-weight: bold; 
+        background: #f1c40f; 
+        border-radius: 8px; 
+        margin-top: 30px; 
+    }
     </style>
 """, unsafe_allow_html=True)
 
@@ -41,35 +79,36 @@ st.markdown("""
 if 'page' not in st.session_state: st.session_state.page = 'welcome'
 if 'project_list' not in st.session_state: st.session_state.project_list = []
 
-# --- 1. واجهة الترحيب (Welcome UI) ---
+# --- 1. واجهة الترحيب المنسقة ---
 if st.session_state.page == 'welcome':
     st.markdown("""
         <div class="header-box">
-            <h1 style="color: #f1c40f; font-size: 4.5em; margin:0; font-family: 'Arial Black';">DOGGA SYSTEM</h1>
-            <h2 style="color: white; margin:0;">نظام التخصيم الفني والبرمجي المتكامل</h2>
-            <p style="color: #bdc3c7; font-size: 1.8em; margin-top: 15px; font-weight: bold;">بإشراف وبرمجة المهندس ياسين علاء</p>
+            <h1 class="main-title">DOGGA SYSTEM</h1>
+            <p class="sub-title">المنظومة الذكية لتخصيمات المطابخ الحديثة</p>
+            <hr style="width:20%; margin: 15px auto; border-color: #f1c40f;">
+            <p style="color: #bdc3c7; font-size: 1.3em; font-weight: bold;">إشراف هندسي: ياسين علاء</p>
         </div>
     """, unsafe_allow_html=True)
     col1, col2, col3 = st.columns([1, 1, 1])
     with col2:
-        if st.button("🚀 الدخول لنظام التخصيم"):
+        if st.button("🚀 ابدأ العمل الآن"):
             st.session_state.page = 'app'
             st.rerun()
 
 # --- 2. التطبيق الرئيسي ---
 elif st.session_state.page == 'app':
-    st.sidebar.markdown("<h2 style='text-align:center; color:#f1c40f;'>📊 جرد الخامات</h2>", unsafe_allow_html=True)
-    st.sidebar.markdown("<p style='text-align:center; font-weight:bold;'>م/ ياسين علاء</p>", unsafe_allow_html=True)
+    st.sidebar.markdown("<h3 style='text-align:center; color:#f1c40f;'>📦 إجمالي المشروع</h3>", unsafe_allow_html=True)
+    st.sidebar.markdown("<p style='text-align:center;'>م/ ياسين علاء</p>", unsafe_allow_html=True)
     st.sidebar.markdown("---")
     
-    with st.expander("➕ إضافة وحدة جديدة للمشروع (أدخل المقاسات)", expanded=True):
+    with st.expander("➕ إضافة وحدة جديدة", expanded=True):
         c1, c2, c3 = st.columns(3)
         with c1:
             u_name = st.text_input("اسم الوحدة")
             u_type = st.selectbox("نوع الوحدة", ["سفلية", "علوية", "دولاب خزين"])
-            w = st.number_input("العرض الكلي", value=None)
-            h = st.number_input("الارتفاع الكلي", value=None)
-            d = st.number_input("العمق الكلي", value=None)
+            w = st.number_input("العرض (سم)", value=None)
+            h = st.number_input("الارتفاع (سم)", value=None)
+            d = st.number_input("العمق (سم)", value=None)
         with c2:
             st.write("**🧱 الرفوف والفواصل**")
             sh_w, sh_d, sh_n = st.number_input("عرض الرف", value=None), st.number_input("عمق الرف", value=None), st.number_input("عدد الرفوف", value=0)
@@ -77,21 +116,19 @@ elif st.session_state.page == 'app':
         with c3:
             st.write("**🗄️ الأدراج**")
             dr_w, dr_d, dr_n = st.number_input("عرض الدرج", value=None), st.number_input("عمق الدرج", value=None), st.number_input("عدد الأدراج", value=0)
-            u_notes = st.text_area("ملاحظات")
+            u_notes = st.text_area("ملاحظات فنية")
             
-            if st.button("✅ تحسيب وحفظ"):
+            if st.button("✅ حفظ البيانات"):
                 if w and h:
                     # تخصيمات الألومنيوم
                     h_b = int(h - 13) if u_type in ["سفلية", "دولاب خزين"] else int(h - 5)
                     w_b, d_b = int(w - 5), int(d - 5)
                     
-                    # توزيع مفرد ومتقارب
                     if u_type == "سفلية":
                         h_m, h_t, w_m, w_t, d_m, d_t = 2, 2, 3, 1, 2, 2
                     else:
                         h_m, h_t, w_m, w_t, d_m, d_t = 2, 2, 2, 2, 0, 4
 
-                    # بناء جدول الألومنيوم (5 أعمدة)
                     alum_rows = [
                         {"البند": "قوايم الارتفاع", "مقاس المفرد": h_b, "عدد المفرد": f"{h_m} ق", "مقاس المتقارب": h_b, "عدد المتقارب": f"{h_t} ق"},
                         {"البند": "عوارض العرض", "مقاس المفرد": w_b, "عدد المفرد": f"{w_m} ق", "مقاس المتقارب": w_b, "عدد المتقارب": f"{w_t} ق"},
@@ -110,7 +147,6 @@ elif st.session_state.page == 'app':
                         alum_rows.append({"البند": "إطار درج (عرض)", "مقاس المفرد": int(dr_w-2.5), "عدد المفرد": f"{int(dr_n*2)} ق", "مقاس المتقارب": "-", "عدد المتقارب": "-"})
                         alum_rows.append({"البند": "إطار درج (عمق)", "مقاس المفرد": int(dr_d), "عدد المفرد": f"{int(dr_n*2)} ق", "مقاس المتقارب": "-", "عدد المتقارب": "-"})
 
-                    # جدول الفيبر
                     fiber_rows = [
                         {"القطعة": "فيبر ضهرية", "المقاس الصافي": f"{w_b} x {h_b}", "العدد": "1"},
                         {"القطعة": "فيبر أجناب", "المقاس الصافي": f"{h_b} x {d_b}", "العدد": "2"},
@@ -119,7 +155,6 @@ elif st.session_state.page == 'app':
                     if sh_n > 0: fiber_rows.append({"القطعة": "فيبر رف", "المقاس الصافي": f"{int(sh_w-5)} x {int(sh_d-5)}", "العدد": int(sh_n)})
                     if dv_n > 0: fiber_rows.append({"القطعة": "فيبر فاصل", "المقاس الصافي": f"{int(dv_h-5)} x {int(dv_d-5)}", "العدد": int(dv_n)})
 
-                    # حسابات الجرد
                     m_m = (h_b * h_m) + (w_b * w_m) + (d_b * d_m)
                     m_t = (h_b * h_t) + (w_b * w_t) + (d_b * d_t)
                     if sh_n: m_m += (sh_w*2 + sh_d*2) * sh_n
@@ -136,7 +171,7 @@ elif st.session_state.page == 'app':
                     })
                     st.rerun()
 
-    # الجرد في السايد بار
+    # جرد السايد بار
     if st.session_state.project_list:
         tot_m = sum([x['m_m'] for x in st.session_state.project_list]) / 600
         tot_t = sum([x['m_t'] for x in st.session_state.project_list]) / 600
@@ -148,12 +183,12 @@ elif st.session_state.page == 'app':
 
     # عرض كشوف التقطيع
     for idx, item in enumerate(st.session_state.project_list):
-        st.markdown(f'<div class="unit-card"><h2>#{idx+1} {item["name"]} ({item["dims"]} سم)</h2>', unsafe_allow_html=True)
+        st.markdown(f'<div class="unit-card"><h3>#{idx+1} {item["name"]} ({item["dims"]} سم)</h3>', unsafe_allow_html=True)
         st.markdown(f'<div class="table-header">⚔️ تقطيع ألومنيوم - وحدة ({item["type"]})</div>', unsafe_allow_html=True)
         st.table(item['alum'])
         st.markdown(f'<div class="table-header">🪵 تقطيع فيبر - وحدة ({item["type"]})</div>', unsafe_allow_html=True)
         st.table(item['fiber'])
-        if item['notes']: st.warning(f"📌 ملاحظة: {item['notes']}")
+        if item['notes']: st.warning(f"📌 {item['notes']}")
         st.markdown('</div>', unsafe_allow_html=True)
 
-    st.markdown('<div class="footer-text">برمجة المهندس ياسين علاء - DOGGA SYSTEM 2026</div>', unsafe_allow_html=True)
+    st.markdown('<div class="footer-text">DOGGA SYSTEM 2026 | م/ ياسين علاء</div>', unsafe_allow_html=True)
