@@ -38,7 +38,7 @@ if 'started' not in st.session_state:
 if 'storage' not in st.session_state:
     st.session_state.storage = []
 
-# --- 1. واجهة الترحيب (الواجهة الجميلة) ---
+# --- 1. واجهة الترحيب ---
 if not st.session_state.started:
     st.markdown("""
         <div class="welcome-card">
@@ -61,13 +61,10 @@ else:
             st.session_state.storage = []
             st.session_state.started = False
             st.rerun()
-        st.markdown("---")
-        st.info("سجل الوحدات المحفوظة يظهر في الأسفل فور الحساب.")
 
     st.markdown("<h2 class='header-text'>📝 إدخال بيانات التشغيل</h2>", unsafe_allow_html=True)
     
     with st.container():
-        # القسم الأول: الأساسيات
         st.markdown("### 🏷️ نوع الوحدة")
         c_title, c_type = st.columns(2)
         with c_title: u_title = st.text_input("اسم الوحدة", "مطبخ سفلي")
@@ -79,7 +76,6 @@ else:
         with m2: h = st.number_input("الارتفاع (H)", value=None)
         with m3: d = st.number_input("العمق (D)", value=None)
 
-        # القسم الثاني: التفاصيل (الرفوف والفواصل والأدراج)
         st.markdown("---")
         st.markdown("### 🧱 تفاصيل الإضافات (أرفف - فواصل - أدراج)")
         
@@ -87,25 +83,24 @@ else:
         
         with tab1:
             r1, r2, r3 = st.columns(3)
-            with r1: sh_w = st.number_input("عرض الرف (سم)", value=None)
-            with r2: sh_d = st.number_input("عمق الرف (سم)", value=None)
-            with r3: sh_n = st.number_input("عدد الرفوف", value=0, step=1)
+            with r1: sh_w_in = st.number_input("عرض الرف (سم)", value=0.0)
+            with r2: sh_d_in = st.number_input("عمق الرف (سم)", value=0.0)
+            with r3: sh_n_in = st.number_input("عدد الرفوف", value=0, step=1)
             
         with tab2:
             v1, v2, v3 = st.columns(3)
-            with v1: dv_h = st.number_input("ارتفاع الفاصل (سم)", value=None)
-            with v2: dv_d = st.number_input("عمق الفاصل (سم)", value=None)
-            with v3: dv_n = st.number_input("عدد الفواصل", value=0, step=1)
+            with v1: dv_h_in = st.number_input("ارتفاع الفاصل (سم)", value=0.0)
+            with v2: dv_d_in = st.number_input("عمق الفاصل (سم)", value=0.0)
+            with v3: dv_n_in = st.number_input("عدد الفواصل", value=0, step=1)
             
         with tab3:
             d1, d2, d3 = st.columns(3)
-            with d1: dr_w = st.number_input("عرض الدرج (سم)", value=None)
-            with d2: dr_d = st.number_input("عمق الدرج (سم)", value=None)
-            with d3: dr_n = st.number_input("عدد الأدراج", value=0, step=1)
+            with d1: dr_w_in = st.number_input("عرض الدرج (سم)", value=0.0)
+            with d2: dr_d_in = st.number_input("عمق الدرج (سم)", value=0.0)
+            with d3: dr_n_in = st.number_input("عدد الأدراج", value=0, step=1)
 
         if st.button("📝 استخراج شيت القص النهائي"):
             if w and h and d:
-                # منطق التخصيم المعتمد
                 h_c = h - 13 if u_type in ["وحدة سفلية", "دولاب خزين"] else h - 5
                 w_c = w - 5
                 d_c = d - 5
@@ -113,9 +108,9 @@ else:
                 unit_entry = {
                     'title': u_title, 'type': u_type, 'w': w, 'h': h, 'd': d,
                     'h_c': h_c, 'w_c': w_c, 'd_c': d_c,
-                    'sh_w': sh_w, 'sh_d': sh_d, 'sh_n': sh_n,
-                    'dv_h': dv_h, 'dv_d': dv_d, 'dv_n': dv_n,
-                    'dr_w': dr_w, 'dr_d': dr_d, 'dr_n': dr_n
+                    'sh_w': sh_w_in, 'sh_d': sh_d_in, 'sh_n': sh_n_in,
+                    'dv_h': dv_h_in, 'dv_d': dv_d_in, 'dv_n': dv_n_in,
+                    'dr_w': dr_w_in, 'dr_d': dr_d_in, 'dr_n': dr_n_in
                 }
                 st.session_state.storage.append(unit_entry)
             else:
@@ -136,8 +131,24 @@ else:
             """, unsafe_allow_html=True)
             
             if u['sh_n'] > 0:
-                st.markdown(f'<div class="data-line">📏 الارفف: {u["sh_w"]-5 if u["sh_w"] else 0} * {u["sh_d"]-5 if u["sh_d"] else 0} * {u["sh_n"]}</div>', unsafe_allow_html=True)
+                st.markdown(f'<div class="data-line">📏 الارفف: {u["sh_w"]-5} * {u["sh_d"]-5} * {u["sh_n"]}</div>', unsafe_allow_html=True)
             if u['dv_n'] > 0:
-                st.markdown(f'<div class="data-line">📏 الفواصل: {u["dv_h"]-5 if u["dv_h"] else 0} * {u["dv_d"]-5 if u["dv_d"] else 0} * {u["dv_n"]}</div>', unsafe_allow_html=True)
+                st.markdown(f'<div class="data-line">📏 الفواصل: {u["dv_h"]-5} * {u["dv_d"]-5} * {u["dv_n"]}</div>', unsafe_allow_html=True)
             if u['dr_n'] > 0:
-                st.markdown(f'<div class="data-line">📏 الادراج: {u
+                st.markdown(f'<div class="data-line">📏 الادراج: {u["dr_w"]-2.5} عرض * {u["dr_d"]} عمق * {u["dr_n"]}</div>', unsafe_allow_html=True)
+
+            st.markdown('<div class="section-label">📐 تخصيم الألومنيوم (2*8):</div>', unsafe_allow_html=True)
+            st.markdown(f'<div class="data-line">🛠️ الارتفاع: {u["h_c"]} سم (2 مفرد + 2 متقارب)</div>', unsafe_allow_html=True)
+            
+            if u['type'] == "وحدة سفلية":
+                st.markdown(f'<div class="data-line">🛠️ العرض: {u["w_c"]} سم (3 مفرد + 1 متقارب)</div>', unsafe_allow_html=True)
+                st.markdown(f'<div class="data-line">🛠️ العمق: {u["d_c"]} سم (2 مفرد + 2 متقارب)</div>', unsafe_allow_html=True)
+            else:
+                st.markdown(f'<div class="data-line">🛠️ العرض: {u["w_c"]} سم (2 مفرد + 2 متقارب)</div>', unsafe_allow_html=True)
+                st.markdown(f'<div class="data-line">🛠️ العمق: {u["d_c"]} سم (4 متقارب)</div>', unsafe_allow_html=True)
+            
+            if u['sh_n'] > 0 or u['dv_n'] > 0:
+                count = (u['sh_n'] + u['dv_n']) * 4
+                st.markdown(f'<div class="data-line">🛠️ ألومنيا الإضافات: {u["d_c"]} سم ({count} حتة مفرد)</div>', unsafe_allow_html=True)
+            
+            st.markdown("</div>", unsafe_allow_html=True)
