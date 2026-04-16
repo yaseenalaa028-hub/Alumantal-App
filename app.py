@@ -1,100 +1,106 @@
 import streamlit as st
 
-# إعدادات الصفحة بصمة م/ ياسين علاء
-st.set_page_config(page_title="نظام تخصيم الألومنيوم - ياسين علاء", layout="centered")
+# إعدادات الصفحة - نسخة المهندس ياسين علاء
+st.set_page_config(page_title="AL-PRINCE SYSTEM", layout="centered")
 
-# تصميم الواجهة (الألوان والستايل)
+# تصميم الواجهة (Dark Mode)
 st.markdown("""
     <style>
-    .main { background-color: #f5f6fa; }
-    .stButton>button { width: 100%; border-radius: 10px; height: 3.5em; background-color: #2f3640; color: #fbc531; font-weight: bold; font-size: 18px; border: 2px solid #fbc531; }
-    .stButton>button:hover { background-color: #fbc531; color: #2f3640; }
-    .input-card { background-color: #ffffff; padding: 25px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin-top: 20px; }
-    h1 { text-align: center; color: #2f3640; font-family: 'Segoe UI'; }
+    .main { background-color: #0f172a; }
+    .title-text { color: #2ecc71; text-align: center; font-size: 32px; font-weight: bold; padding: 20px; }
+    .subtitle-text { color: #94a3b8; text-align: center; font-size: 18px; margin-bottom: 30px; }
+    .stTextInput>div>div>input, .stNumberInput>div>div>input {
+        background-color: #1e293b !important; color: #2ecc71 !important; border: 1px solid #334155 !important;
+    }
+    label { color: #f8fafc !important; font-weight: bold !important; }
+    .stButton>button {
+        width: 100%; border-radius: 12px; height: 4em; 
+        background-color: #2ecc71; color: #0f172a; 
+        font-weight: bold; font-size: 20px; border: none;
+    }
+    .result-card {
+        background-color: #1e293b; padding: 20px; border-radius: 10px; 
+        border-right: 5px solid #2ecc71; color: #f8fafc; margin-top: 10px;
+    }
     </style>
     """, unsafe_allow_html=True)
 
-# إدارة حالة الصفحة (هل بدأنا التخصيم أم لا)
 if 'started' not in st.session_state:
     st.session_state.started = False
 if 'storage' not in st.session_state:
     st.session_state.storage = []
 
-# --- الصفحة الرئيسية (الصافية) ---
+# --- الصفحة الرئيسية ---
 if not st.session_state.started:
     st.markdown("<br><br><br>", unsafe_allow_html=True)
-    st.markdown("<h1>🏗️ نظام تخصيم الألومنيوم</h1>", unsafe_allow_html=True)
-    st.markdown("<h3 style='text-align: center;'>برمجة المهندس ياسين علاء</h3>", unsafe_allow_html=True)
-    st.markdown("<br>", unsafe_allow_html=True)
-    
-    if st.button("🚀 ابدأ التخصيم الآن"):
+    st.markdown('<div class="title-text">🏗️ نظام تخصيم الألومنيوم</div>', unsafe_allow_html=True)
+    st.markdown('<div class="subtitle-text">إشراف المهندس ياسين علاء</div>', unsafe_allow_html=True)
+    if st.button("🚀 ابدأ التخصيم"):
         st.session_state.started = True
         st.rerun()
 
-# --- صفحة إدخال البيانات (تظهر بعد الضغط على الزرار) ---
+# --- صفحة المدخلات ---
 else:
-    st.markdown("### 📝 مدخلات الوحدة الجديدة")
+    st.markdown('<div class="title-text" style="font-size:24px;">لوحة إدخال البيانات</div>', unsafe_allow_html=True)
     
     with st.container():
-        # الخانات الأساسية
         col1, col2 = st.columns(2)
         with col1:
-            u_title = st.text_input("اسم الوحدة", "وحدة 1")
-            u_type = st.selectbox("نوع الوحدة", ["سفلية", "علوية", "دولاب خزين"])
+            u_title = st.text_input("اسم القطعة", placeholder="مثلاً: وحدة مطبخ")
+            u_type = st.selectbox("نوع التخصيم", ["سفلية", "علوية", "دولاب خزين"])
         with col2:
-            w = st.number_input("العرض الكلي", 0.0)
-            h = st.number_input("الارتفاع الكلي", 0.0)
-            d = st.number_input("العمق الكلي", 0.0)
+            # هنا التعديل: استبدلنا 0.0 بـ None عشان الخانة تظهر فاضية
+            w = st.number_input("العرض الكلي", value=None, placeholder="أدخل العرض")
+            h = st.number_input("الارتفاع الكلي", value=None, placeholder="أدخل الارتفاع")
+            d = st.number_input("العمق الكلي", value=None, placeholder="أدخل العمق")
 
-        st.divider()
+        st.markdown("<hr style='border-color: #334155;'>", unsafe_allow_html=True)
         
-        # خانات الرفوف والفواصل والأدراج (زي ما طلبت بالترتيب)
-        st.markdown("#### 🧱 تفاصيل الإضافات")
+        st.markdown("<p style='color:#2ecc71; font-weight:bold;'>🧱 تفاصيل الرفوف والفواصل والأدراج</p>", unsafe_allow_html=True)
         c1, c2, c3 = st.columns(3)
         with c1:
-            sh_w = st.number_input("مقاس الرف (عرض)", 0.0)
-            sh_d = st.number_input("عمق الرف", 0.0)
-            sh_n = st.number_input("عدد الرفوف", 0)
+            st.caption("الرفوف")
+            sh_w = st.number_input("عرض الرف", value=None, placeholder="0.0")
+            sh_d = st.number_input("عمق الرف", value=None, placeholder="0.0")
+            sh_n = st.number_input("عدد الرفوف", value=None, placeholder="0", step=1)
         with c2:
-            dv_h = st.number_input("مقاس الفاصل (ارتفاع)", 0.0)
-            dv_d = st.number_input("عمق الفاصل", 0.0)
-            dv_n = st.number_input("عدد الفواصل", 0)
+            st.caption("الفواصل")
+            dv_h = st.number_input("ارتفاع الفاصل", value=None, placeholder="0.0")
+            dv_d = st.number_input("عمق الفاصل", value=None, placeholder="0.0")
+            dv_n = st.number_input("عدد الفواصل", value=None, placeholder="0", step=1)
         with c3:
-            dr_w = st.number_input("مقاس الدرج (عرض)", 0.0)
-            dr_d = st.number_input("عمق الدرج", 0.0)
-            dr_n = st.number_input("عدد الأدراج", 0)
+            st.caption("الأدراج")
+            dr_w = st.number_input("عرض الدرج", value=None, placeholder="0.0")
+            dr_d = st.number_input("عمق الدرج", value=None, placeholder="0.0")
+            dr_n = st.number_input("عدد الأدراج", value=None, placeholder="0", step=1)
 
-        # زر الحفظ والحساب
-        if st.button("💾 حفظ الوحدة وحساب التخصيم"):
-            if w > 0 and h > 0:
-                # قوانين التخصيم الخاصة بك
+        if st.button("💾 تنفيذ التخصيم وإضافة للجدول"):
+            # التأكد إن المستخدم دخل القيم الأساسية
+            if w is not None and h is not None and d is not None:
                 h_baky = h - 13 if u_type in ["سفلية", "دولاب خزين"] else h - 5
                 w_baky, d_baky = w - 5, d - 5
+                
+                # معالجة القيم الاختيارية لو سابها فاضية (تعتبر صفر في الحسابات)
+                sh_n_val = sh_n if sh_n is not None else 0
+                dv_n_val = dv_n if dv_n is not None else 0
+                dr_n_val = dr_n if dr_n is not None else 0
                 
                 unit = {
                     'title': u_title, 'type': u_type, 'w': w, 'h': h, 'd': d,
                     'h_baky': h_baky, 'w_baky': w_baky, 'd_baky': d_baky,
-                    'sh_w': sh_w, 'sh_d': sh_d, 'sh_n': sh_n,
-                    'dv_h': dv_h, 'dv_d': dv_d, 'dv_n': dv_n,
-                    'dr_w': dr_w, 'dr_d': dr_d, 'dr_n': dr_n
+                    'sh_n': sh_n_val, 'dv_n': dv_n_val, 'dr_n': dr_n_val
                 }
                 st.session_state.storage.append(unit)
-                st.success("تم الحفظ بنجاح!")
+                st.success("تم الحساب والإضافة!")
             else:
-                st.error("أدخل المقاسات الأساسية الأول!")
+                st.warning("لازم تدخل العرض والارتفاع والعمق الأول!")
 
-    # عرض النتائج تحت الخانات
     if st.session_state.storage:
-        st.divider()
-        st.subheader("📋 فاتورة القص والجرد")
         for u in st.session_state.storage:
-            with st.expander(f"📦 {u['title']} - {u['type']}"):
-                st.write(f"**تخصيم الألومنيوم:** ارتفاع {u['h_baky']} | عرض {u['w_baky']} | عمق {u['d_baky']}")
-                if u['sh_n'] > 0: st.write(f"**الرفوف:** عرض {u['sh_w']} | عمق {u['sh_d']} | عدد {u['sh_n']}")
-                if u['dv_n'] > 0: st.write(f"**الفواصل:** ارتفاع {u['dv_h']} | عمق {u['dv_d']} | عدد {u['dv_n']}")
-                if u['dr_n'] > 0: st.write(f"**الأدراج:** عرض {u['dr_w']} | عمق {u['dr_d']} | عدد {u['dr_n']}")
+            with st.expander(f"✅ {u['title']}"):
+                st.markdown(f'<div class="result-card">ارتفاع: {u["h_baky"]} | عرض: {u["w_baky"]} | عمق: {u["d_baky"]}</div>', unsafe_allow_html=True)
 
-    if st.button("🔄 إرجاع للصفحة الرئيسية"):
+    if st.button("🔄 مشروع جديد"):
         st.session_state.started = False
         st.session_state.storage = []
         st.rerun()
