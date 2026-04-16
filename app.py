@@ -3,7 +3,7 @@ import streamlit as st
 # إعدادات الصفحة
 st.set_page_config(page_title="نظام تخصيمات ياسين علاء", layout="centered")
 
-# الستايل الاحترافي (أصفر + أسود + واجهة رايقة)
+# الستايل الاحترافي
 st.markdown("""
     <style>
     .main { background-color: #f8f9fa; }
@@ -21,7 +21,6 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-# إدارة حالة الواجهة
 if 'started' not in st.session_state:
     st.session_state.started = False
 if 'storage' not in st.session_state:
@@ -31,12 +30,11 @@ if 'storage' not in st.session_state:
 if not st.session_state.started:
     st.markdown("<br><br><h1 style='text-align: center; color: #2f3640;'>🏗️ نظام تخصيم الألومنيوم</h1>", unsafe_allow_html=True)
     st.markdown("<h3 style='text-align: center; color: #7f8c8d;'>إشراف المهندس ياسين علاء</h3><br>", unsafe_allow_html=True)
-    
     if st.button("🚀 ابدأ التخصيم الآن"):
         st.session_state.started = True
         st.rerun()
 
-# --- 2. واجهة إدخال البيانات والنتائج ---
+# --- 2. واجهة إدخال البيانات الكاملة ---
 else:
     st.markdown("<h2 style='text-align: center; color: #2f3640;'>📝 مدخلات المقاسات</h2>", unsafe_allow_html=True)
     
@@ -44,62 +42,61 @@ else:
         u_title = st.text_input("اسم الوحدة", placeholder="مثال: مطبخ")
         u_type = st.selectbox("نوع الوحدة", ["سفلية", "علوية", "دولاب خزين"])
         
-        # الخانات الأساسية (العرض - الارتفاع - العمق)
+        st.markdown("#### 📐 المقاسات الأساسية")
         col1, col2, col3 = st.columns(3)
         with col1: w = st.number_input("العرض الكلي", value=None)
         with col2: h = st.number_input("الارتفاع الكلي", value=None)
         with col3: d = st.number_input("العمق الكلي", value=None)
 
-        st.markdown("---")
-        # خانات الإضافات (الرفوف والفواصل)
-        st.markdown("#### 🧱 أضف الرفوف والفواصل")
-        c1, c2 = st.columns(2)
-        with c1: 
+        st.divider()
+        # --- رجوع خانات الرفوف والفواصل والأدراج بالتفصيل ---
+        st.markdown("#### 🧱 تفاصيل الرفوف والفواصل")
+        c1, c2, c3 = st.columns(3)
+        with c1:
+            sh_w = st.number_input("عرض الرف", value=None)
+            sh_d = st.number_input("عمق الرف", value=None)
             sh_n = st.number_input("عدد الرفوف", value=None, step=1)
-        with c2: 
+        with c2:
+            dv_h = st.number_input("ارتفاع الفاصل", value=None)
+            dv_d = st.number_input("عمق الفاصل", value=None)
             dv_n = st.number_input("عدد الفواصل", value=None, step=1)
+        with c3:
+            dr_w = st.number_input("عرض الدرج", value=None)
+            dr_d = st.number_input("عمق الدرج", value=None)
+            dr_n = st.number_input("عدد الأدراج", value=None, step=1)
 
-        if st.button("💾 احسب المقاسات واعرض النتائج"):
+        if st.button("💾 احسب واعرض النتائج"):
             if w and h and d:
-                # قوانين التخصيم الأساسية (باكية الفيبر)
                 h_bak = h - 13 if u_type in ["سفلية", "دولاب خزين"] else h - 5
-                w_bak, d_bak = w - 5, d - 5
-                
-                # تخصيم الرفوف والفواصل (خصم 5 سم إضافية كما في مثالك)
-                sh_w, sh_d = w_bak - 5, d_bak - 3
-                dv_h, dv_d = h_bak - 5, d_bak - 3
-
                 unit = {
-                    'title': u_title, 'type': u_type, 
-                    'h_bak': h_bak, 'w_bak': w_bak, 'd_bak': d_bak,
-                    'sh_n': int(sh_n) if sh_n else 0, 'sh_w': sh_w, 'sh_d': sh_d,
-                    'dv_n': int(dv_n) if dv_n else 0, 'dv_h': dv_h, 'dv_d': dv_d
+                    'title': u_title, 'type': u_type,
+                    'h_bak': h_bak, 'w_bak': w-5, 'd_bak': d-5,
+                    'sh_w': sh_w, 'sh_d': sh_d, 'sh_n': sh_n if sh_n else 0,
+                    'dv_h': dv_h, 'dv_d': dv_d, 'dv_n': dv_n if dv_n else 0,
+                    'dr_w': dr_w, 'dr_d': dr_d, 'dr_n': dr_n if dr_n else 0
                 }
                 st.session_state.storage.append(unit)
             else:
-                st.error("أدخل العرض والارتفاع والعمق الأول يا هندسة!")
+                st.error("أدخل المقاسات الأساسية الأول!")
 
     # --- عرض النتائج بالصيغة اللي طلبتها ---
     if st.session_state.storage:
-        st.markdown("<br><h3 style='text-align: right;'>📋 قائمة القص النهائية:</h3>", unsafe_allow_html=True)
         for u in st.session_state.storage:
             st.markdown(f"""
             <div class="report-card">
                 <div class="title-line">📦 {u['title']} - {u['type']}</div>
-                
                 <div class="section-label">🪵 تخصيم الفيبر:</div>
                 <div class="data-line">الضهرية: {u['w_bak']} * {u['h_bak']} * 1</div>
                 <div class="data-line">الارضية: {u['w_bak']} * {u['d_bak']} * 1</div>
                 <div class="data-line">الاجناب: {u['h_bak']} * {u['d_bak']} * 2</div>
             """, unsafe_allow_html=True)
             
-            # إظهار الرفوف لو فيه عدد
             if u['sh_n'] > 0:
                 st.markdown(f'<div class="data-line">الارفف: {u["sh_w"]} * {u["sh_d"]} * {u["sh_n"]}</div>', unsafe_allow_html=True)
-            
-            # إظهار الفواصل لو فيه عدد
             if u['dv_n'] > 0:
                 st.markdown(f'<div class="data-line">الفواصل: {u["dv_h"]} * {u["dv_d"]} * {u["dv_n"]}</div>', unsafe_allow_html=True)
+            if u['dr_n'] > 0:
+                st.markdown(f'<div class="data-line">الأدراج: {u["dr_w"]} * {u["dr_d"]} * {u["dr_n"]}</div>', unsafe_allow_html=True)
 
             st.markdown(f"""
                 <div class="section-label">📐 تخصيم الألومنيوم (2*8):</div>
@@ -109,7 +106,7 @@ else:
             </div>
             """, unsafe_allow_html=True)
 
-    if st.button("🔄 مسح السجل والبدء من جديد"):
+    if st.button("🔄 مشروع جديد"):
         st.session_state.started = False
         st.session_state.storage = []
         st.rerun()
