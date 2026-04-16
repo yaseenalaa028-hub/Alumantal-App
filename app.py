@@ -1,141 +1,141 @@
-from flask import Flask, render_template_string, request
-
-app = Flask(__name__)
-
-# كود الواجهة والمنطق في ملف واحد لضمان التحديث
-HTML_SOURCE = """
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>نظام الورشة المعتمد v3.0</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نظام الورشة المعتمد v4.0</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css">
     <style>
-        body { background-color: #f0f2f5; font-family: 'Segoe UI', sans-serif; }
-        .card { border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
-        .res-al { border-top: 5px solid #28a745; }
-        .res-fb { border-top: 5px solid #fd7e14; }
-        .badge-dark { background-color: #343a40; color: white; padding: 5px 10px; border-radius: 5px; }
+        body { background-color: #f8f9fa; font-family: 'Segoe UI', sans-serif; padding: 20px; }
+        .card { border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); border: none; }
+        .header-section { background: #2c3e50; color: white; border-radius: 15px 15px 0 0; padding: 20px; }
+        .btn-calc { background: #27ae60; color: white; font-weight: bold; padding: 12px; border-radius: 8px; border: none; width: 100%; }
+        .btn-calc:hover { background: #219150; }
+        .res-box { display: none; margin-top: 20px; }
+        .table-al { border-top: 4px solid #27ae60; }
+        .table-fb { border-top: 4px solid #e67e22; }
+        .badge-qty { background: #34495e; color: white; padding: 5px 12px; border-radius: 4px; }
     </style>
 </head>
-<body class="container py-4">
-    <div class="card p-4 mb-4">
-        <h3 class="text-center mb-4 text-primary">🏗️ حاسبة التخصيم التفصيلي - المهندس ياسين</h3>
-        <form method="POST">
+<body>
+
+<div class="container">
+    <div class="card">
+        <div class="header-section text-center">
+            <h3>🏗️ حاسبة الورشة (المهندس ياسين)</h3>
+            <p class="mb-0 text-info">تحديث: فصل الفيبر + حساب الفواصل + الرفوف × 4</p>
+        </div>
+        <div class="card-body p-4">
             <div class="row g-3">
                 <div class="col-md-3">
-                    <label>العرض الكلي (W)</label>
-                    <input type="number" step="0.1" name="w_val" class="form-control" value="{{w_val}}" required>
+                    <label class="form-label">العرض الكلي</label>
+                    <input type="number" id="w" class="form-control" value="100">
                 </div>
                 <div class="col-md-3">
-                    <label>الارتفاع الكلي (H)</label>
-                    <input type="number" step="0.1" name="h_val" class="form-control" value="{{h_val}}" required>
+                    <label class="form-label">الارتفاع الكلي</label>
+                    <input type="number" id="h" class="form-control" value="90">
                 </div>
                 <div class="col-md-3">
-                    <label>العمق الكلي (D)</label>
-                    <input type="number" step="0.1" name="d_val" class="form-control" value="{{d_val}}" required>
+                    <label class="form-label">العمق الكلي</label>
+                    <input type="number" id="d" class="form-control" value="50">
                 </div>
                 <div class="col-md-3">
-                    <label>نوع الوحدة</label>
-                    <select name="u_type" class="form-select">
-                        <option value="سفلية" {% if u_type == 'سفلية' %}selected{% endif %}>سفلية (تخصيم 13)</option>
-                        <option value="علوية" {% if u_type == 'علوية' %}selected{% endif %}>علوية (تخصيم 5)</option>
+                    <label class="form-label">النوع</label>
+                    <select id="u_type" class="form-select">
+                        <option value="13">سفلية (تخصيم 13)</option>
+                        <option value="5">علوية (تخصيم 5)</option>
                     </select>
                 </div>
+                <hr>
                 <div class="col-md-4">
-                    <label>عرض الرف</label>
-                    <input type="number" step="0.1" name="s_w" class="form-control" value="{{s_w}}">
+                    <label class="form-label text-primary fw-bold">عرض الرف</label>
+                    <input type="number" id="sw" class="form-control" value="0">
                 </div>
                 <div class="col-md-4">
-                    <label>عمق الرف</label>
-                    <input type="number" step="0.1" name="s_d" class="form-control" value="{{s_d}}">
+                    <label class="form-label text-primary fw-bold">عمق الرف</label>
+                    <input type="number" id="sd" class="form-control" value="0">
                 </div>
                 <div class="col-md-4">
-                    <label>عدد الرفوف</label>
-                    <input type="number" name="s_n" class="form-control" value="{{s_n}}">
+                    <label class="form-label text-primary fw-bold">عدد الرفوف</label>
+                    <input type="number" id="sn" class="form-control" value="0">
                 </div>
-                <div class="col-12 text-center mt-3">
-                    <button type="submit" class="btn btn-success btn-lg px-5">🚀 تحديث وإصدار التخصيم</button>
+                <div class="col-12 text-center">
+                    <button onclick="calculate()" class="btn-calc mt-3">🚀 استخراج التقارير الآن</button>
                 </div>
             </div>
-        </form>
+        </div>
     </div>
 
-    {% if al_data %}
-    <div class="row g-4">
-        <div class="col-md-6">
-            <div class="card p-3 res-al h-100">
-                <h5 class="text-success fw-bold">📏 قائمة تقطيع الألمنيوم</h5>
-                <table class="table table-sm mt-2">
-                    <thead><tr><th>البيان</th><th>المقاس</th><th>العدد</th></tr></thead>
-                    <tbody>
-                        {% for row in al_data %}
-                        <tr><td>{{row.name}}</td><td class="fw-bold">{{row.size}}</td><td><span class="badge-dark">{{row.qty}}</span></td></tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+    <div id="resultArea" class="res-box">
+        <div class="row g-4">
+            <div class="col-md-6">
+                <div class="card h-100 p-3">
+                    <h5 class="text-success mb-3 fw-bold">📏 قائمة تقطيع الألمنيوم</h5>
+                    <table class="table table-bordered text-center table-al">
+                        <thead class="table-light">
+                            <tr><th>البند</th><th>المقاس</th><th>العدد</th></tr>
+                        </thead>
+                        <tbody id="al_body"></tbody>
+                    </table>
+                </div>
             </div>
-        </div>
-        <div class="col-md-6">
-            <div class="card p-3 res-fb h-100">
-                <h5 class="text-warning fw-bold">🔲 قائمة تقطيع الفيبر</h5>
-                <table class="table table-sm mt-2">
-                    <thead><tr><th>البيان</th><th>المقاس (صافي)</th><th>العدد</th></tr></thead>
-                    <tbody>
-                        {% for row in fb_data %}
-                        <tr><td>{{row.name}}</td><td class="fw-bold text-danger">{{row.size}}</td><td><span class="badge-dark">{{row.qty}}</span></td></tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+            <div class="col-md-6">
+                <div class="card h-100 p-3">
+                    <h5 class="text-warning mb-3 fw-bold">🔲 قائمة تقطيع الفيبر</h5>
+                    <table class="table table-bordered text-center table-fb">
+                        <thead class="table-light">
+                            <tr><th>البند</th><th>المقاس</th><th>العدد</th></tr>
+                        </thead>
+                        <tbody id="fb_body"></tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
-    {% endif %}
+</div>
+
+<script>
+function calculate() {
+    // جلب القيم
+    const w = parseFloat(document.getElementById('w').value);
+    const h = parseFloat(document.getElementById('h').value);
+    const d = parseFloat(document.getElementById('d').value);
+    const tax = parseFloat(document.getElementById('u_type').value);
+    const sn = parseInt(document.getElementById('sn').value) || 0;
+    const sw = parseFloat(document.getElementById('sw').value) || 0;
+    const sd = parseFloat(document.getElementById('sd').value) || 0;
+
+    // الحسابات
+    const h_net = h - tax;
+    const w_net = w - 5;
+    const d_net = d - 5;
+
+    // ملء جدول الألمنيوم
+    let al_html = `
+        <tr><td>قوائم الارتفاع</td><td class="fw-bold">${h_net}</td><td><span class="badge-qty">4</span></td></tr>
+        <tr><td>عوارض العرض</td><td class="fw-bold">${w_net}</td><td><span class="badge-qty">4</span></td></tr>
+        <tr><td>روابط العمق</td><td class="fw-bold">${d_net}</td><td><span class="badge-qty">4</span></td></tr>
+    `;
+    
+    if(sn > 0) {
+        al_html += `<tr><td>ألمنيوم عرض الرف</td><td class="fw-bold">${sw}</td><td><span class="badge-qty">${sn * 4}</span></td></tr>`;
+        al_html += `<tr><td>ألمنيوم عمق الرف</td><td class="fw-bold">${sd}</td><td><span class="badge-qty">${sn * 4}</span></td></tr>`;
+        al_html += `<tr><td>فواصل تدعيم</td><td class="fw-bold text-primary">${sw}</td><td><span class="badge-qty">${sn * 2}</span></td></tr>`;
+    }
+    document.getElementById('al_body').innerHTML = al_html;
+
+    // ملء جدول الفيبر
+    let fb_html = `<tr><td>فيبر الضهرية</td><td class="fw-bold">${w_net} × ${h_net}</td><td><span class="badge-qty">1</span></td></tr>`;
+    if(sn > 0) {
+        fb_html += `<tr><td>فيبر الرفوف (صافي)</td><td class="fw-bold text-danger">${sw - 5} × ${sd - 5}</td><td><span class="badge-qty">${sn}</span></td></tr>`;
+    }
+    document.getElementById('fb_body').innerHTML = fb_html;
+
+    // إظهار النتائج
+    document.getElementById('resultArea').style.display = 'block';
+    window.scrollTo(0, document.body.scrollHeight);
+}
+</script>
+
 </body>
 </html>
-"""
-
-@app.route('/', methods=['GET', 'POST'])
-def run_app():
-    # قيم افتراضية
-    ctx = {'w_val':100, 'h_val':90, 'd_val':50, 's_w':0, 's_d':0, 's_n':0, 'u_type':'سفلية', 'al_data':None, 'fb_data':None}
-    
-    if request.method == 'POST':
-        try:
-            w = float(request.form.get('w_val', 0))
-            h = float(request.form.get('h_val', 0))
-            d = float(request.form.get('d_val', 0))
-            ut = request.form.get('u_type')
-            sn = int(request.form.get('s_n', 0))
-            sw = float(request.form.get('s_w', 0))
-            sd = float(request.form.get('s_d', 0))
-
-            # التخصيمات
-            h_res = h - 13 if ut == "سفلية" else h - 5
-            w_res, d_res = w - 5, d - 5
-
-            # تجميع الألمنيوم
-            al = [
-                {'name': 'قوائم الارتفاع', 'size': h_res, 'qty': 4},
-                {'name': 'عوارض العرض', 'size': w_res, 'qty': 4},
-                {'name': 'روابط العمق', 'size': d_res, 'qty': 4}
-            ]
-            if sn > 0:
-                al.append({'name': 'ألمنيوم عرض الرف', 'size': sw, 'qty': sn * 4})
-                al.append({'name': 'ألمنيوم عمق الرف', 'size': sd, 'qty': sn * 4})
-                al.append({'name': 'فواصل تدعيم (ألمنيوم)', 'size': sw, 'qty': sn * 2})
-
-            # تجميع الفيبر
-            fb = [{'name': 'فيبر الضهرية', 'size': f"{w_res} × {h_res}", 'qty': 1}]
-            if sn > 0:
-                fb.append({'name': 'فيبر الرفوف (صافي)', 'size': f"{sw - 5} × {sd - 5}", 'qty': sn})
-
-            # تحديث الـ Context
-            ctx.update({'w_val':w, 'h_val':h, 'd_val':d, 's_w':sw, 's_d':sd, 's_n':sn, 'u_type':ut, 'al_data':al, 'fb_data':fb})
-        except: pass
-        
-    return render_template_string(HTML_SOURCE, **ctx)
-
-if __name__ == '__main__':
-    # تشغيل مع خاصية التحديث التلقائي (Debug Mode)
-    app.run(debug=True, port=5000)
