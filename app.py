@@ -1,11 +1,24 @@
 import streamlit as st
 import pandas as pd
 
-# 1. إعدادات الصفحة والستايل الفني (DOGGA SYSTEM Branding)
+# 1. إعدادات الصفحة والستايل الفني وحماية الكود (DOGGA SYSTEM Branding)
 st.set_page_config(page_title="DOGGA SYSTEM | م/ ياسين علاء", layout="wide")
 
 st.markdown("""
     <style>
+    /* حماية مجهود المهندس: إخفاء أزرار الكود ومنع التحديد */
+    [data-testid="stActionButtonIcon"] { display: none !important; }
+    button[title="View source"] { display: none !important; }
+    .stCodeBlock button { display: none !important; }
+    
+    /* منع تحديد النصوص في الصفحة لزيادة الأمان */
+    body {
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+    }
+
     /* تنسيق الجداول: خلفية بيضاء وخطوط صفراء بارزة */
     .stTable td { 
         font-size: 22px !important; 
@@ -22,7 +35,7 @@ st.markdown("""
         text-align: center !important;
         font-weight: bold !important;
     }
-    /* الهيدر المنسق الجديد باللون الأصفر */
+    /* الهيدر المنسق باللون الأصفر */
     .header-box { 
         background-color: #1e272e; 
         padding: 25px; 
@@ -51,7 +64,6 @@ st.markdown("""
         margin-top: 15px;
         font-weight: bold;
     }
-    /* تنسيق كروت الوحدات */
     .table-header {
         background-color: #f1c40f;
         color: #1e272e;
@@ -87,7 +99,7 @@ st.markdown("""
 if 'page' not in st.session_state: st.session_state.page = 'welcome'
 if 'project_list' not in st.session_state: st.session_state.project_list = []
 
-# --- 1. واجهة الترحيب المعدلة ---
+# --- 1. واجهة الترحيب ---
 if st.session_state.page == 'welcome':
     st.markdown("""
         <div class="header-box">
@@ -127,14 +139,17 @@ elif st.session_state.page == 'app':
             
             if st.button("✅ حفظ وتحسيب"):
                 if w and h:
+                    # تخصيمات الألومنيوم (إلغاء الأصفار)
                     h_b = int(h - 13) if u_type in ["سفلية", "دولاب خزين"] else int(h - 5)
                     w_b, d_b = int(w - 5), int(d - 5)
                     
+                    # توزيع مفرد ومتقارب
                     if u_type == "سفلية":
                         h_m, h_t, w_m, w_t, d_m, d_t = 2, 2, 3, 1, 2, 2
                     else:
                         h_m, h_t, w_m, w_t, d_m, d_t = 2, 2, 2, 2, 0, 4
 
+                    # بناء جدول الألومنيوم (5 أعمدة)
                     alum_rows = [
                         {"البند": "قوايم الارتفاع", "مقاس المفرد": h_b, "عدد المفرد": f"{h_m} ق", "مقاس المتقارب": h_b, "عدد المتقارب": f"{h_t} ق"},
                         {"البند": "عوارض العرض", "مقاس المفرد": w_b, "عدد المفرد": f"{w_m} ق", "مقاس المتقارب": w_b, "عدد المتقارب": f"{w_t} ق"},
@@ -143,6 +158,7 @@ elif st.session_state.page == 'app':
                          "مقاس المتقارب": d_b if d_t > 0 else "-", "عدد المتقارب": f"{d_t} ق" if d_t > 0 else "-"}
                     ]
                     
+                    # إضافة بنود الرفوف والفواصل والأدراج
                     if sh_n > 0:
                         alum_rows.append({"البند": "عوارض رف (عرض)", "مقاس المفرد": int(sh_w), "عدد المفرد": f"{int(sh_n*2)} ق", "مقاس المتقارب": "-", "عدد المتقارب": "-"})
                         alum_rows.append({"البند": "عوارض رف (عمق)", "مقاس المفرد": int(sh_d), "عدد المفرد": f"{int(sh_n*2)} ق", "مقاس المتقارب": "-", "عدد المتقارب": "-"})
@@ -153,6 +169,7 @@ elif st.session_state.page == 'app':
                         alum_rows.append({"البند": "إطار درج (عرض)", "مقاس المفرد": int(dr_w-2.5), "عدد المفرد": f"{int(dr_n*2)} ق", "مقاس المتقارب": "-", "عدد المتقارب": "-"})
                         alum_rows.append({"البند": "إطار درج (عمق)", "مقاس المفرد": int(dr_d), "عدد المفرد": f"{int(dr_n*2)} ق", "مقاس المتقارب": "-", "عدد المتقارب": "-"})
 
+                    # جدول الفيبر
                     fiber_rows = [
                         {"القطعة": "فيبر ضهرية", "المقاس الصافي": f"{w_b} x {h_b}", "العدد": "1"},
                         {"القطعة": "فيبر أجناب", "المقاس الصافي": f"{h_b} x {d_b}", "العدد": "2"},
@@ -161,6 +178,7 @@ elif st.session_state.page == 'app':
                     if sh_n > 0: fiber_rows.append({"القطعة": "فيبر رف", "المقاس الصافي": f"{int(sh_w-5)} x {int(sh_d-5)}", "العدد": int(sh_n)})
                     if dv_n > 0: fiber_rows.append({"القطعة": "فيبر فاصل", "المقاس الصافي": f"{int(dv_h-5)} x {int(dv_d-5)}", "العدد": int(dv_n)})
 
+                    # حسابات الجرد الكلي (أعواد وألواح)
                     m_m = (h_b * h_m) + (w_b * w_m) + (d_b * d_m)
                     m_t = (h_b * h_t) + (w_b * w_t) + (d_b * d_t)
                     if sh_n: m_m += (sh_w*2 + sh_d*2) * sh_n
@@ -177,6 +195,7 @@ elif st.session_state.page == 'app':
                     })
                     st.rerun()
 
+    # الجرد في السايد بار
     if st.session_state.project_list:
         tot_m = sum([x['m_m'] for x in st.session_state.project_list]) / 600
         tot_t = sum([x['m_t'] for x in st.session_state.project_list]) / 600
@@ -186,6 +205,7 @@ elif st.session_state.page == 'app':
         st.sidebar.metric("💎 ألواح فيبر", f"{round(tot_f, 1)} لوح")
         if st.sidebar.button("🗑️ مسح المشروع"): st.session_state.project_list = []; st.rerun()
 
+    # عرض كشوف التقطيع النهائية
     for idx, item in enumerate(st.session_state.project_list):
         st.markdown(f'<div class="unit-card"><h2>#{idx+1} {item["name"]} ({item["dims"]} سم)</h2>', unsafe_allow_html=True)
         st.markdown(f'<div class="table-header">⚔️ تقطيع ألومنيوم - وحدة ({item["type"]})</div>', unsafe_allow_html=True)
