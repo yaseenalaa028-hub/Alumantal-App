@@ -1,67 +1,67 @@
 import streamlit as st
 
-# إعدادات الصفحة والستايل
-st.set_page_config(page_title="نظام ياسين علاء للألومنيوم", layout="wide")
+# إعدادات الصفحة - بصمة المهندس ياسين علاء
+st.set_page_config(page_title="نظام تخصيم الألومنيوم - م/ ياسين علاء", layout="wide")
 
+# تصميم الواجهة بالألوان اللي كانت في كودك (الأسود والأصفر والأخضر)
 st.markdown("""
     <style>
-    .main { background-color: #f0f2f6; }
-    .stButton>button { width: 100%; border-radius: 10px; height: 3em; background-color: #27ae60; color: white; font-weight: bold; }
-    .report-card { background-color: #ffffff; padding: 20px; border-radius: 15px; border-right: 8px solid #fbc531; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-bottom: 20px; }
-    .metric-box { background-color: #2f3640; color: #fbc531; padding: 15px; border-radius: 10px; text-align: center; }
-    h1, h2, h3 { text-align: right; font-family: 'Segoe UI'; }
-    div[data-testid="stExpander"] { border: 1px solid #dcdde1; border-radius: 10px; background-color: white; }
+    .main { background-color: #1e272e; }
+    div[data-testid="stMetricValue"] { color: #f1c40f !important; }
+    .stButton>button { background-color: #27ae60; color: white; font-weight: bold; border-radius: 5px; height: 3em; }
+    .header-box { background-color: #2f3640; color: #fbc531; padding: 20px; border-radius: 10px; text-align: center; border-bottom: 4px solid #e1b12c; margin-bottom: 20px; }
+    .result-box { background-color: #ffffff; color: #2c3e50; padding: 15px; border-radius: 5px; font-family: 'Courier New'; border-right: 5px solid #27ae60; }
     </style>
     """, unsafe_allow_html=True)
 
-# العنوان الرئيسي
-st.markdown('<div style="background-color: #2f3640; color: #fbc531; font-size: 28px; font-weight: bold; padding: 20px; border-radius: 10px; text-align: center;">📊 نظام تخصيم الألومنيوم | برمجة م/ ياسين علاء</div>', unsafe_allow_html=True)
-st.write("")
+st.markdown('<div class="header-box"><h1>نظام تخصيم الألومنيوم - برمجة م/ ياسين علاء</h1></div>', unsafe_allow_html=True)
 
 # إدارة البيانات
-if 'project_storage' not in st.session_state:
-    st.session_state.project_storage = []
+if 'storage' not in st.session_state:
+    st.session_state.storage = []
 
-# --- منطقة المدخلات ---
+# --- منطقة المدخلات (نفس ترتيب كودك بالظبط) ---
 with st.container():
-    st.markdown("### 📝 مدخلات المقاسات")
-    c1, c2, c3 = st.columns(3)
-    with c1:
-        title = st.text_input("اسم الوحدة", "مطبخ - وحدة 1")
-        u_type = st.selectbox("نوع الوحدة", ["سفلية", "علوية", "دولاب خزين"])
-    with c2:
-        w = st.number_input("العرض الكلي (سم)", 0.0, step=0.1)
-        h = st.number_input("الارتفاع الكلي (سم)", 0.0, step=0.1)
-    with c3:
-        d = st.number_input("العمق الكلي (سم)", 0.0, step=0.1)
-        sh_n = st.number_input("عدد الرفوف", 0, step=1)
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        u_title = st.text_input("اسم الوحدة", "مطبخ - وحدة 1")
+        u_type = st.selectbox("نوع الوحدة", ["سفلية", "علوية", "دولاب خزين", "وحدة أخرى"])
+        w = st.number_input("العرض الكلي", 0.0)
+    with col2:
+        h = st.number_input("الارتفاع الكلي", 0.0)
+        d = st.number_input("العمق الكلي", 0.0)
+        sh_n = st.number_input("عدد الرفوف", 0)
+    with col3:
+        dv_n = st.number_input("عدد الفواصل", 0)
+        dr_n = st.number_input("عدد الأدراج", 0)
+        dr_w = st.number_input("عرض الدرج", 0.0)
 
-    # زر الإضافة
-    if st.button("➕ إضافة الوحدة للحسابات"):
-        if w > 0 and h > 0:
-            # نفس تخصيماتك بالضبط
-            h_baky = h - 13 if u_type in ["سفلية", "دولاب خزين"] else h - 5
-            w_baky = w - 5
-            d_baky = d - 5
-            
-            unit = {
-                "title": title, "type": u_type, "w": w, "h": h, "d": d,
-                "h_baky": h_baky, "w_baky": w_baky, "d_baky": d_baky, "sh_n": sh_n
-            }
-            st.session_state.project_storage.append(unit)
-            st.toast(f"تمت إضافة {title}", icon='✅')
-        else:
-            st.error("دخل المقاسات الأول يا هندسة!")
+# زر الإضافة (Enter)
+if st.button("💾 إضافة للجدول والحساب"):
+    if w > 0 and h > 0:
+        # معادلات التخصيم من كودك الأصلي بالمللي
+        h_baky = h - 13 if u_type in ["سفلية", "دولاب خزين"] else h - 5
+        w_baky, d_baky = w - 5, d - 5
+        
+        # تجميع البيانات
+        unit = {
+            'title': u_title, 'type': u_type, 'w': w, 'h': h, 'd': d,
+            'h_baky': h_baky, 'w_baky': w_baky, 'd_baky': d_baky,
+            'sh_n': sh_n, 'dv_n': dv_n, 'dr_n': dr_n, 'dr_w': dr_w
+        }
+        st.session_state.storage.append(unit)
+    else:
+        st.error("برجاء مراجعة المقاسات يا هندسة")
 
-# --- عرض النتائج والجرد ---
-if st.session_state.project_storage:
+# --- عرض النتائج (الفاتورة والجرد) ---
+if st.session_state.storage:
     st.divider()
     
-    # الجرد في الجنب (Sidebar)
-    st.sidebar.markdown("### 📊 إجمالي جرد المشروع")
+    # حسابات الجرد الكلي (نفس معادلات calculate_project_data في كودك)
     m_sum, t_sum, f_area = 0, 0, 0
     
-    for u in st.session_state.project_storage:
+    for u in st.session_state.storage:
+        # حسابات الألومنيوم والفيبر لكل وحدة
         if u['type'] == "سفلية":
             m_sum += (u['h_baky']*2)+(u['w_baky']*3)+(u['d_baky']*2)
             t_sum += (u['h_baky']*2)+(u['w_baky']*1)+(u['d_baky']*2)
@@ -71,28 +71,33 @@ if st.session_state.project_storage:
             t_sum += (u['h_baky']*2)+(u['w_baky']*2)+(u['d_baky']*4)
             f_area += (u['w_baky']*u['h_baky']) + (u['w_baky']*u['d_baky']*2) + (u['h_baky']*u['d_baky']*2)
         
-        # إضافة رفوف لو وجدت
-        m_sum += (u['sh_n'] * 2 * ( (u['w']-5) + (u['d']-5) ))
+        # إضافة الرفوف والفواصل والأدراج للجرد
+        m_sum += (u['w']-5 + u['d']-5) * 2 * u['sh_n']
+        m_sum += (u['h_baky'] + u['d_baky']) * 2 * u['dv_n']
+        m_sum += ((u['dr_w']-2.5)*2 + u['d_baky']*2) * u['dr_n']
 
-    with st.sidebar:
-        st.markdown(f'<div class="metric-box">📏 ألومنيوم مفرد<br><h2>{m_sum/600:.2f} عود</h2></div>', unsafe_allow_html=True)
-        st.write("")
-        st.markdown(f'<div class="metric-box">📏 ألومنيوم متقارب<br><h2>{t_sum/600:.2f} عود</h2></div>', unsafe_allow_html=True)
-        st.write("")
-        st.markdown(f'<div class="metric-box">🪵 فيبر (لوح)<br><h2>{f_area/36400:.2f} لوح</h2></div>', unsafe_allow_html=True)
-        st.write("")
-        if st.button("🗑️ مسح كل البيانات", type="secondary"):
-            st.session_state.project_storage = []
-            st.rerun()
+    # عرض الجرد فوق بشكل ملخص (زي الـ SummaryDialog)
+    c1, c2, c3 = st.columns(3)
+    c1.metric("ألومنيوم مفرد (عود)", f"{m_sum/600:.2f}")
+    c2.metric("ألومنيوم متقارب (عود)", f"{t_sum/600:.2f}")
+    c3.metric("فيبر لوح (2.8*1.3)", f"{f_area/36400:.2f}")
 
-    # عرض الوحدات المضافة
-    st.markdown("### 🏗️ تفاصيل التخصيم")
-    for idx, u in enumerate(st.session_state.project_storage):
-        with st.expander(f"وحدة: {u['title']} | النوع: {u['type']}"):
-            col_a, col_b = st.columns(2)
-            with col_a:
-                st.markdown("**📐 مقاسات الألومنيوم:**")
-                st.info(f"الارتفاع: {u['h_baky']} سم\n\nالعرض: {u['w_baky']} سم\n\nالعمق: {u['d_baky']} سم")
-            with col_b:
-                st.markdown("**🪵 مقاسات الفيبر:**")
-                st.success(f"الضهرية: {u['w_baky']} × {u['h_baky']}\n\nالأرضية: {u['w_baky']} × {u['d_baky']}\n\nالأجناب: {u['h_baky']} × {u['d_baky']} (2 قطعة)")
+    st.subheader("📋 تفاصيل التخصيم (فاتورة القص)")
+    for u in st.session_state.storage:
+        with st.expander(f"📦 {u['title']} | {u['type']} | {u['w']}x{u['h']}x{u['d']}"):
+            st.markdown(f"""
+            <div class="result-box">
+            <b>📐 [1] تخصيم الألومنيوم (2*8):</b><br>
+            - ارتفاع {u['h_baky']}: [2 مفرد] [2 متقارب]<br>
+            - عرض {u['w_baky']}: [3 مفرد] [1 متقارب]<br>
+            - عمق {u['d_baky']}: [2 مفرد] [2 متقارب]<br><br>
+            <b>🪵 [2] تخصيم الفيبر:</b><br>
+            - ضهرية: {u['w_baky']} × {u['h_baky']} (1)<br>
+            - أرضية: {u['w_baky']} × {u['d_baky']} (1)<br>
+            - أجناب: {u['h_baky']} × {u['d_baky']} (2)
+            </div>
+            """, unsafe_allow_html=True)
+
+    if st.button("🗑️ مسح الكل"):
+        st.session_state.storage = []
+        st.rerun()
