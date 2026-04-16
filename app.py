@@ -7,7 +7,7 @@ import math
 # ==========================================
 st.set_page_config(page_title="DOGGA PRO SYSTEM", layout="wide")
 
-# تهيئة مخزن البيانات لضمان عدم وجود KeyError
+# تهيئة المخازن
 if 'project_list' not in st.session_state: st.session_state.project_list = []
 if 'page' not in st.session_state: st.session_state.page = 'home'
 
@@ -58,37 +58,38 @@ else:
 
     st.divider()
 
-    with st.expander("📝 إضافة وحدة جديدة للمشروع", expanded=True):
-        with st.form("workshop_form", clear_on_submit=True):
+    # --- نموذج الإدخال (بدون مسح تلقائي) ---
+    with st.expander("📝 إدخال وتعديل المقاسات", expanded=True):
+        # تم إزالة clear_on_submit=True لتبقى المقاسات ثابتة
+        with st.form("workshop_form"):
             f1, f2 = st.columns(2)
             client_name = f1.text_input("اسم العميل / رقم الوحدة")
             unit_type = f2.selectbox("نوع الوحدة", ["وحدة سفلية", "وحدة علوية", "دولاب خزين"])
             
             d1, d2, d3 = st.columns(3)
-            W_val = d1.number_input("العرض الكلي", value=None, placeholder="0")
-            H_val = d2.number_input("الارتفاع الكلي", value=None, placeholder="0")
-            D_val = d3.number_input("العمق الكلي", value=None, placeholder="0")
+            W_val = d1.number_input("العرض الكلي", value=0.0)
+            H_val = d2.number_input("الارتفاع الكلي", value=0.0)
+            D_val = d3.number_input("العمق الكلي", value=0.0)
 
             st.markdown("#### ➕ الأرفف والفواصل")
             a1, a2, a3 = st.columns(3)
             sh_n = a1.number_input("عدد الأرفف", min_value=0, value=0)
-            sh_w = a2.number_input("عرض الرف", value=None, placeholder="0")
-            sh_d = a3.number_input("عمق الرف", value=None, placeholder="0")
+            sh_w = a2.number_input("عرض الرف", value=0.0)
+            sh_d = a3.number_input("عمق الرف", value=0.0)
             
             v1, v2, v3 = st.columns(3)
             v_n = v1.number_input("عدد الفواصل", min_value=0, value=0)
-            v_h = v2.number_input("ارتفاع الفاصل", value=None, placeholder="0")
-            v_d = v3.number_input("عمق الفاصل", value=None, placeholder="0")
+            v_h = v2.number_input("ارتفاع الفاصل", value=0.0)
+            v_d = v3.number_input("عمق الفاصل", value=0.0)
 
-            if st.form_submit_button("✅ حفظ وحساب التخصيم", use_container_width=True):
-                if W_val and H_val and D_val:
-                    # تخصيم الارتفاع حسب الدستور
+            # زر الحساب يضيف للجدول دون مسح الخانات
+            if st.form_submit_button("✅ حفظ وإضافة للجدول", use_container_width=True):
+                if W_val > 0 and H_val > 0 and D_val > 0:
                     h_final = (H_val - 13) if (unit_type in ["وحدة سفلية", "دولاب خزين"]) else (H_val - 5)
                     w_final = W_val - 5
                     d_final = D_val - 5
 
                     alum_res = []
-                    # الهيكل الأساسي
                     if unit_type == "وحدة سفلية":
                         alum_res.extend([["قوايم ارتفاع", int(h_final), 2, "مفرد"], ["قوايم ارتفاع", int(h_final), 2, "متقارب"],
                                          ["عوارض عرض", int(w_final), 3, "مفرد"], ["عوارض عرض", int(w_final), 1, "متقارب"],
@@ -98,22 +99,20 @@ else:
                                          ["عوارض عرض", int(w_final), 2, "مفرد"], ["عوارض عرض", int(w_final), 2, "متقارب"],
                                          ["عوارض عمق", int(d_final), 0, "مفرد"], ["عوارض عمق", int(d_final), 4, "متقارب"]])
 
-                    # تخصيم الأرفف والفواصل (العدد في 4 للبرواز)
                     if sh_n > 0:
-                        alum_res.append(["أعواد أرفف (عرض)", int(sh_w if sh_w else 0), int(sh_n*2), "مفرد"])
-                        alum_res.append(["أعواد أرفف (عمق)", int(sh_d if sh_d else 0), int(sh_n*2), "مفرد"])
+                        alum_res.append(["أعواد أرفف (عرض)", int(sh_w), int(sh_n*2), "مفرد"])
+                        alum_res.append(["أعواد أرفف (عمق)", int(sh_d), int(sh_n*2), "مفرد"])
                     if v_n > 0:
-                        alum_res.append(["أعواد فواصل (ارتفاع)", int(v_h if v_h else 0), int(v_n*2), "مفرد"])
-                        alum_res.append(["أعواد فواصل (عمق)", int(v_d if v_d else 0), int(v_n*2), "مفرد"])
+                        alum_res.append(["أعواد فواصل (ارتفاع)", int(v_h), int(v_n*2), "مفرد"])
+                        alum_res.append(["أعواد فواصل (عمق)", int(v_d), int(v_n*2), "مفرد"])
 
-                    # الفيبر
                     fiber_res = [
                         ["ضهرية", int(w_final), int(h_final), 1],
                         ["أرضية", int(w_final), int(d_final), 1],
                         ["أجناب", int(h_final), int(d_final), 2]
                     ]
-                    if sh_n > 0: fiber_res.append(["فيبر أرفف", int((sh_w if sh_w else 5)-5), int((sh_d if sh_d else 5)-5), sh_n])
-                    if v_n > 0: fiber_res.append(["فيبر فواصل", int((v_h if v_h else 5)-5), int((v_d if v_d else 5)-5), v_n])
+                    if sh_n > 0: fiber_res.append(["فيبر أرفف", int(sh_w-5), int(sh_d-5), sh_n])
+                    if v_n > 0: fiber_res.append(["فيبر فواصل", int(v_h-5), int(v_d-5), v_n])
 
                     st.session_state.project_list.append({
                         "client": client_name if client_name else "بدون اسم",
@@ -122,11 +121,12 @@ else:
                         "alum": alum_res,
                         "fiber": fiber_res
                     })
+                    st.success(f"تمت إضافة وحدة {client_name} بنجاح!")
                     st.rerun()
 
     # --- الجرد النهائي ---
     if st.session_state.project_list:
-        tab1, tab2 = st.tabs(["📊 حساب الخامات (أعواد وألواح)", "📋 تفصيل الوحدات"])
+        tab1, tab2 = st.tabs(["📊 حساب الخامات الإجمالي", "📋 تفصيل كل وحدة"])
         
         with tab1:
             total_muf_cm = total_mut_cm = total_fiber_sqcm = 0
@@ -149,7 +149,7 @@ else:
             with r1: st.markdown(f"<div class='metric-box'><h3>أعواد المفرد</h3><h2>{math.ceil(total_muf_cm / 600)} عود</h2></div>", unsafe_allow_html=True)
             with r2: st.markdown(f"<div class='metric-box'><h3>أعواد المتقارب</h3><h2>{math.ceil(total_mut_cm / 600)} عود</h2></div>", unsafe_allow_html=True)
             with r3:
-                panel_area = 280 * 130 # مقاس اللوح الجديد
+                panel_area = 280 * 130 
                 needed_panels = math.ceil((total_fiber_sqcm * 1.10) / panel_area)
                 st.markdown(f"<div class='metric-box'><h3>ألواح الفيبر</h3><h2>{needed_panels} لوح</h2></div>", unsafe_allow_html=True)
 
@@ -172,7 +172,7 @@ else:
                     st.write("**الفيبر:**")
                     st.table(pd.DataFrame(unit['fiber'], columns=["البيان", "العرض", "الارتفاع", "العدد"]))
 
-        if st.button("🗑️ مسح المشروع والبدء من جديد", use_container_width=True):
+        if st.button("🗑️ مسح الجدول بالكامل (تفريغ المشروع)", use_container_width=True):
             st.session_state.project_list = []
             st.rerun()
 
