@@ -3,7 +3,7 @@ import streamlit as st
 # إعدادات الصفحة
 st.set_page_config(page_title="نظام تخصيمات ياسين علاء", layout="wide")
 
-# الستايل الاحترافي (أصفر + أسود)
+# الستايل الاحترافي (أصفر ورشة + أسود هيبة)
 st.markdown("""
     <style>
     .main { background-color: #f1f2f6; }
@@ -28,7 +28,7 @@ if 'storage' not in st.session_state:
 if 'started' not in st.session_state:
     st.session_state.started = False
 
-# --- الواجهة الصافية (البداية) ---
+# --- 1. الواجهة الصافية (البداية) ---
 if not st.session_state.started:
     st.markdown("<br><br><h1 style='text-align: center; color: #2f3640;'>🏗️ نظام تخصيم الألومنيوم</h1>", unsafe_allow_html=True)
     st.markdown("<h3 style='text-align: center; color: #7f8c8d;'>إشراف المهندس ياسين علاء</h3><br>", unsafe_allow_html=True)
@@ -36,15 +36,8 @@ if not st.session_state.started:
         st.session_state.started = True
         st.rerun()
 
-# --- واجهة إدخال البيانات والنتائج ---
+# --- 2. واجهة الإدخال الكاملة (بدون حذف أي بند) ---
 else:
-    with st.sidebar:
-        st.header("⚙️ خيارات")
-        if st.button("🔄 مسح السجل وبدء جديد"):
-            st.session_state.storage = []
-            st.session_state.started = False
-            st.rerun()
-
     st.markdown("<h2 style='text-align: center;'>📝 مدخلات المقاسات</h2>", unsafe_allow_html=True)
     
     with st.container():
@@ -54,23 +47,24 @@ else:
         
         st.markdown("#### 📐 المقاسات الكلية")
         c1, c2, c3 = st.columns(3)
-        with c1: w = st.number_input("العرض (سم)", value=None)
-        with c2: h = st.number_input("الارتفاع (سم)", value=None)
-        with c3: d = st.number_input("العمق (سم)", value=None)
+        with c1: w = st.number_input("إجمالي العرض (سم)", value=None)
+        with c2: h = st.number_input("إجمالي الارتفاع (سم)", value=None)
+        with c3: d = st.number_input("إجمالي العمق (سم)", value=None)
 
         st.divider()
-        st.markdown("#### 🧱 الإضافات (الأرفف - الفواصل - الأدراج)")
+        # --- بنود الأرفف والفواصل والأدراج ---
+        st.markdown("#### 🧱 بنود الإضافات (الأرفف - الفواصل - الأدراج)")
         f1, f2, f3 = st.columns(3)
         with f1:
-            sh_n = st.number_input("عدد الرفوف", value=0, step=1)
+            sh_n = st.number_input("عدد الأرفف", value=0, step=1)
         with f2:
             dv_n = st.number_input("عدد الفواصل", value=0, step=1)
         with f3:
             dr_n = st.number_input("عدد الأدراج", value=0, step=1)
 
-        if st.button("💾 احسب واعرض التخصيم بالكامل"):
+        if st.button("💾 استخراج شيت القص التفصيلي"):
             if w and h and d:
-                # 1. تخصيم الارتفاع
+                # تخصيمات الارتفاع (13 للسفلي والخزين / 5 للباقي)
                 h_c = h - 13 if u_type in ["وحدة سفلية", "دولاب خزين"] else h - 5
                 w_c = w - 5
                 d_c = d - 5
@@ -82,35 +76,38 @@ else:
                 }
                 st.session_state.storage.append(unit)
             else:
-                st.error("أدخل المقاسات الأساسية الأول!")
+                st.error("أدخل المقاسات الأساسية الأول يا هندسة!")
 
-    # --- عرض شيت التخصيم النهائي ---
+    # --- 3. عرض شيت التخصيم النهائي ---
     if st.session_state.storage:
+        st.markdown("<h2 style='text-align: center; color: #2f3640;'>📋 قائمة القص النهائية</h2>", unsafe_allow_html=True)
         for u in st.session_state.storage:
             st.markdown(f"""
             <div class="report-card">
-                <div class="title-line">📄 شيت تفصيل: {u['title']}</div>
+                <div class="title-line">📦 {u['title']} - {u['type']}</div>
                 
-                <div class="section-label">🪵 تخصيم الفيبر:</div>
+                <div class="section-label">🪵 تخصيم الفيبر (الخامات):</div>
                 <div class="data-line">الضهرية: {u['w_c']} * {u['h_c']} * 1</div>
                 <div class="data-line">الارضية: {u['w_c']} * {u['d_c']} * 1</div>
                 <div class="data-line">الاجناب: {u['h_c']} * {u['d_c']} * 2</div>
             """, unsafe_allow_html=True)
             
-            # تخصيم الرفوف والفواصل (فيبر)
+            # تخصيم الرفوف والفواصل (فيبر - خصم 5 سم)
             if u['sh_n'] > 0:
-                st.markdown(f'<div class="data-line">الارفف: {u["w_c"]-5} * {u["d_c"]-5} * {u["sh_n"]}</div>', unsafe_allow_html=True)
+                st.markdown(f'<div class="data-line">الارفف (فيبر): {u["w_c"]-5} * {u["d_c"]-5} * {u["sh_n"]}</div>', unsafe_allow_html=True)
             if u['dv_n'] > 0:
-                st.markdown(f'<div class="data-line">الفواصل: {u["h_c"]} * {u["d_c"]-5} * {u["dv_n"]}</div>', unsafe_allow_html=True)
+                st.markdown(f'<div class="data-line">الفواصل (فيبر): {u["h_c"]} * {u["d_c"]-5} * {u["dv_n"]}</div>', unsafe_allow_html=True)
+            
+            # تخصيم الأدراج (عرض - 2.5 والعمق ثابت)
             if u['dr_n'] > 0:
-                st.markdown(f'<div class="data-line">الادراج: {u["w"]-2.5} عرض * {u["d"]} عمق * {u["dr_n"]}</div>', unsafe_allow_html=True)
+                st.markdown(f'<div class="data-line">الأدراج: {u["w"]-2.5} عرض * {u["d"]} عمق * {u["dr_n"]}</div>', unsafe_allow_html=True)
 
             st.markdown('<div class="section-label">📐 تخصيم الألومنيوم (2*8):</div>', unsafe_allow_html=True)
             
-            # الارتفاع
+            # الارتفاع (ثابت 2 مفرد + 2 متقارب)
             st.markdown(f'<div class="data-line">الارتفاع: {u["h_c"]} سم (2 مفرد + 2 متقارب)</div>', unsafe_allow_html=True)
             
-            # العرض والعمق حسب نوع الوحدة
+            # العرض والعمق حسب نظامك
             if u['type'] == "وحدة سفلية":
                 st.markdown(f'<div class="data-line">العرض: {u["w_c"]} سم (3 مفرد + 1 متقارب)</div>', unsafe_allow_html=True)
                 st.markdown(f'<div class="data-line">العمق: {u["d_c"]} سم (2 مفرد + 2 متقارب)</div>', unsafe_allow_html=True)
@@ -118,6 +115,14 @@ else:
                 st.markdown(f'<div class="data-line">العرض: {u["w_c"]} سم (2 مفرد + 2 متقارب)</div>', unsafe_allow_html=True)
                 st.markdown(f'<div class="data-line">العمق: {u["d_c"]} سم (4 متقارب)</div>', unsafe_allow_html=True)
             
-            # ألومنيا الأرفف والفواصل
+            # ألومنيا الأرفف والفواصل (4 مفرد لكل واحد)
             if u['sh_n'] > 0 or u['dv_n'] > 0:
                 sh_count = (u['sh_n'] + u['dv_n']) * 4
+                st.markdown(f'<div class="data-line">ألومنيا (أرفف/فواصل): {u["d_c"]} سم ({sh_count} حتة مفرد)</div>', unsafe_allow_html=True)
+            
+            st.markdown("</div>", unsafe_allow_html=True)
+
+    if st.button("🔄 مسح السجل والعودة"):
+        st.session_state.storage = []
+        st.session_state.started = False
+        st.rerun()
