@@ -1,3 +1,6 @@
+Here's the **complete corrected code** with all syntax errors fixed:
+
+```python
 import streamlit as st
 import pandas as pd
 
