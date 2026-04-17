@@ -1,128 +1,88 @@
-import sys
-from PyQt5.QtWidgets import *
-from PyQt5.QtGui import QFont
-from PyQt5.QtCore import Qt
+import streamlit as st
+import pandas as pd
 
+st.set_page_config(page_title="نظام تخصيم الألومنيوم", layout="wide")
 
-class AluminumMasterApp(QWidget):
-    def __init__(self):
-        super().__init__()
-        self.project_storage = []
-        self.initUI()
+# تخزين البيانات
+if "data" not in st.session_state:
+    st.session_state.data = []
 
-    def initUI(self):
-        self.setWindowTitle("نظام تخصيم الألومنيوم - نسخة مطورة")
-        self.setGeometry(100, 100, 1200, 800)
-        self.setFont(QFont("Segoe UI", 10))
+st.title("🧠 نظام تخصيم الألومنيوم - نسخة ويب")
 
-        layout = QVBoxLayout()
+# ===== الإدخالات =====
+col1, col2, col3 = st.columns(3)
 
-        # Header
-        title = QLabel("نظام تخصيم الألومنيوم - نسخة مطورة")
-        title.setAlignment(Qt.AlignCenter)
-        title.setStyleSheet("font-size:20px; font-weight:bold; background:#2c3e50; color:white; padding:10px;")
-        layout.addWidget(title)
+with col1:
+    name = st.text_input("اسم الوحدة")
 
-        # Inputs
-        form = QGridLayout()
+with col2:
+    unit_type = st.selectbox("نوع الوحدة", ["سفلية", "علوية", "دولاب خزين"])
 
-        self.name = QLineEdit(); self.name.setPlaceholderText("اسم الوحدة")
-        self.type = QComboBox()
-        self.type.addItems(["سفلية", "علوية", "دولاب"])
+with col3:
+    w = st.number_input("العرض", min_value=0.0)
+    h = st.number_input("الارتفاع", min_value=0.0)
+    d = st.number_input("العمق", min_value=0.0)
 
-        self.w = QLineEdit(); self.w.setPlaceholderText("العرض")
-        self.h = QLineEdit(); self.h.setPlaceholderText("الارتفاع")
-        self.d = QLineEdit(); self.d.setPlaceholderText("العمق")
+col4, col5, col6 = st.columns(3)
 
-        self.sh = QLineEdit(); self.sh.setPlaceholderText("عدد الرفوف")
-        self.dv = QLineEdit(); self.dv.setPlaceholderText("عدد الفواصل")
-        self.dr = QLineEdit(); self.dr.setPlaceholderText("عدد الأدراج")
+with col4:
+    shelves = st.number_input("عدد الرفوف", min_value=0)
 
-        form.addWidget(self.name, 0, 0)
-        form.addWidget(self.type, 0, 1)
+with col5:
+    dividers = st.number_input("عدد الفواصل", min_value=0)
 
-        form.addWidget(self.w, 1, 0)
-        form.addWidget(self.h, 1, 1)
-        form.addWidget(self.d, 1, 2)
+with col6:
+    drawers = st.number_input("عدد الأدراج", min_value=0)
 
-        form.addWidget(self.sh, 2, 0)
-        form.addWidget(self.dv, 2, 1)
-        form.addWidget(self.dr, 2, 2)
+# ===== حساب التخصيم =====
+def calc(w, h, d, t):
+    if t == "سفلية":
+        h2 = h - 13
+    else:
+        h2 = h - 5
 
-        layout.addLayout(form)
+    w2 = w - 5
+    d2 = d - 5
 
-        # Buttons
-        btns = QHBoxLayout()
+    return h2, w2, d2
 
-        add_btn = QPushButton("إضافة")
-        add_btn.clicked.connect(self.add_item)
+# ===== زر الإضافة =====
+if st.button("➕ إضافة وحدة"):
+    if name:
+        h2, w2, d2 = calc(w, h, d, unit_type)
 
-        clear_btn = QPushButton("مسح")
-        clear_btn.clicked.connect(self.clear_all)
+        item = {
+            "اسم": name,
+            "نوع": unit_type,
+            "عرض": w,
+            "ارتفاع": h,
+            "عمق": d,
+            "تخصيم_ارتفاع": h2,
+            "تخصيم_عرض": w2,
+            "تخصيم_عمق": d2,
+            "رفوف": shelves,
+            "فواصل": dividers,
+            "أدراج": drawers
+        }
 
-        btns.addWidget(add_btn)
-        btns.addWidget(clear_btn)
+        st.session_state.data.append(item)
+        st.success("تمت الإضافة بنجاح ✔")
 
-        layout.addLayout(btns)
+# ===== عرض الجدول =====
+if st.session_state.data:
+    df = pd.DataFrame(st.session_state.data)
+    st.dataframe(df, use_container_width=True)
 
-        # Output
-        self.output = QTextEdit()
-        layout.addWidget(self.output)
+    # ===== إجمالي بسيط =====
+    st.subheader("📊 إجمالي المشروع")
 
-        self.setLayout(layout)
+    total_units = len(st.session_state.data)
+    total_shelves = sum(x["رفوف"] for x in st.session_state.data)
 
-    def safe_float(self, v):
-        try:
-            return float(v)
-        except:
-            return 0
+    st.write("عدد الوحدات:", total_units)
+    st.write("إجمالي الرفوف:", total_shelves)
 
-    def add_item(self):
-        w = self.safe_float(self.w.text())
-        h = self.safe_float(self.h.text())
-        d = self.safe_float(self.d.text())
-
-        sh = int(self.sh.text() or 0)
-        dv = int(self.dv.text() or 0)
-        dr = int(self.dr.text() or 0)
-
-        name = self.name.text() or "وحدة"
-        t = self.type.currentText()
-
-        result = f"""
-📦 {name}
---------------------
-📐 الأبعاد: {w} × {h} × {d}
-🪵 رفوف: {sh} | فواصل: {dv} | أدراج: {dr}
-🏷️ النوع: {t}
-
-🔧 التخصيم:
-- ارتفاع: {h-5 if h > 5 else h}
-- عرض: {w-5 if w > 5 else w}
-- عمق: {d-5 if d > 5 else d}
---------------------
-"""
-
-        self.output.append(result)
-        self.project_storage.append((name, w, h, d))
-
-        self.name.clear()
-        self.w.clear()
-        self.h.clear()
-        self.d.clear()
-        self.sh.clear()
-        self.dv.clear()
-        self.dr.clear()
-
-        self.name.setFocus()
-
-    def clear_all(self):
-        self.project_storage = []
-        self.output.clear()
-
-
-if __name__ == "__main__":
-    app = QApplication(sys.argv)
-    window = AluminumMasterApp()
-    window.show()
-    sys.exit(app.exec_())
+# ===== مسح البيانات =====
+if st.button("🗑️ مسح الكل"):
+    st.session_state.data = []
+    st.rerun()
