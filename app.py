@@ -15,6 +15,10 @@ if "page" not in st.session_state:
 if "show_price" not in st.session_state:
     st.session_state.show_price = False
 
+if "show_invoice" not in st.session_state:
+    st.session_state.show_invoice = False
+
+
 # ==========================================
 # الصفحة الرئيسية
 # ==========================================
@@ -41,6 +45,7 @@ if st.session_state.page == "home":
     if st.button("🚀 ابدأ التخصيم", use_container_width=True):
         st.session_state.page = "calc"
         st.rerun()
+
 
 # ==========================================
 # صفحة التخصيم
@@ -131,7 +136,6 @@ else:
         if sh_n > 0:
             alum.append(["رف عرض", int(sh_w), sh_n * 2, "مفرد"])
             alum.append(["رف عمق", int(sh_d), sh_n * 2, "مفرد"])
-
             fiber.append(["رف", int(sh_w - 5), int(sh_d - 5), sh_n])
 
         # =============================
@@ -140,7 +144,6 @@ else:
         if v_n > 0:
             alum.append(["فواصل ارتفاع", int(v_h), v_n * 4, "مفرد"])
             alum.append(["فواصل عمق", int(v_d), v_n * 4, "مفرد"])
-
             fiber.append(["فاصل", int(v_h - 5), int(v_d - 5), v_n])
 
         # =============================
@@ -148,10 +151,8 @@ else:
         # =============================
         if dr_n > 0:
             drawer_w = dr_w - 2.5
-
             alum.append(["درج 2×8 عرض", int(drawer_w), dr_n * 2, "2×8"])
             alum.append(["درج 2×8 عمق", int(dr_d), dr_n * 2, "2×8"])
-
             fiber.append(["قاعدة درج 2×8", int(drawer_w), int(dr_d), dr_n])
 
         # =============================
@@ -203,7 +204,7 @@ else:
         st.markdown("## 💰 التسعير")
 
         if st.button("💰 حساب سعر الخامات", use_container_width=True):
-            st.session_state.show_price = True
+            st.session_state.show_price = not st.session_state.show_price
 
         # ==========================================
         # جدول التسعير
@@ -217,24 +218,27 @@ else:
                     rows.append({
                         "النوع": f"مونتال - {a[0]}",
                         "العدد": a[2],
-                        "سعر الوحدة": 0
+                        "سعر الوحدة": 0.0
                     })
 
                 for f in unit["fiber"]:
                     rows.append({
                         "النوع": f"فيبر - {f[0]}",
                         "العدد": f[3],
-                        "سعر الوحدة": 0
+                        "سعر الوحدة": 0.0
                     })
 
             df = pd.DataFrame(rows)
 
             for i in range(len(df)):
+                key = f"price_{df.iloc[i]['النوع']}_{i}"
+
                 price = st.number_input(
                     f"سعر {df.iloc[i]['النوع']} - {i}",
-                    value=0.0,
-                    key=f"price_{i}"
+                    value=st.session_state.get(key, 0.0),
+                    key=key
                 )
+
                 df.at[i, "سعر الوحدة"] = price
 
             df["الإجمالي"] = df["العدد"] * df["سعر الوحدة"]
