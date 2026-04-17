@@ -1,7 +1,7 @@
 import streamlit as st
 import math
 
-st.set_page_config(page_title="DOGGA SMART ERP", layout="wide")
+st.set_page_config(page_title="DOGGA SMART SYSTEM", layout="wide")
 
 # =========================
 # STATE
@@ -11,9 +11,6 @@ if "page" not in st.session_state:
 
 if "projects" not in st.session_state:
     st.session_state.projects = []
-
-if "step" not in st.session_state:
-    st.session_state.step = 0
 
 
 # =========================
@@ -55,7 +52,7 @@ if st.session_state.page == "home":
     st.markdown('<div class="sub">نظام تخصيم المطابخ الاحترافي</div>', unsafe_allow_html=True)
     st.markdown('<div class="by">برمجة المهندس / ياسين علاء</div>', unsafe_allow_html=True)
 
-    if st.button("🚀 بدء النظام", use_container_width=True):
+    if st.button("🚀 ابدأ التخصيم", use_container_width=True):
         st.session_state.page = "calc"
         st.rerun()
 
@@ -72,12 +69,12 @@ elif st.session_state.page == "calc":
         st.rerun()
 
     # =========================
-    # INPUTS
+    # INPUTS (فاضية بدون 0.00)
     # =========================
     client = st.text_input("اسم العميل")
-
     unit = st.selectbox("نوع الوحدة", ["وحدة سفلية", "وحدة علوية", "دولاب خزين"])
 
+    st.markdown("### 📏 المقاسات")
     W = st.text_input("العرض")
     H = st.text_input("الارتفاع")
     D = st.text_input("العمق")
@@ -98,34 +95,27 @@ elif st.session_state.page == "calc":
     dr_d = st.text_input("عمق الدرج")
 
     # =========================
-    # STEP SYSTEM (NEXT BUTTON)
+    # BUTTONS
     # =========================
-    inputs = [
-        W, H, D,
-        sh, sh_w, sh_d,
-        vf, vf_h, vf_d,
-        dr, dr_w, dr_d
-    ]
-
-    st.markdown("---")
-
     col1, col2 = st.columns(2)
 
     with col1:
-        if st.button("💾 حساب التخصيم", use_container_width=True):
-            pass
+        calc_btn = st.button("💾 حساب التخصيم", use_container_width=True)
 
     with col2:
-        if st.button("➡️ التالي (Next)", use_container_width=True):
-            st.session_state.step += 1
-            if st.session_state.step > len(inputs):
-                st.session_state.step = len(inputs)
-            st.rerun()
+        next_btn = st.button("➡️ التالي", use_container_width=True)
+
+    # =========================
+    # NEXT BUTTON (تنقل فقط)
+    # =========================
+    if next_btn:
+        st.session_state.page = "invoice"
+        st.rerun()
 
     # =========================
     # CALC
     # =========================
-    if st.button("💾 تنفيذ الحساب النهائي"):
+    if calc_btn:
 
         W = num(W)
         H = num(H)
@@ -211,13 +201,9 @@ elif st.session_state.page == "calc":
         st.success(f"المتقارب: {math.ceil(mut / 600)} عود")
         st.success(f"الفيبر: {math.ceil(fib / (280*130))} لوح")
 
-        if st.button("💰 الفاتورة"):
-            st.session_state.page = "invoice"
-            st.rerun()
-
 
 # =========================
-# INVOICE
+# INVOICE PAGE
 # =========================
 elif st.session_state.page == "invoice":
 
@@ -241,4 +227,4 @@ elif st.session_state.page == "invoice":
         for f in p["fiber"]:
             st.write(f)
 
-    st.success("تم عرض الفاتورة بالكامل")
+    st.success("تم عرض الفاتورة")
