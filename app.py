@@ -12,6 +12,9 @@ if "project_list" not in st.session_state:
 if "page" not in st.session_state:
     st.session_state.page = "home"
 
+if "show_price" not in st.session_state:
+    st.session_state.show_price = False
+
 # ==========================================
 # الصفحة الرئيسية
 # ==========================================
@@ -89,7 +92,6 @@ else:
     # ==========================================
     if submit and W > 0 and H > 0 and D > 0:
 
-        # التخصيم الأساسي
         if unit_type in ["وحدة سفلية", "دولاب خزين"]:
             h_final = H - 13
         else:
@@ -124,7 +126,7 @@ else:
             ]
 
         # =============================
-        # الأرفف (كل رف = 2 قطعة)
+        # الأرفف
         # =============================
         if sh_n > 0:
             alum.append(["رف عرض", int(sh_w), sh_n * 2, "مفرد"])
@@ -142,7 +144,7 @@ else:
             fiber.append(["فاصل", int(v_h - 5), int(v_d - 5), v_n])
 
         # =============================
-        # الأدراج (2×8)
+        # الأدراج
         # =============================
         if dr_n > 0:
             drawer_w = dr_w - 2.5
@@ -169,7 +171,7 @@ else:
         })
 
     # ==========================================
-    # الجرد والعرض
+    # الجرد
     # ==========================================
     if st.session_state.project_list:
 
@@ -195,27 +197,72 @@ else:
         panel_area = 280 * 130
         st.write(f"🔹 الفيبر: {total_fiber / panel_area:.2f} لوح")
 
+        # ==========================================
+        # زرار التسعير
+        # ==========================================
+        st.markdown("## 💰 التسعير")
+
+        if st.button("💰 حساب سعر الخامات", use_container_width=True):
+            st.session_state.show_price = True
+
+        # ==========================================
+        # جدول التسعير
+        # ==========================================
+        if st.session_state.show_price:
+
+            rows = []
+
+            for unit in st.session_state.project_list:
+                for a in unit["alum"]:
+                    rows.append({
+                        "النوع": f"مونتال - {a[0]}",
+                        "العدد": a[2],
+                        "سعر الوحدة": 0
+                    })
+
+                for f in unit["fiber"]:
+                    rows.append({
+                        "النوع": f"فيبر - {f[0]}",
+                        "العدد": f[3],
+                        "سعر الوحدة": 0
+                    })
+
+            df = pd.DataFrame(rows)
+
+            for i in range(len(df)):
+                price = st.number_input(
+                    f"سعر {df.iloc[i]['النوع']} - {i}",
+                    value=0.0,
+                    key=f"price_{i}"
+                )
+                df.at[i, "سعر الوحدة"] = price
+
+            df["الإجمالي"] = df["العدد"] * df["سعر الوحدة"]
+
+            st.markdown("### 📋 الفاتورة")
+            st.table(df)
+
+            st.markdown(f"## 💰 الإجمالي النهائي: {df['الإجمالي'].sum():.2f}")
+
+    # ==========================================
+    # التفاصيل
+    # ==========================================
+    if st.session_state.project_list:
+
         st.markdown("## 📋 التفاصيل")
 
         for unit in st.session_state.project_list:
 
             st.write(f"### 🏷️ {unit['unit_type']} - {unit['client']}")
 
-            # =====================
-            # جدول المونتال
-            # =====================
             df1 = pd.DataFrame(unit["alum"], columns=["البيان", "المقاس", "العدد", "النوع"])
             df1 = df1[df1["العدد"] > 0]
             df1.insert(0, "القسم", "مونتال")
             df1["المقاس"] = df1["المقاس"].astype(int)
-            st.table(df1)
 
-            # =====================
-            # جدول الفيبر
-            # =====================
             df2 = pd.DataFrame(unit["fiber"], columns=["البيان", "العرض", "الارتفاع", "العدد"])
             df2 = df2[df2["العدد"] > 0]
             df2.insert(0, "القسم", "فيبر")
-            df2["العرض"] = df2["العرض"].astype(int)
-            df2["الارتفاع"] = df2["الارتفاع"].astype(int)
+
+            st.table(df1)
             st.table(df2)
