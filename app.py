@@ -1,9 +1,6 @@
 import streamlit as st
 import math
 
-# =========================
-# CONFIG
-# =========================
 st.set_page_config(page_title="DOGGA SMART ERP", layout="wide")
 
 if "page" not in st.session_state:
@@ -13,9 +10,6 @@ if "projects" not in st.session_state:
     st.session_state.projects = []
 
 
-# =========================
-# تحويل آمن للأرقام
-# =========================
 def num(x):
     try:
         return float(x) if x != "" else 0
@@ -69,23 +63,37 @@ elif st.session_state.page == "calc":
         st.rerun()
 
     # =========================
-    # إدخال فاضي بالكامل (بدون 0.00)
+    # بيانات أساسية
     # =========================
     client = st.text_input("اسم العميل")
-
     unit = st.selectbox("نوع الوحدة", ["وحدة سفلية", "وحدة علوية", "دولاب خزين"])
 
     W = st.text_input("العرض")
     H = st.text_input("الارتفاع")
     D = st.text_input("العمق")
 
-    sh = st.text_input("عدد الأرفف")
+    # =========================
+    # 🪵 الرفوف
+    # =========================
+    st.markdown("### 🪵 الرفوف")
+
+    sh = st.text_input("عدد الرفوف")
     sh_w = st.text_input("عرض الرف")
     sh_d = st.text_input("عمق الرف")
+
+    # =========================
+    # 🧱 الفواصل
+    # =========================
+    st.markdown("### 🧱 الفواصل")
 
     vf = st.text_input("عدد الفواصل")
     vf_h = st.text_input("ارتفاع الفاصل")
     vf_d = st.text_input("عمق الفاصل")
+
+    # =========================
+    # 🧰 الأدراج
+    # =========================
+    st.markdown("### 🧰 الأدراج (2×8)")
 
     dr = st.text_input("عدد الأدراج")
     dr_w = st.text_input("عرض الدرج")
@@ -121,9 +129,6 @@ elif st.session_state.page == "calc":
             alum = []
             fiber = []
 
-            # =========================
-            # مونتال
-            # =========================
             alum += [
                 ["قائم", Hf, 2, "مفرد"],
                 ["قائم", Hf, 2, "متقارب"],
@@ -134,29 +139,26 @@ elif st.session_state.page == "calc":
             ]
 
             # =========================
-            # أرفف
+            # الرفوف
             # =========================
             if sh > 0:
                 alum.append(["رف", Wf, sh * 2, "مفرد"])
                 fiber.append(["رف", Wf - 5, Df - 5, sh])
 
             # =========================
-            # فواصل
+            # الفواصل
             # =========================
             if vf > 0:
                 alum.append(["فاصل", Hf, vf * 4, "مفرد"])
                 fiber.append(["فاصل", Hf - 5, Df - 5, vf])
 
             # =========================
-            # أدراج
+            # الأدراج
             # =========================
             if dr > 0:
                 dw = dr_w - 2.5
                 fiber.append(["درج", dw, dr_d, dr])
 
-            # =========================
-            # فيبر أساسي
-            # =========================
             fiber += [
                 ["ضهرية", Wf, Hf, 1],
                 ["أرضية", Wf, Df, 1],
