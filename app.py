@@ -4,7 +4,7 @@ from PySide6.QtCore import Qt
 
 
 # =========================
-# MAIN WINDOW
+# MAIN APP
 # =========================
 class DoggaSystem(QMainWindow):
     def __init__(self):
@@ -15,25 +15,25 @@ class DoggaSystem(QMainWindow):
 
         self.projects = []
 
-        self.init_ui()
+        self.build_ui()
 
     # =========================
     # UI
     # =========================
-    def init_ui(self):
+    def build_ui(self):
 
         central = QWidget()
         self.setCentralWidget(central)
 
-        main_layout = QVBoxLayout()
+        layout = QVBoxLayout()
 
         # =========================
         # TITLE
         # =========================
         title = QLabel("🛠️ DOGGA SMART SYSTEM")
         title.setAlignment(Qt.AlignCenter)
-        title.setStyleSheet("font-size:28px;font-weight:bold;color:#f1c40f;")
-        main_layout.addWidget(title)
+        title.setStyleSheet("font-size:26px;font-weight:bold;color:#f1c40f;")
+        layout.addWidget(title)
 
         # =========================
         # FORM
@@ -62,7 +62,7 @@ class DoggaSystem(QMainWindow):
         self.dr_w = QLineEdit(); self.dr_w.setPlaceholderText("عرض الدرج")
         self.dr_d = QLineEdit(); self.dr_d.setPlaceholderText("عمق الدرج")
 
-        inputs = [
+        fields = [
             ("العميل", self.client),
             ("الوحدة", self.unit),
             ("العرض", self.W),
@@ -80,35 +80,35 @@ class DoggaSystem(QMainWindow):
         ]
 
         row = 0
-        for label, widget in inputs:
-            form.addWidget(QLabel(label), row, 0)
+        for name, widget in fields:
+            form.addWidget(QLabel(name), row, 0)
             form.addWidget(widget, row, 1)
             row += 1
 
-        main_layout.addLayout(form)
+        layout.addLayout(form)
 
         # =========================
         # BUTTONS
         # =========================
-        self.calc_btn = QPushButton("💾 حساب")
-        self.calc_btn.clicked.connect(self.calculate)
+        self.add_btn = QPushButton("➕ إضافة مشروع")
+        self.add_btn.clicked.connect(self.add_project)
 
-        self.invoice_btn = QPushButton("📋 الفاتورة")
+        self.invoice_btn = QPushButton("📋 عرض الفاتورة")
         self.invoice_btn.clicked.connect(self.show_invoice)
 
-        main_layout.addWidget(self.calc_btn)
-        main_layout.addWidget(self.invoice_btn)
+        layout.addWidget(self.add_btn)
+        layout.addWidget(self.invoice_btn)
 
         # =========================
-        # OUTPUT TABLE
+        # TABLE
         # =========================
         self.table = QTableWidget()
-        main_layout.addWidget(self.table)
+        layout.addWidget(self.table)
 
-        central.setLayout(main_layout)
+        central.setLayout(layout)
 
     # =========================
-    # CONVERT
+    # CONVERT NUMBER
     # =========================
     def num(self, x):
         try:
@@ -117,47 +117,38 @@ class DoggaSystem(QMainWindow):
             return 0
 
     # =========================
-    # CALCULATION
+    # ADD PROJECT
     # =========================
-    def calculate(self):
+    def add_project(self):
 
         W = self.num(self.W.text())
         H = self.num(self.H.text())
         D = self.num(self.D.text())
 
-        sh_n = int(self.num(self.sh_n.text()))
-        sh_w = self.num(self.sh_w.text())
-        sh_d = self.num(self.sh_d.text())
-
-        v_n = int(self.num(self.v_n.text()))
-        v_h = self.num(self.v_h.text())
-        v_d = self.num(self.v_d.text())
-
-        dr_n = int(self.num(self.dr_n.text()))
-        dr_w = self.num(self.dr_w.text())
-        dr_d = self.num(self.dr_d.text())
-
-        unit = self.unit.currentText()
-
-        if not W or not H or not D:
+        if W == 0 or H == 0 or D == 0:
             QMessageBox.warning(self, "خطأ", "ادخل المقاسات")
             return
+
+        unit = self.unit.currentText()
 
         Hf = H - (13 if unit == "وحدة سفلية" else 5)
         Wf = W - 5
         Df = D - 5
 
+        sh_n = int(self.num(self.sh_n.text()))
+        v_n = int(self.num(self.v_n.text()))
+        dr_n = int(self.num(self.dr_n.text()))
+
         alum = []
         fiber = []
 
         # =========================
-        # MONTAL
+        # MONTAGE
         # =========================
         alum += [
             ("قائم", 2, "مفرد"),
-            ("قائم", 2, "متقارب"),
             ("عرض", 3, "مفرد"),
-            ("عرض", 2, "متقارب"),
+            ("عمق", 2, "مفرد"),
         ]
 
         if sh_n > 0:
@@ -184,31 +175,45 @@ class DoggaSystem(QMainWindow):
             "fiber": fiber
         })
 
-        QMessageBox.information(self, "نجاح", "تم الحساب بنجاح")
+        QMessageBox.information(self, "تم", "تم إضافة المشروع")
 
     # =========================
-    # INVOICE TABLE
+    # SHOW INVOICE
     # =========================
     def show_invoice(self):
 
-        all_rows = []
+        rows = []
 
         for p in self.projects:
 
             for a in p["alum"]:
-                all_rows.append([p["client"], p["unit"], "مونتال", a[0], a[1], a[2]])
+                rows.append([
+                    p["client"],
+                    p["unit"],
+                    "مونتال",
+                    a[0],
+                    a[1],
+                    ""
+                ])
 
             for f in p["fiber"]:
-                all_rows.append([p["client"], p["unit"], "فيبر", f[0], f[1], ""])
+                rows.append([
+                    p["client"],
+                    p["unit"],
+                    "فيبر",
+                    f[0],
+                    f[1],
+                    ""
+                ])
 
-        self.table.setRowCount(len(all_rows))
+        self.table.setRowCount(len(rows))
         self.table.setColumnCount(6)
 
         self.table.setHorizontalHeaderLabels([
             "العميل", "الوحدة", "القسم", "النوع", "العدد", "سعر الوحدة"
         ])
 
-        for i, row in enumerate(all_rows):
+        for i, row in enumerate(rows):
             for j, val in enumerate(row):
                 self.table.setItem(i, j, QTableWidgetItem(str(val)))
 
