@@ -18,6 +18,21 @@ st.markdown(f"""
     <style>
     .main {{ direction: rtl !important; text-align: right; }}
     .stApp {{ background-color: #0e1117; color: white; }}
+    
+    /* تعديل كلمة ضجة للموبايل */
+    .hero-title {{
+        font-size: 5vw; /* حجم خط مرن حسب عرض الشاشة */
+        color: {accent}; 
+        font-weight: bold;
+        white-space: nowrap; /* منع الكلمة من النزول لسطر جديد */
+    }}
+    
+    @media (max-width: 600px) {{
+        .hero-title {{
+            font-size: 10vw; /* حجم أكبر قليلاً للموبايل ليملأ العرض */
+        }}
+    }}
+
     .section-header {{ 
         background: {accent}; color: #000; padding: 12px; 
         border-radius: 10px; font-weight: bold; margin: 20px 0; text-align: center; font-size: 20px;
@@ -35,10 +50,10 @@ st.markdown(f"""
 # ==========================================
 if st.session_state.page == 'home':
     st.markdown(f"""
-        <div style="text-align: center; margin-top: 10%; padding: 50px; border-radius: 30px; border: 5px solid {accent}; background: {bg_card};">
-            <h1 style="font-size: 5em; color: {accent}; font-weight: bold;">DOGGA SYSTEM PRO</h1>
+        <div style="text-align: center; margin-top: 10%; padding: 30px; border-radius: 30px; border: 5px solid {accent}; background: {bg_card};">
+            <h1 class="hero-title">DOGGA SYSTEM PRO</h1>
             <h2 style="color:white;">ورشة المهندس ياسين علاء الذكية</h2>
-            <p style="font-size: 1.5em; opacity: 0.8;">منظومة تخصيم الألمنيوم والفيبر - الإصدار المعتمد 2026</p>
+            <p style="font-size: 1.2em; opacity: 0.8;">منظومة تخصيم الألمنيوم والفيبر - الإصدار المعتمد 2026</p>
         </div>
     """, unsafe_allow_html=True)
     
@@ -58,7 +73,7 @@ else:
 
     st.divider()
 
-    # --- نموذج الإدخال ---
+    # --- نموذج الإدخال (مقاسات ثابتة لا تُمحى) ---
     with st.expander("📝 إدخال وتعديل المقاسات", expanded=True):
         with st.form("workshop_form", clear_on_submit=False):
             f1, f2 = st.columns(2)
@@ -66,12 +81,11 @@ else:
             unit_type = f2.selectbox("نوع الوحدة", ["وحدة سفلية", "وحدة علوية", "دولاب خزين"])
             
             d1, d2, d3 = st.columns(3)
-            W_val = d1.number_input("العرض الكلي (سم)", value=0.0)
-            H_val = d2.number_input("الارتفاع الكلي (سم)", value=0.0)
-            D_val = d3.number_input("العمق الكلي (سم)", value=0.0)
+            W_val = d1.number_input("العرض الكلي", value=0.0)
+            H_val = d2.number_input("الارتفاع الكلي", value=0.0)
+            D_val = d3.number_input("العمق الكلي", value=0.0)
 
-            st.markdown(f"<div style='color:{accent}; border-bottom:1px solid {accent}; margin:10px 0;'>➕ الأرفف والفواصل</div>", unsafe_allow_html=True)
-            
+            st.markdown("#### ➕ الأرفف والفواصل")
             a1, a2, a3 = st.columns(3)
             sh_n = a1.number_input("عدد الأرفف", min_value=0, step=1)
             sh_w = a2.number_input("عرض الرف", value=0.0)
@@ -84,13 +98,13 @@ else:
 
             if st.form_submit_button("✅ حفظ وإضافة للجدول", use_container_width=True):
                 if W_val > 0 and H_val > 0 and D_val > 0:
-                    # منطق التخصيم الأساسي (خصم 13 للسفلي و 5 للعلوي)
+                    # التخصيم الأساسي
                     h_final = (H_val - 13) if (unit_type in ["وحدة سفلية", "دولاب خزين"]) else (H_val - 5)
                     w_final = W_val - 5
                     d_final = D_val - 5
 
                     alum_res = []
-                    # تخصيم الهيكل الأساسي
+                    # هيكل الوحدة
                     if unit_type == "وحدة سفلية":
                         alum_res.extend([
                             ["قوايم ارتفاع", int(h_final), 2, "مفرد"], ["قوايم ارتفاع", int(h_final), 2, "متقارب"],
@@ -104,7 +118,7 @@ else:
                             ["عوارض عمق", int(d_final), 0, "مفرد"], ["عوارض عمق", int(d_final), 4, "متقارب"]
                         ])
 
-                    # تخصيم ألمنيوم الأرفف والفواصل (العدد * 4 أعواد حسب طلبك)
+                    # تخصيم الأرفف والفواصل (العدد في 4 أعواد ألمنيوم)
                     if sh_n > 0:
                         alum_res.append(["أعواد أرفف (عرض)", int(sh_w), int(sh_n * 4), "مفرد"])
                         alum_res.append(["أعواد أرفف (عمق)", int(sh_d), int(sh_n * 4), "مفرد"])
@@ -122,18 +136,18 @@ else:
                     if v_n > 0: fiber_res.append(["فيبر فواصل", int(v_h-5), int(v_d-5), v_n])
 
                     st.session_state.project_list.append({
-                        "client": client_name if client_name else "وحدة بدون اسم",
+                        "client": client_name if client_name else "بدون اسم",
                         "type": unit_type,
                         "dims": f"{W_val}x{H_val}x{D_val}",
                         "alum": alum_res,
                         "fiber": fiber_res
                     })
-                    st.success(f"تمت إضافة {unit_type} - {client_name} بنجاح!")
+                    st.success("تم الحفظ في الجدول")
                     st.rerun()
 
-    # --- عرض النتائج والجرد ---
+    # --- عرض الجداول والجرد ---
     if st.session_state.project_list:
-        tab1, tab2 = st.tabs(["📊 جرد الخامات (الطلبيه)", "📋 تفصيل الوحدات"])
+        tab1, tab2 = st.tabs(["📊 الإجمالي (الطلبية)", "📋 تفصيل الوحدات"])
         
         with tab1:
             total_muf_cm = total_mut_cm = total_fiber_sqcm = 0
@@ -151,42 +165,35 @@ else:
                     fib_all.append({"البيان": f[0], "المقاس": f"{f[1]}*{f[2]}", "العدد": f[3]})
                     total_fiber_sqcm += (f[1] * f[2] * f[3])
 
-            st.markdown("<div class='section-header'>ملخص الكميات المطلوبة</div>", unsafe_allow_html=True)
+            st.markdown("<div class='section-header'>تقرير الخامات الإجمالي</div>", unsafe_allow_html=True)
             r1, r2, r3 = st.columns(3)
-            with r1: st.markdown(f"<div class='metric-box'><h3>أعواد المفرد (6م)</h3><h2>{math.ceil(total_muf_cm / 600)} عود</h2></div>", unsafe_allow_html=True)
-            with r2: st.markdown(f"<div class='metric-box'><h3>أعواد المتقارب (6م)</h3><h2>{math.ceil(total_mut_cm / 600)} عود</h2></div>", unsafe_allow_html=True)
+            with r1: st.markdown(f"<div class='metric-box'><h3>أعواد المفرد</h3><h2>{math.ceil(total_muf_cm / 600)} عود</h2></div>", unsafe_allow_html=True)
+            with r2: st.markdown(f"<div class='metric-box'><h3>أعواد المتقارب</h3><h2>{math.ceil(total_mut_cm / 600)} عود</h2></div>", unsafe_allow_html=True)
             with r3:
                 panel_area = 280 * 130 
                 needed_panels = math.ceil((total_fiber_sqcm * 1.10) / panel_area)
-                st.markdown(f"<div class='metric-box'><h3>ألواح الفيبر (280*130)</h3><h2>{needed_panels} لوح</h2></div>", unsafe_allow_html=True)
+                st.markdown(f"<div class='metric-box'><h3>ألواح الفيبر</h3><h2>{needed_panels} لوح</h2></div>", unsafe_allow_html=True)
 
             c1, c2, c3 = st.columns(3)
             with c1:
-                st.subheader("📋 قطعيات المفرد")
-                if muf_all:
-                    df_muf = pd.DataFrame(muf_all).groupby("المقاس").sum().reset_index()
-                    st.table(df_muf.sort_values("المقاس", ascending=False))
+                st.subheader("📋 جرد المفرد")
+                if muf_all: st.table(pd.DataFrame(muf_all).groupby("المقاس").sum().reset_index())
             with c2:
-                st.subheader("📋 قطعيات المتقارب")
-                if mut_all:
-                    df_mut = pd.DataFrame(mut_all).groupby("المقاس").sum().reset_index()
-                    st.table(df_mut.sort_values("المقاس", ascending=False))
+                st.subheader("📋 جرد المتقارب")
+                if mut_all: st.table(pd.DataFrame(mut_all).groupby("المقاس").sum().reset_index())
             with c3:
-                st.subheader("🖼️ قطعيات الفيبر")
+                st.subheader("🖼️ جرد الفيبر")
                 if fib_all: st.table(pd.DataFrame(fib_all))
 
         with tab2:
             for idx, unit in enumerate(st.session_state.project_list):
-                with st.expander(f"📍 وحدة {idx+1}: {unit['client']} | {unit['type']}"):
-                    col_a, col_b = st.columns(2)
-                    with col_a:
-                        st.write("**الألمنيوم:**")
-                        st.dataframe(pd.DataFrame(unit['alum'], columns=["البيان", "المقاس", "العدد", "النوع"]), hide_index=True)
-                    with col_b:
-                        st.write("**الفيبر:**")
-                        st.dataframe(pd.DataFrame(unit['fiber'], columns=["البيان", "العرض", "الارتفاع", "العدد"]), hide_index=True)
+                with st.expander(f"📌 وحدة {idx+1}: {unit['client']}"):
+                    st.write("**الألمنيوم:**")
+                    st.table(pd.DataFrame(unit['alum'], columns=["البيان", "المقاس", "العدد", "النوع"]))
+                    st.write("**الفيبر:**")
+                    st.table(pd.DataFrame(unit['fiber'], columns=["البيان", "العرض", "الارتفاع", "العدد"]))
 
-        if st.button("🗑️ تفريغ كافة البيانات والبدء من جديد", use_container_width=True):
+        if st.button("🗑️ مسح الجدول بالكامل", use_container_width=True):
             st.session_state.project_list = []
             st.rerun()
 
