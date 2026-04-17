@@ -13,18 +13,21 @@ if "page" not in st.session_state:
     st.session_state.page = "home"
 
 
+page = st.session_state.page
+
+
 # ==========================================
 # الصفحة الرئيسية
 # ==========================================
-if st.session_state.page == "home":
+if page == "home":
 
     st.markdown("""
         <style>
         .stApp { background-color: white; color: black; }
         .center { text-align: center; margin-top: 10%; }
-        .logo { font-size: 50px; font-weight: bold; color: #f1c40f; }
-        .sub { font-size: 20px; margin-top: 10px; }
-        .footer { font-size: 16px; color: gray; }
+        .logo { font-size: 65px; font-weight: bold; color: #f1c40f; }
+        .sub { font-size: 22px; margin-top: 10px; }
+        .footer { font-size: 16px; color: gray; margin-top: 20px; }
         </style>
     """)
 
@@ -34,7 +37,7 @@ if st.session_state.page == "home":
             <div class="sub">نحو دقة أعلى في شغل المطابخ 👌</div>
             <div class="footer">برمجة المهندس / ياسين علاء</div>
         </div>
-    """)
+    """, unsafe_allow_html=True)
 
     if st.button("🚀 ابدأ التخصيم", use_container_width=True):
         st.session_state.page = "calc"
@@ -44,16 +47,25 @@ if st.session_state.page == "home":
 # ==========================================
 # صفحة التخصيم
 # ==========================================
-elif st.session_state.page == "calc":
+elif page == "calc":
 
     st.title("🛠️ التخصيم")
 
-    if st.button("🏠 رجوع"):
-        st.session_state.page = "home"
-        st.rerun()
+    colA, colB = st.columns([1,1])
+
+    with colA:
+        if st.button("🏠 الرئيسية"):
+            st.session_state.page = "home"
+            st.rerun()
+
+    with colB:
+        if st.button("🗑️ حذف كل المشاريع"):
+            st.session_state.project_list = []
+            st.rerun()
+
 
     # =========================
-    # الإدخال (عشري)
+    # الإدخال
     # =========================
     with st.form("form"):
 
@@ -79,7 +91,7 @@ elif st.session_state.page == "calc":
         v_h = v2.number_input("ارتفاع الفاصل", step=0.5, value=0.0, format="%.2f")
         v_d = v3.number_input("عمق الفاصل", step=0.5, value=0.0, format="%.2f")
 
-        st.markdown("### الأدراج")
+        st.markdown("### الأدراج 2×8")
         dr1, dr2, dr3 = st.columns(3)
         dr_n = dr1.number_input("عدد الأدراج", 0)
         dr_w = dr2.number_input("عرض الدرج", step=0.5, value=0.0, format="%.2f")
@@ -102,8 +114,8 @@ elif st.session_state.page == "calc":
         # مونتال
         if unit_type == "وحدة سفلية":
             alum += [
-                ["ارتفاع", h_final, 2, "مفرد"],
-                ["ارتفاع", h_final, 2, "متقارب"],
+                ["قائم", h_final, 2, "مفرد"],
+                ["قائم", h_final, 2, "متقارب"],
                 ["عرض", w_final, 3, "مفرد"],
                 ["عرض", w_final, 1, "متقارب"],
                 ["عمق", d_final, 2, "مفرد"],
@@ -111,8 +123,8 @@ elif st.session_state.page == "calc":
             ]
         else:
             alum += [
-                ["ارتفاع", h_final, 2, "مفرد"],
-                ["ارتفاع", h_final, 2, "متقارب"],
+                ["قائم", h_final, 2, "مفرد"],
+                ["قائم", h_final, 2, "متقارب"],
                 ["عرض", w_final, 2, "مفرد"],
                 ["عرض", w_final, 2, "متقارب"],
                 ["عمق", d_final, 0, "مفرد"],
@@ -158,14 +170,14 @@ elif st.session_state.page == "calc":
         total_mut = 0
         total_fiber = 0
 
-        for unit in st.session_state.project_list:
-            for a in unit["alum"]:
+        for u in st.session_state.project_list:
+            for a in u["alum"]:
                 if a[3] == "مفرد":
                     total_muf += a[1] * a[2]
                 else:
                     total_mut += a[1] * a[2]
 
-            for f in unit["fiber"]:
+            for f in u["fiber"]:
                 total_fiber += f[1] * f[2] * f[3]
 
         st.markdown("## 📊 جرد الخامات")
@@ -174,30 +186,41 @@ elif st.session_state.page == "calc":
         st.write(f"🔹 المتقارب: {total_mut / 600:.2f} عود")
         st.write(f"🔹 الفيبر: {total_fiber / (280 * 130):.2f} لوح")
 
-        if st.button("🧾 فتح الفاتورة"):
-            st.session_state.page = "invoice"
-            st.rerun()
+        col1, col2 = st.columns(2)
+
+        with col1:
+            if st.button("🧾 فتح الفاتورة"):
+                st.session_state.page = "invoice"
+                st.rerun()
+
+        with col2:
+            if st.button("📄 تحديث"):
+                st.rerun()
 
 
 # ==========================================
-# صفحة الفاتورة (Excel)
+# صفحة الفاتورة
 # ==========================================
-elif st.session_state.page == "invoice":
+elif page == "invoice":
 
     st.title("📋 فاتورة الخامات (Excel Style)")
+
+    if st.button("⬅️ رجوع"):
+        st.session_state.page = "calc"
+        st.rerun()
 
     total_muf = 0
     total_mut = 0
     total_fiber = 0
 
-    for unit in st.session_state.project_list:
-        for a in unit["alum"]:
+    for u in st.session_state.project_list:
+        for a in u["alum"]:
             if a[3] == "مفرد":
                 total_muf += a[1] * a[2]
             else:
                 total_mut += a[1] * a[2]
 
-        for f in unit["fiber"]:
+        for f in u["fiber"]:
             total_fiber += f[1] * f[2] * f[3]
 
     df = pd.DataFrame([
@@ -210,14 +233,13 @@ elif st.session_state.page == "invoice":
     st.markdown("## ➕ إضافة صنف جديد")
 
     c1, c2, c3 = st.columns(3)
-    name = c1.text_input("الصنف")
-    qty = c2.number_input("العدد", 0)
-    price = c3.number_input("سعر الوحدة", 0.0)
+    n = c1.text_input("الصنف")
+    q = c2.number_input("العدد", 0)
+    p = c3.number_input("السعر", 0.0)
 
     if st.button("إضافة"):
-        df.loc[len(df)] = [name, qty, price]
+        df.loc[len(df)] = [n, q, p]
 
-    # Excel editor
     df = st.data_editor(df, num_rows="dynamic", use_container_width=True)
 
     df["الإجمالي"] = df["العدد"] * df["سعر الوحدة"]
@@ -225,7 +247,3 @@ elif st.session_state.page == "invoice":
     st.table(df)
 
     st.markdown(f"## 💰 الإجمالي النهائي: {df['الإجمالي'].sum():.2f}")
-
-    if st.button("⬅️ رجوع"):
-        st.session_state.page = "calc"
-        st.rerun()
