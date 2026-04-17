@@ -5,7 +5,7 @@ import pandas as pd
 # 1. إعدادات النظام والتنسيق الكامل
 # ==========================================
 st.set_page_config(
-    page_title="دجة سمارت سستيم", 
+    page_title="ضجه سمارت سستيم", 
     page_icon="🔨",
     layout="wide", 
     initial_sidebar_state="collapsed"
