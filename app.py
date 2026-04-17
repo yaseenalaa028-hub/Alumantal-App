@@ -17,12 +17,13 @@ page = st.session_state.page
 
 
 # ==========================================
-# CSS عام
+# إخفاء شكل الـ 0 (حل بصري)
 # ==========================================
 st.markdown("""
 <style>
-.stApp { background-color: white; color: black; }
-input { text-align: right; }
+input[type="number"] {
+    color: black;
+}
 </style>
 """, unsafe_allow_html=True)
 
@@ -77,18 +78,18 @@ elif page == "calc":
 
     st.title("🛠️ التخصيم الكامل")
 
-    col1, col2 = st.columns(2)
+    c1, c2 = st.columns(2)
 
-    if col1.button("🏠 الرئيسية"):
+    if c1.button("🏠 الرئيسية"):
         st.session_state.page = "home"
         st.rerun()
 
-    if col2.button("🗑️ حذف الكل"):
+    if c2.button("🗑️ حذف الكل"):
         st.session_state.project_list = []
         st.rerun()
 
     # ==========================================
-    # الإدخال (بدون 0 مزعج)
+    # الإدخال (بدون 0 ظاهر)
     # ==========================================
     with st.form("form"):
 
@@ -123,14 +124,14 @@ elif page == "calc":
         submit = st.form_submit_button("حساب")
 
     # ==========================================
-    # تحويل آمن (حل مشكلة الصفر)
+    # تحويل 0 → None (إخفاء منطقي)
     # ==========================================
-    def safe(x):
-        return float(x) if x and x != 0 else None
+    def clean(x):
+        return x if x and x > 0 else None
 
-    W = safe(W)
-    H = safe(H)
-    D = safe(D)
+    W = clean(W)
+    H = clean(H)
+    D = clean(D)
 
     # ==========================================
     # الحساب
@@ -138,10 +139,9 @@ elif page == "calc":
     if submit:
 
         if not W or not H or not D:
-            st.error("من فضلك أدخل كل المقاسات الأساسية")
+            st.error("من فضلك أدخل المقاسات الأساسية")
             st.stop()
 
-        # الخصم الأساسي
         if unit_type == "وحدة سفلية":
             h_final = H - 13
         else:
