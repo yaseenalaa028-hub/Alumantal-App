@@ -1,10 +1,11 @@
 import streamlit as st
 import pandas as pd
+import math
 
 # ==========================================
 # إعداد التطبيق
 # ==========================================
-st.set_page_config(page_title="DOGGA SYSTEM", layout="wide")
+st.set_page_config(page_title="DOGGA SMART SYSTEM", layout="wide")
 
 if "project_list" not in st.session_state:
     st.session_state.project_list = []
@@ -12,58 +13,55 @@ if "project_list" not in st.session_state:
 if "page" not in st.session_state:
     st.session_state.page = "home"
 
+
 page = st.session_state.page
+
+# ==========================================
+# CSS عام
+# ==========================================
+st.markdown("""
+<style>
+.stApp { background-color: white; color: black; }
+input { text-align: right; }
+</style>
+""", unsafe_allow_html=True)
 
 
 # ==========================================
-# الصفحة الرئيسية (FIXED + LOGO)
+# الصفحة الرئيسية (FULL DESIGN)
 # ==========================================
 if page == "home":
 
     st.markdown("""
-        <style>
-        .stApp {
-            background-color: white;
-            color: black;
-        }
+    <style>
+    .logo-box {
+        text-align:center;
+        margin-top:10%;
+    }
 
-        .logo-box {
-            text-align: center;
-            margin-top: 12%;
-        }
+    .logo {
+        font-size:75px;
+        font-weight:bold;
+        color:#f1c40f;
+    }
 
-        .logo {
-            font-size: 75px;
-            font-weight: bold;
-            color: #f1c40f;
-        }
+    .sub {
+        font-size:22px;
+        margin-top:10px;
+    }
 
-        .title {
-            font-size: 26px;
-            font-weight: bold;
-            margin-top: 10px;
-        }
-
-        .sub {
-            font-size: 18px;
-            color: gray;
-            margin-top: 5px;
-        }
-
-        .footer {
-            margin-top: 25px;
-            font-size: 15px;
-            color: #888;
-        }
-        </style>
+    .footer {
+        color:gray;
+        margin-top:10px;
+    }
+    </style>
     """, unsafe_allow_html=True)
 
     st.markdown("""
         <div class="logo-box">
             <div class="logo">⚡ ضجة سيستم</div>
-            <div class="title">نظام التخصيم الذكي للمطابخ</div>
-            <div class="sub">برمجة المهندس / ياسين علاء</div>
-            <div class="footer">2026 - All Rights Reserved</div>
+            <div class="sub">نظام التخصيم الذكي للمطابخ</div>
+            <div class="footer">برمجة المهندس / ياسين علاء</div>
         </div>
     """, unsafe_allow_html=True)
 
@@ -77,7 +75,7 @@ if page == "home":
 # ==========================================
 elif page == "calc":
 
-    st.title("🛠️ التخصيم")
+    st.title("🛠️ التخصيم الكامل")
 
     col1, col2 = st.columns(2)
 
@@ -85,7 +83,7 @@ elif page == "calc":
         st.session_state.page = "home"
         st.rerun()
 
-    if col2.button("🗑️ حذف المشاريع"):
+    if col2.button("🗑️ حذف الكل"):
         st.session_state.project_list = []
         st.rerun()
 
@@ -99,6 +97,7 @@ elif page == "calc":
         unit_type = c2.selectbox("نوع الوحدة", ["وحدة سفلية", "وحدة علوية", "دولاب خزين"])
 
         d1, d2, d3 = st.columns(3)
+
         W = d1.number_input("العرض", step=0.5, value=0.0, format="%.2f")
         H = d2.number_input("الارتفاع", step=0.5, value=0.0, format="%.2f")
         D = d3.number_input("العمق", step=0.5, value=0.0, format="%.2f")
@@ -124,17 +123,30 @@ elif page == "calc":
         submit = st.form_submit_button("حساب")
 
     # =========================
-    # الحساب
+    # تنظيف القيم (حل مشكلة الصفر)
     # =========================
-    if submit and W > 0 and H > 0 and D > 0:
+    if submit:
+        if W <= 0 or H <= 0 or D <= 0:
+            st.error("لازم تدخل المقاسات الأساسية")
+            st.stop()
 
-        h_final = H - (13 if unit_type != "وحدة علوية" else 5)
+        # =========================
+        # الخصم الأساسي
+        # =========================
+        if unit_type == "وحدة سفلية":
+            h_final = H - 13
+        else:
+            h_final = H - 5
+
         w_final = W - 5
         d_final = D - 5
 
         alum = []
         fiber = []
 
+        # =========================
+        # المونتال
+        # =========================
         if unit_type == "وحدة سفلية":
             alum += [
                 ["قائم", h_final, 2, "مفرد"],
@@ -154,19 +166,31 @@ elif page == "calc":
                 ["عمق", d_final, 4, "متقارب"],
             ]
 
+        # =========================
+        # الأرفف
+        # =========================
         if sh_n > 0:
             alum.append(["رف", sh_w, sh_n * 2, "مفرد"])
             fiber.append(["رف", sh_w - 5, sh_d - 5, sh_n])
 
+        # =========================
+        # الفواصل
+        # =========================
         if v_n > 0:
             alum.append(["فاصل", v_h, v_n * 4, "مفرد"])
             fiber.append(["فاصل", v_h - 5, v_d - 5, v_n])
 
+        # =========================
+        # الأدراج
+        # =========================
         if dr_n > 0:
             drawer_w = dr_w - 2.5
             alum.append(["درج 2×8", drawer_w, dr_n * 2, "2×8"])
             fiber.append(["درج", drawer_w, dr_d, dr_n])
 
+        # =========================
+        # الفيبر
+        # =========================
         fiber += [
             ["ضهرية", w_final, h_final, 1],
             ["أرضية", w_final, d_final, 1],
@@ -185,60 +209,62 @@ elif page == "calc":
     # =========================
     if st.session_state.project_list:
 
-        total_muf = 0
-        total_mut = 0
-        total_fiber = 0
+        muf = 0
+        mut = 0
+        fib = 0
 
         for u in st.session_state.project_list:
             for a in u["alum"]:
                 if a[3] == "مفرد":
-                    total_muf += a[1] * a[2]
+                    muf += a[1] * a[2]
                 else:
-                    total_mut += a[1] * a[2]
+                    mut += a[1] * a[2]
 
             for f in u["fiber"]:
-                total_fiber += f[1] * f[2] * f[3]
+                fib += f[1] * f[2] * f[3]
 
         st.markdown("## 📊 جرد الخامات")
 
-        st.write(f"🔹 المفرد: {total_muf / 600:.2f} عود")
-        st.write(f"🔹 المتقارب: {total_mut / 600:.2f} عود")
-        st.write(f"🔹 الفيبر: {total_fiber / (280 * 130):.2f} لوح")
+        st.success(f"المفرد: {math.ceil(muf / 600)} عود")
+        st.success(f"المتقارب: {math.ceil(mut / 600)} عود")
 
-        if st.button("🧾 الفاتورة"):
+        panel = 280 * 130
+        st.success(f"الفيبر: {math.ceil(fib / panel)} لوح")
+
+        if st.button("💰 الفاتورة"):
             st.session_state.page = "invoice"
             st.rerun()
 
 
 # ==========================================
-# صفحة الفاتورة
+# صفحة الفاتورة (Excel Style)
 # ==========================================
 elif page == "invoice":
 
-    st.title("📋 فاتورة الخامات")
+    st.title("📋 الفاتورة النهائية")
 
     if st.button("⬅️ رجوع"):
         st.session_state.page = "calc"
         st.rerun()
 
-    total_muf = total_mut = total_fiber = 0
+    rows = []
 
     for u in st.session_state.project_list:
         for a in u["alum"]:
-            if a[3] == "مفرد":
-                total_muf += a[1] * a[2]
-            else:
-                total_mut += a[1] * a[2]
+            rows.append({
+                "الصنف": f"مونتال - {a[0]}",
+                "العدد": a[2],
+                "سعر الوحدة": 0.0
+            })
 
         for f in u["fiber"]:
-            total_fiber += f[1] * f[2] * f[3]
+            rows.append({
+                "الصنف": f"فيبر - {f[0]}",
+                "العدد": f[3],
+                "سعر الوحدة": 0.0
+            })
 
-    df = pd.DataFrame([
-        ["مونتال مفرد", total_muf / 600, 0.0],
-        ["مونتال متقارب", total_mut / 600, 0.0],
-        ["فيبر", total_fiber / (280 * 130), 0.0],
-        ["درج 2×8", 0, 0.0],
-    ], columns=["الصنف", "العدد", "سعر الوحدة"])
+    df = pd.DataFrame(rows)
 
     df = st.data_editor(df, num_rows="dynamic", use_container_width=True)
 
