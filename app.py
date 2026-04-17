@@ -61,39 +61,30 @@ elif st.session_state.page == "calc":
         st.rerun()
 
     # =========================
-    # إدخال كامل بدون نقص
+    # إدخال كامل بدون Excel
     # =========================
-    df_input = pd.DataFrame([{
-        "العميل": "",
-        "نوع الوحدة": "",
-        "العرض": "",
-        "الارتفاع": "",
-        "العمق": "",
-        "عدد الأرفف": "",
-        "عرض الرف": "",
-        "عمق الرف": "",
-        "عدد الفواصل": "",
-        "ارتفاع الفاصل": "",
-        "عمق الفاصل": "",
-        "عدد الأدراج": "",
-        "عرض الدرج": "",
-        "عمق الدرج": ""
-    }])
+    client = st.text_input("اسم العميل")
+    unit = st.selectbox("نوع الوحدة", ["وحدة سفلية", "وحدة علوية", "دولاب خزين"])
 
-    edited = st.data_editor(df_input, num_rows="dynamic", use_container_width=True)
+    W = st.number_input("العرض", value=None)
+    H = st.number_input("الارتفاع", value=None)
+    D = st.number_input("العمق", value=None)
+
+    sh = st.number_input("عدد الأرفف", value=0)
+    sh_w = st.number_input("عرض الرف", value=0.0)
+    sh_d = st.number_input("عمق الرف", value=0.0)
+
+    vf = st.number_input("عدد الفواصل", value=0)
+    vf_h = st.number_input("ارتفاع الفاصل", value=0.0)
+    vf_d = st.number_input("عمق الفاصل", value=0.0)
+
+    dr = st.number_input("عدد الأدراج", value=0)
+    dr_w = st.number_input("عرض الدرج", value=0.0)
+    dr_d = st.number_input("عمق الدرج", value=0.0)
 
     if st.button("💾 حساب التخصيم"):
 
-        for _, r in edited.iterrows():
-
-            if r["العرض"] == "" or r["الارتفاع"] == "" or r["العمق"] == "":
-                continue
-
-            W = float(r["العرض"])
-            H = float(r["الارتفاع"])
-            D = float(r["العمق"])
-
-            unit = r["نوع الوحدة"]
+        if W and H and D:
 
             # =========================
             # خصم المقاسات
@@ -124,7 +115,6 @@ elif st.session_state.page == "calc":
             # =========================
             # أرفف
             # =========================
-            sh = int(r["عدد الأرفف"] or 0)
             if sh > 0:
                 alum.append(["رف", Wf, sh * 2, "مفرد"])
                 fiber.append(["رف", Wf - 5, Df - 5, sh])
@@ -132,7 +122,6 @@ elif st.session_state.page == "calc":
             # =========================
             # فواصل
             # =========================
-            vf = int(r["عدد الفواصل"] or 0)
             if vf > 0:
                 alum.append(["فاصل", Hf, vf * 4, "مفرد"])
                 fiber.append(["فاصل", Hf - 5, Df - 5, vf])
@@ -140,13 +129,9 @@ elif st.session_state.page == "calc":
             # =========================
             # أدراج
             # =========================
-            dr = int(r["عدد الأدراج"] or 0)
             if dr > 0:
-                dw = float(r["عرض الدرج"] or 0) - 2.5
-                dh = float(r["عمق الدرج"] or 0)
-
-                alum.append(["درج 2×8", dw, dr * 2, "2×8"])
-                fiber.append(["درج", dw, dh, dr])
+                dw = dr_w - 2.5
+                fiber.append(["درج", dw, dr_d, dr])
 
             # =========================
             # فيبر أساسي
@@ -158,13 +143,13 @@ elif st.session_state.page == "calc":
             ]
 
             st.session_state.projects.append({
-                "client": r["العميل"],
+                "client": client,
                 "unit": unit,
                 "alum": alum,
                 "fiber": fiber
             })
 
-        st.success("تم الحساب بنجاح")
+            st.success("تم الحساب بنجاح")
 
     # =========================
     # جرد الخامات
@@ -195,11 +180,11 @@ elif st.session_state.page == "calc":
 
 
 # =========================
-# INVOICE PAGE (VERTICAL FULL)
+# INVOICE PAGE (CARDS ONLY)
 # =========================
 elif st.session_state.page == "invoice":
 
-    st.title("📋 الفاتورة التفصيلية")
+    st.title("📋 الفاتورة النهائية")
 
     if st.button("⬅️ رجوع"):
         st.session_state.page = "calc"
@@ -209,46 +194,46 @@ elif st.session_state.page == "invoice":
 
         st.markdown("---")
 
-        # =========================
-        # العميل
-        # =========================
         st.markdown(f"## 👤 العميل: {p['client']}")
         st.markdown(f"### 🏷️ نوع الوحدة: {p['unit']}")
 
-        # =========================
-        # مونتال (رأسي)
-        # =========================
         st.markdown("## 🛠️ مونتال")
 
         for a in p["alum"]:
-            st.markdown(
-                f"""
-                **▪ {a[0]}**
-                - المقاس: `{round(a[1],2)}`
-                - العدد: `{a[2]}`
-                - النوع: مونتال
-                ---
-                """
-            )
+            st.markdown(f"""
+            <div style="
+                border:1px solid #ddd;
+                padding:10px;
+                border-radius:10px;
+                margin-bottom:10px;
+                background:#f9f9f9;
+            ">
+                <b>▪ {a[0]}</b><br>
+                المقاس: {round(a[1],2)}<br>
+                العدد: {a[2]}<br>
+                النوع: مونتال
+            </div>
+            """, unsafe_allow_html=True)
 
-        # =========================
-        # فيبر (رأسي)
-        # =========================
         st.markdown("## 🪵 فيبر")
 
         for f in p["fiber"]:
-            st.markdown(
-                f"""
-                **▪ {f[0]}**
-                - المقاس: `{round(f[1],2)} × {round(f[2],2)}`
-                - العدد: `{f[3]}`
-                - النوع: فيبر
-                ---
-                """
-            )
+            st.markdown(f"""
+            <div style="
+                border:1px solid #ddd;
+                padding:10px;
+                border-radius:10px;
+                margin-bottom:10px;
+                background:#f1f1f1;
+            ">
+                <b>▪ {f[0]}</b><br>
+                المقاس: {round(f[1],2)} × {round(f[2],2)}<br>
+                العدد: {f[3]}<br>
+                النوع: فيبر
+            </div>
+            """, unsafe_allow_html=True)
 
-        st.markdown("### 💰 تم إنهاء وحدة بالكامل")
-        st.success("تم حساب جميع الخامات بنجاح")
+        st.success("تم حساب الوحدة بالكامل")
 
     st.markdown("---")
     st.success("📦 نهاية الفاتورة")
