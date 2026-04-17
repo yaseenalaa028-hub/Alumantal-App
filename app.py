@@ -1,6 +1,3 @@
-Here's the **complete corrected code** with all syntax errors fixed:
-
-```python
 import streamlit as st
 import pandas as pd
 
@@ -143,7 +140,7 @@ elif st.session_state.current_page == "invoice":
         st.warning("⚠️ لا توجد وحدات في الجرد. ارجع لصفحة التخصيم أولاً.")
 
 # ==========================================
-# 4. صفحة التخصيم الكاملة مع مربعات فاضية
+# 4. صفحة التخصيم الكاملة
 # ==========================================
 else:  # calc page
     st.markdown("### 🛠️ **لوحة التخصيم المتقدمة**")
@@ -178,183 +175,59 @@ else:  # calc page
                 st.write(f"**الألمنيوم:** {len(project['alum_items'])} قطعة")
                 st.write(f"**الفيبر:** {len(project['fiber_items'])} قطعة")
 
-    # ===== النموذج الكامل مع كل الخانات فاضية =====
+    # ===== النموذج الكامل =====
     with st.form(key="complete_calc_form", clear_on_submit=False):
         st.markdown("---")
-        
-        # معلومات العميل والوحدة
         col_client, col_unit = st.columns([2, 1])
-        client_name = col_client.text_input(
-            "👤 **اسم العميل**", 
-            value="", 
-            placeholder="اكتب اسم العميل هنا",
-            help="اسم العميل سيظهر في الجرد والفاتورة"
-        )
-        unit_type = col_unit.selectbox(
-            "📦 **نوع الوحدة**", 
-            ["وحدة سفلية", "وحدة علوية", "دولاب خزينة"],
-            help="اختر نوع الوحدة للحسابات التلقائية"
-        )
+        client_name = col_client.text_input("👤 **اسم العميل**", value="", placeholder="اكتب اسم العميل هنا")
+        unit_type = col_unit.selectbox("📦 **نوع الوحدة**", ["وحدة سفلية", "وحدة علوية", "دولاب خزينة"])
 
         st.markdown("### 📐 **المقاسات الأساسية (الكلية)**")
         col_w, col_h, col_d = st.columns(3)
-        width = col_w.number_input(
-            "🟢 **العرض الكلي (سم)**", 
-            value=None, 
-            min_value=0.0, 
-            step=0.5, 
-            format="%.1f",
-            help="قيس العرض الكلي للوحدة"
-        )
-        height = col_h.number_input(
-            "🔴 **الارتفاع الكلي (سم)**", 
-            value=None, 
-            min_value=0.0, 
-            step=0.5, 
-            format="%.1f",
-            help="قيس الارتفاع الكلي للوحدة"
-        )
-        depth = col_d.number_input(
-            "🔵 **العمق الكلي (سم)**", 
-            value=None, 
-            min_value=0.0, 
-            step=0.5, 
-            format="%.1f",
-            help="قيس العمق الكلي للوحدة"
-        )
+        width = col_w.number_input("🟢 **العرض الكلي (سم)**", value=None, min_value=0.0, step=0.5, format="%.1f")
+        height = col_h.number_input("🔴 **الارتفاع الكلي (سم)**", value=None, min_value=0.0, step=0.5, format="%.1f")
+        depth = col_d.number_input("🔵 **العمق الكلي (سم)**", value=None, min_value=0.0, step=0.5, format="%.1f")
 
         st.markdown("### 🗄️ **الأرفف**")
         col_sh1, col_sh2, col_sh3 = st.columns(3)
-        shelves_count = col_sh1.number_input(
-            "📊 **عدد الأرفف**", 
-            value=None, 
-            min_value=0, 
-            step=1, 
-            format="%d",
-            help="اترك فاضي إذا لم يوجد أرفف"
-        )
-        shelf_width = col_sh2.number_input(
-            "📏 **عرض الرف (سم)**", 
-            value=None, 
-            min_value=0.0, 
-            step=0.5, 
-            format="%.1f",
-            help="اترك فاضي إذا لم يوجد أرفف"
-        )
-        shelf_depth = col_sh3.number_input(
-            "📐 **عمق الرف (سم)**", 
-            value=None, 
-            min_value=0.0, 
-            step=0.5, 
-            format="%.1f",
-            help="اترك فاضي إذا لم يوجد أرفف"
-        )
+        shelves_count = col_sh1.number_input("📊 **عدد الأرفف**", value=None, min_value=0, step=1)
+        shelf_width = col_sh2.number_input("📏 **عرض الرف (سم)**", value=None, min_value=0.0, step=0.5)
+        shelf_depth = col_sh3.number_input("📐 **عمق الرف (سم)**", value=None, min_value=0.0, step=0.5)
 
         st.markdown("### 🔀 **الفواصل**")
         col_v1, col_v2, col_v3 = st.columns(3)
-        dividers_count = col_v1.number_input(
-            "📊 **عدد الفواصل**", 
-            value=None, 
-            min_value=0, 
-            step=1, 
-            format="%d",
-            help="اترك فاضي إذا لم توجد فواصل"
-        )
-        divider_height = col_v2.number_input(
-            "📏 **ارتفاع الفاصل (سم)**", 
-            value=None, 
-            min_value=0.0, 
-            step=0.5, 
-            format="%.1f",
-            help="اترك فاضي إذا لم توجد فواصل"
-        )
-        divider_depth = col_v3.number_input(
-            "📐 **عمق الفاصل (سم)**", 
-            value=None, 
-            min_value=0.0, 
-            step=0.5, 
-            format="%.1f",
-            help="اترك فاضي إذا لم توجد فواصل"
-        )
+        dividers_count = col_v1.number_input("📊 **عدد الفواصل**", value=None, min_value=0, step=1)
+        divider_height = col_v2.number_input("📏 **ارتفاع الفاصل (سم)**", value=None, min_value=0.0, step=0.5)
+        divider_depth = col_v3.number_input("📐 **عمق الفاصل (سم)**", value=None, min_value=0.0, step=0.5)
 
         st.markdown("### 📂 **الأدراج**")
         col_dr1, col_dr2, col_dr3 = st.columns(3)
-        drawers_count = col_dr1.number_input(
-            "📊 **عدد الأدراج**", 
-            value=None, 
-            min_value=0, 
-            step=1, 
-            format="%d",
-            help="اترك فاضي إذا لم توجد أدراج"
-        )
-        drawer_width = col_dr2.number_input(
-            "📏 **عرض الدرج (سم)**", 
-            value=None, 
-            min_value=0.0, 
-            step=0.5, 
-            format="%.1f",
-            help="اترك فاضي إذا لم توجد أدراج"
-        )
-        drawer_depth = col_dr3.number_input(
-            "📐 **عمق الدرج (سم)**", 
-            value=None, 
-            min_value=0.0, 
-            step=0.5, 
-            format="%.1f",
-            help="اترك فاضي إذا لم توجد أدراج"
-        )
+        drawers_count = col_dr1.number_input("📊 **عدد الأدراج**", value=None, min_value=0, step=1)
+        drawer_width = col_dr2.number_input("📏 **عرض الدرج (سم)**", value=None, min_value=0.0, step=0.5)
+        drawer_depth = col_dr3.number_input("📐 **عمق الدرج (سم)**", value=None, min_value=0.0, step=0.5)
 
         st.markdown("### ➕ **إضافات اختيارية**")
         col_e1, col_e2, col_e3 = st.columns(3)
-        extra_vertical = col_e1.number_input(
-            "🔽 **أعواد رأسية إضافية**", 
-            value=None, 
-            min_value=0, 
-            step=1, 
-            format="%d",
-            help="عدد الأعواد الرأسية الإضافية"
-        )
-        extra_horizontal = col_e2.number_input(
-            "➡️ **أعواد أفقية إضافية**", 
-            value=None, 
-            min_value=0, 
-            step=1, 
-            format="%d",
-            help="عدد الأعواد الأفقية الإضافية"
-        )
-        extra_length = col_e3.number_input(
-            "📏 **طول العود الإضافي (سم)**", 
-            value=None, 
-            min_value=0.0, 
-            step=0.5, 
-            format="%.1f",
-            help="طول الأعواد الإضافية"
-        )
+        extra_vertical = col_e1.number_input("🔽 **أعواد رأسية إضافية**", value=None, min_value=0)
+        extra_horizontal = col_e2.number_input("➡️ **أعواد أفقية إضافية**", value=None, min_value=0)
+        extra_length = col_e3.number_input("📏 **طول العود الإضافي (سم)**", value=None, min_value=0.0)
 
-        st.markdown("---")
-        submit_btn = st.form_submit_button(
-            "🔨 **حسّب كل شيء وأضف للجرد**", 
-            use_container_width=True, 
-            type="primary"
-        )
+        submit_btn = st.form_submit_button("🔨 **حسّب كل شيء وأضف للجرد**", use_container_width=True, type="primary")
 
-    # ===== معالجة الحسابات الكاملة =====
+    # ===== معالجة الحسابات =====
     if submit_btn:
         if width is not None and height is not None and depth is not None:
-            # منع التكرار
             unit_id = f"{client_name or 'غير محدد'}_{width:.1f}_{height:.1f}_{depth:.1f}"
             if st.session_state.last_unit_id != unit_id:
                 
-                # حساب المقاسات النهائية
                 final_height = height - (13 if unit_type in ["وحدة سفلية", "دولاب خزينة"] else 5)
                 final_width = width - 5
                 final_depth = depth - 5
                 
-                # قوائم الألمنيوم والفيبر
                 alum_items = []
                 fiber_items = []
                 
-                # ===== الألمنيوم الأساسي =====
+                # الأساسيات
                 alum_items.extend([
                     {"name": "ارتفاع رئيسي", "length": final_height, "count": 2, "type": "مفرد"},
                     {"name": "ارتفاع متقارب", "length": final_height, "count": 2, "type": "متقارب"}
@@ -371,4 +244,47 @@ else:  # calc page
                     alum_items.extend([
                         {"name": "عرض جانبي", "length": final_width, "count": 2, "type": "مفرد"},
                         {"name": "عرض متقارب", "length": final_width, "count": 2, "type": "متقارب"},
-                        {"name": "عمق متقارب", "length": final_depth, "count": 
+                        {"name": "عمق متقارب", "length": final_depth, "count": 4, "type": "متقارب"}
+                    ])
+
+                # الأرفف
+                if shelves_count and shelf_width and shelf_depth:
+                    alum_items.append({"name": "إطار رف عرض", "length": shelf_width, "count": int(shelves_count) * 2, "type": "متقارب"})
+                    alum_items.append({"name": "إطار رف عمق", "length": shelf_depth, "count": int(shelves_count) * 2, "type": "متقارب"})
+                    fiber_items.append({"name": "أرضية رف", "width": shelf_width, "height": shelf_depth, "qty": int(shelves_count)})
+
+                # الفواصل
+                if dividers_count and divider_height and divider_depth:
+                    alum_items.append({"name": "قائم فاصل", "length": divider_height, "count": int(dividers_count) * 2, "type": "متقارب"})
+                    fiber_items.append({"name": "لوح فاصل", "width": divider_height, "height": divider_depth, "qty": int(dividers_count)})
+
+                # الأدراج
+                if drawers_count and drawer_width and drawer_depth:
+                    alum_items.append({"name": "جانب درج", "length": drawer_depth, "count": int(drawers_count) * 2, "type": "مفرد"})
+                    alum_items.append({"name": "وجه درج", "length": drawer_width, "count": int(drawers_count) * 2, "type": "مفرد"})
+                    fiber_items.append({"name": "أرضية درج", "width": drawer_width, "height": drawer_depth, "qty": int(drawers_count)})
+
+                # إضافات
+                if extra_vertical and extra_length:
+                    alum_items.append({"name": "إضافي رأسي", "length": extra_length, "count": int(extra_vertical), "type": "مفرد"})
+                if extra_horizontal and extra_length:
+                    alum_items.append({"name": "إضافي أفقي", "length": extra_length, "count": int(extra_horizontal), "type": "متقارب"} )
+
+                # الفيبر الأساسي
+                fiber_items.extend([
+                    {"name": "جوانب", "width": final_height, "height": final_depth, "qty": 2},
+                    {"name": "أرضية/سقف", "width": final_width, "height": final_depth, "qty": 2 if unit_type != "وحدة سفلية" else 1},
+                    {"name": "ظهر", "width": final_height, "height": final_width, "qty": 1}
+                ])
+
+                st.session_state.projects.append({
+                    "client_name": client_name,
+                    "unit_type": unit_type,
+                    "alum_items": alum_items,
+                    "fiber_items": fiber_items
+                })
+                st.session_state.last_unit_id = unit_id
+                st.success(f"✅ تم إضافة الوحدة بنجاح!")
+                st.rerun()
+        else:
+            st.error("❌ يرجى إدخال المقاسات الأساسية!")
