@@ -67,33 +67,28 @@ elif st.session_state.current_page == "invoice":
             del st.session_state.df_invoice
         st.rerun()
 
-    # حساب الجرد الكامل
     if st.session_state.projects:
         total_mufred = total_motaqarib = total_fiber = 0
         
         for project in st.session_state.projects:
-            # الألمنيوم
             for item in project["alum_items"]:
-                length = item.get("length", 0) or 0
-                count = item.get("count", 0) or 0
-                if item.get("type") == "مفرد":
+                length = item.get("الطول (سم)", 0)
+                count = item.get("العدد", 0)
+                if item.get("النوع") == "مفرد":
                     total_mufred += length * count
                 else:
                     total_motaqarib += length * count
             
-            # الفيبر
             for item in project["fiber_items"]:
-                width = item.get("width", 0) or 0
-                height = item.get("height", 0) or 0
-                qty = item.get("qty", 0) or 0
+                width = item.get("العرض", 0)
+                height = item.get("الارتفاع", 0)
+                qty = item.get("الكمية", 0)
                 total_fiber += width * height * qty
 
-        # الكميات النهائية
         qty_alum_m = round(total_mufred / 600, 2)
         qty_alum_t = round(total_motaqarib / 600, 2)
         qty_fiber = round(total_fiber / (280 * 130), 2)
 
-        # إنشاء جدول الفاتورة
         invoice_data = {
             "البيان": ["أعواد ألمنيوم (مفرد)", "أعواد ألمنيوم (متقارب)", "ألواح فيبرجلاس"],
             "الكمية": [qty_alum_m, qty_alum_t, qty_fiber],
@@ -121,170 +116,132 @@ elif st.session_state.current_page == "invoice":
         
         total_amount = edited_df["الإجمالي"].sum()
         st.markdown(f"""
-            <div style='background: linear-gradient(90deg, #27ae60, #2ecc71); 
-                        color: white; padding: 2rem; border-radius: 15px; text-align: center;'>
-                <h2 style='margin: 0; font-size: 2.5em;'>💰 إجمالي الفاتورة</h2>
-                <h1 style='margin: 0.5rem 0; font-size: 3.5em;'>{total_amount:,.2f} جنيه</h1>
+            <div style='background: linear-gradient(90deg, #27ae60, #2ecc71); color: white; padding: 2rem; border-radius: 15px; text-align: center;'>
+                <h2 style='margin: 0;'>💰 إجمالي الفاتورة: {total_amount:,.2f} جنيه</h2>
             </div>
         """, unsafe_allow_html=True)
         
-        # تصدير
         csv_data = edited_df.to_csv(index=False, encoding='utf-8-sig')
-        st.download_button(
-            label="📥 **تحميل الفاتورة Excel**",
-            data=csv_data,
-            file_name=f"فاتورة_دجة_سمارت_{len(st.session_state.projects)}_وحدة.csv",
-            mime="text/csv"
-        )
+        st.download_button("📥 تحميل الفاتورة", data=csv_data, file_name="invoice.csv", mime="text/csv")
     else:
-        st.warning("⚠️ لا توجد وحدات في الجرد. ارجع لصفحة التخصيم أولاً.")
+        st.warning("⚠️ لا توجد وحدات في الجرد.")
 
 # ==========================================
-# 4. صفحة التخصيم الكاملة
+# 4. صفحة التخصيم الكاملة (كل الخانات)
 # ==========================================
-else:  # calc page
+else: 
     st.markdown("### 🛠️ **لوحة التخصيم المتقدمة**")
     
-    # أزرار التحكم الكاملة
     col_home, col_invoice, col_clear, col_stats = st.columns(4)
-    
-    if col_home.button("🏠 **الصفحة الرئيسية**", use_container_width=True):
+    if col_home.button("🏠 الرئيسية", use_container_width=True):
         st.session_state.current_page = "home"
         st.rerun()
-        
-    if col_invoice.button("📄 **الفاتورة النهائية**", use_container_width=True, type="primary"):
+    if col_invoice.button("📄 الفاتورة", use_container_width=True, type="primary"):
         st.session_state.current_page = "invoice"
         st.rerun()
-        
-    if col_clear.button("🗑️ **مسح الجرد كاملاً**", use_container_width=True):
+    if col_clear.button("🗑️ مسح الجرد", use_container_width=True):
         st.session_state.projects = []
         st.session_state.last_unit_id = None
-        if "df_invoice" in st.session_state:
-            del st.session_state.df_invoice
-        st.success("✅ تم مسح الجرد!")
         st.rerun()
-    
     if st.session_state.projects:
-        col_stats.metric("📦 **عدد الوحدات في الجرد**", len(st.session_state.projects))
+        col_stats.metric("📦 عدد الوحدات", len(st.session_state.projects))
 
-    # عرض الجرد الحالي
+    # عرض الجرد الحالي (خانات التخصيم التفصيلية)
     if st.session_state.projects:
-        st.markdown("### 📋 **الجرد الحالي**")
+        st.markdown("### 📋 **الجرد التفصيلي ومقاسات القطع**")
         for i, project in enumerate(st.session_state.projects):
-            with st.expander(f"وحدة {i+1}: {project.get('client_name', 'غير محدد')} - {project.get('unit_type', 'غير محدد')}"):
-                st.write(f"**الألمنيوم:** {len(project['alum_items'])} قطعة")
-                st.write(f"**الفيبر:** {len(project['fiber_items'])} قطعة")
+            with st.expander(f"وحدة {i+1}: {project['client_name']} - {project['unit_type']}", expanded=False):
+                col_a, col_f = st.columns(2)
+                with col_a:
+                    st.write("📐 **تخصيم الألمنيوم:**")
+                    st.table(pd.DataFrame(project['alum_items']))
+                with col_f:
+                    st.write("🖼️ **تخصيم الفيبر:**")
+                    st.table(pd.DataFrame(project['fiber_items']))
 
-    # ===== النموذج الكامل =====
-    with st.form(key="complete_calc_form", clear_on_submit=False):
+    # النموذج الكامل بكل خاناتك
+    with st.form(key="complete_calc_form"):
         st.markdown("---")
         col_client, col_unit = st.columns([2, 1])
-        client_name = col_client.text_input("👤 **اسم العميل**", value="", placeholder="اكتب اسم العميل هنا")
-        unit_type = col_unit.selectbox("📦 **نوع الوحدة**", ["وحدة سفلية", "وحدة علوية", "دولاب خزينة"])
+        client_name = col_client.text_input("👤 اسم العميل", placeholder="اكتب اسم العميل")
+        unit_type = col_unit.selectbox("📦 نوع الوحدة", ["وحدة سفلية", "وحدة علوية", "دولاب خزينة"])
 
-        st.markdown("### 📐 **المقاسات الأساسية (الكلية)**")
+        st.markdown("### 📐 المقاسات الأساسية (سم)")
         col_w, col_h, col_d = st.columns(3)
-        width = col_w.number_input("🟢 **العرض الكلي (سم)**", value=None, min_value=0.0, step=0.5, format="%.1f")
-        height = col_h.number_input("🔴 **الارتفاع الكلي (سم)**", value=None, min_value=0.0, step=0.5, format="%.1f")
-        depth = col_d.number_input("🔵 **العمق الكلي (سم)**", value=None, min_value=0.0, step=0.5, format="%.1f")
+        width = col_w.number_input("العرض الكلي", value=None, min_value=0.0, step=0.5)
+        height = col_h.number_input("الارتفاع الكلي", value=None, min_value=0.0, step=0.5)
+        depth = col_d.number_input("العمق الكلي", value=None, min_value=0.0, step=0.5)
 
-        st.markdown("### 🗄️ **الأرفف**")
+        st.markdown("### 🗄️ الأرفف")
         col_sh1, col_sh2, col_sh3 = st.columns(3)
-        shelves_count = col_sh1.number_input("📊 **عدد الأرفف**", value=None, min_value=0, step=1)
-        shelf_width = col_sh2.number_input("📏 **عرض الرف (سم)**", value=None, min_value=0.0, step=0.5)
-        shelf_depth = col_sh3.number_input("📐 **عمق الرف (سم)**", value=None, min_value=0.0, step=0.5)
+        shelves_count = col_sh1.number_input("عدد الأرفف", value=None, min_value=0, step=1)
+        shelf_width = col_sh2.number_input("عرض الرف", value=None, min_value=0.0)
+        shelf_depth = col_sh3.number_input("عمق الرف", value=None, min_value=0.0)
 
-        st.markdown("### 🔀 **الفواصل**")
+        st.markdown("### 🔀 الفواصل")
         col_v1, col_v2, col_v3 = st.columns(3)
-        dividers_count = col_v1.number_input("📊 **عدد الفواصل**", value=None, min_value=0, step=1)
-        divider_height = col_v2.number_input("📏 **ارتفاع الفاصل (سم)**", value=None, min_value=0.0, step=0.5)
-        divider_depth = col_v3.number_input("📐 **عمق الفاصل (سم)**", value=None, min_value=0.0, step=0.5)
+        dividers_count = col_v1.number_input("عدد الفواصل", value=None, min_value=0, step=1)
+        divider_height = col_v2.number_input("ارتفاع الفاصل", value=None, min_value=0.0)
+        divider_depth = col_v3.number_input("عمق الفاصل", value=None, min_value=0.0)
 
-        st.markdown("### 📂 **الأدراج**")
+        st.markdown("### 📂 الأدراج")
         col_dr1, col_dr2, col_dr3 = st.columns(3)
-        drawers_count = col_dr1.number_input("📊 **عدد الأدراج**", value=None, min_value=0, step=1)
-        drawer_width = col_dr2.number_input("📏 **عرض الدرج (سم)**", value=None, min_value=0.0, step=0.5)
-        drawer_depth = col_dr3.number_input("📐 **عمق الدرج (سم)**", value=None, min_value=0.0, step=0.5)
+        drawers_count = col_dr1.number_input("عدد الأدراج", value=None, min_value=0, step=1)
+        drawer_width = col_dr2.number_input("عرض الدرج", value=None, min_value=0.0)
+        drawer_depth = col_dr3.number_input("عمق الدرج", value=None, min_value=0.0)
 
-        st.markdown("### ➕ **إضافات اختيارية**")
+        st.markdown("### ➕ إضافات")
         col_e1, col_e2, col_e3 = st.columns(3)
-        extra_vertical = col_e1.number_input("🔽 **أعواد رأسية إضافية**", value=None, min_value=0)
-        extra_horizontal = col_e2.number_input("➡️ **أعواد أفقية إضافية**", value=None, min_value=0)
-        extra_length = col_e3.number_input("📏 **طول العود الإضافي (سم)**", value=None, min_value=0.0)
+        extra_v = col_e1.number_input("أعواد رأسية إضافية", value=None, min_value=0)
+        extra_h = col_e2.number_input("أعواد أفقية إضافية", value=None, min_value=0)
+        extra_l = col_e3.number_input("طول العود الإضافي", value=None, min_value=0.0)
 
-        submit_btn = st.form_submit_button("🔨 **حسّب كل شيء وأضف للجرد**", use_container_width=True, type="primary")
+        submit_btn = st.form_submit_button("🔨 احسب وأضف للجرد", use_container_width=True, type="primary")
 
-    # ===== معالجة الحسابات =====
     if submit_btn:
-        if width is not None and height is not None and depth is not None:
-            unit_id = f"{client_name or 'غير محدد'}_{width:.1f}_{height:.1f}_{depth:.1f}"
+        if width and height and depth:
+            unit_id = f"{client_name}_{width}_{height}_{depth}"
             if st.session_state.last_unit_id != unit_id:
+                # معادلات التخصيم
+                f_h = height - (13 if unit_type != "وحدة علوية" else 5)
+                f_w = width - 5
+                f_d = depth - 5
                 
-                final_height = height - (13 if unit_type in ["وحدة سفلية", "دولاب خزينة"] else 5)
-                final_width = width - 5
-                final_depth = depth - 5
+                alum_items = [
+                    {"القطعة": "قائم رئيسي", "الطول (سم)": f_h, "العدد": 2, "النوع": "مفرد"},
+                    {"القطعة": "قائم متقارب", "الطول (سم)": f_h, "العدد": 2, "النوع": "متقارب"},
+                    {"القطعة": "عرض أفقي", "الطول (سم)": f_w, "العدد": 4, "النوع": "مفرد"}
+                ]
                 
-                alum_items = []
-                fiber_items = []
-                
-                # الأساسيات
-                alum_items.extend([
-                    {"name": "ارتفاع رئيسي", "length": final_height, "count": 2, "type": "مفرد"},
-                    {"name": "ارتفاع متقارب", "length": final_height, "count": 2, "type": "متقارب"}
-                ])
-                
-                if unit_type == "وحدة سفلية":
-                    alum_items.extend([
-                        {"name": "عرض أمامي", "length": final_width, "count": 3, "type": "مفرد"},
-                        {"name": "عرض خلفي", "length": final_width, "count": 1, "type": "متقارب"},
-                        {"name": "عمق أمامي", "length": final_depth, "count": 2, "type": "مفرد"},
-                        {"name": "عمق خلفي", "length": final_depth, "count": 2, "type": "متقارب"}
-                    ])
-                else:
-                    alum_items.extend([
-                        {"name": "عرض جانبي", "length": final_width, "count": 2, "type": "مفرد"},
-                        {"name": "عرض متقارب", "length": final_width, "count": 2, "type": "متقارب"},
-                        {"name": "عمق متقارب", "length": final_depth, "count": 4, "type": "متقارب"}
-                    ])
+                fiber_items = [
+                    {"اللوح": "جوانب", "العرض": f_h, "الارتفاع": f_d, "الكمية": 2},
+                    {"اللوح": "أرضية", "العرض": f_w, "الارتفاع": f_d, "الكمية": 1},
+                    {"اللوح": "ظهر", "العرض": f_h, "الارتفاع": f_w, "الكمية": 1}
+                ]
 
-                # الأرفف
+                # معالجة الأرفف
                 if shelves_count and shelf_width and shelf_depth:
-                    alum_items.append({"name": "إطار رف عرض", "length": shelf_width, "count": int(shelves_count) * 2, "type": "متقارب"})
-                    alum_items.append({"name": "إطار رف عمق", "length": shelf_depth, "count": int(shelves_count) * 2, "type": "متقارب"})
-                    fiber_items.append({"name": "أرضية رف", "width": shelf_width, "height": shelf_depth, "qty": int(shelves_count)})
+                    alum_items.append({"القطعة": "إطار رف", "الطول (سم)": shelf_width, "العدد": int(shelves_count)*2, "النوع": "متقارب"})
+                    fiber_items.append({"اللوح": "رف", "العرض": shelf_width, "الارتفاع": shelf_depth, "الكمية": int(shelves_count)})
 
-                # الفواصل
-                if dividers_count and divider_height and divider_depth:
-                    alum_items.append({"name": "قائم فاصل", "length": divider_height, "count": int(dividers_count) * 2, "type": "متقارب"})
-                    fiber_items.append({"name": "لوح فاصل", "width": divider_height, "height": divider_depth, "qty": int(dividers_count)})
+                # معالجة الفواصل
+                if dividers_count and divider_height:
+                    alum_items.append({"القطعة": "قائم فاصل", "الطول (سم)": divider_height, "العدد": int(dividers_count)*2, "النوع": "متقارب"})
+                    fiber_items.append({"اللوح": "فاصل", "العرض": divider_height, "الارتفاع": divider_depth, "الكمية": int(dividers_count)})
 
-                # الأدراج
-                if drawers_count and drawer_width and drawer_depth:
-                    alum_items.append({"name": "جانب درج", "length": drawer_depth, "count": int(drawers_count) * 2, "type": "مفرد"})
-                    alum_items.append({"name": "وجه درج", "length": drawer_width, "count": int(drawers_count) * 2, "type": "مفرد"})
-                    fiber_items.append({"name": "أرضية درج", "width": drawer_width, "height": drawer_depth, "qty": int(drawers_count)})
+                # معالجة الأدراج
+                if drawers_count and drawer_width:
+                    alum_items.append({"القطعة": "جنب درج", "الطول (سم)": drawer_depth, "العدد": int(drawers_count)*2, "النوع": "مفرد"})
+                    fiber_items.append({"اللوح": "قاع درج", "العرض": drawer_width, "الارتفاع": drawer_depth, "الكمية": int(drawers_count)})
 
-                # إضافات
-                if extra_vertical and extra_length:
-                    alum_items.append({"name": "إضافي رأسي", "length": extra_length, "count": int(extra_vertical), "type": "مفرد"})
-                if extra_horizontal and extra_length:
-                    alum_items.append({"name": "إضافي أفقي", "length": extra_length, "count": int(extra_horizontal), "type": "متقارب"} )
-
-                # الفيبر الأساسي
-                fiber_items.extend([
-                    {"name": "جوانب", "width": final_height, "height": final_depth, "qty": 2},
-                    {"name": "أرضية/سقف", "width": final_width, "height": final_depth, "qty": 2 if unit_type != "وحدة سفلية" else 1},
-                    {"name": "ظهر", "width": final_height, "height": final_width, "qty": 1}
-                ])
+                # معالجة الإضافات
+                if extra_v and extra_l: alum_items.append({"القطعة": "إضافي رأسي", "الطول (سم)": extra_l, "العدد": int(extra_v), "النوع": "مفرد"})
+                if extra_h and extra_l: alum_items.append({"القطعة": "إضافي أفقي", "الطول (سم)": extra_l, "العدد": int(extra_h), "النوع": "متقارب"})
 
                 st.session_state.projects.append({
-                    "client_name": client_name,
-                    "unit_type": unit_type,
-                    "alum_items": alum_items,
-                    "fiber_items": fiber_items
+                    "client_name": client_name, "unit_type": unit_type,
+                    "alum_items": alum_items, "fiber_items": fiber_items
                 })
                 st.session_state.last_unit_id = unit_id
-                st.success(f"✅ تم إضافة الوحدة بنجاح!")
+                st.success("✅ تمت الإضافة للجرد!")
                 st.rerun()
-        else:
-            st.error("❌ يرجى إدخال المقاسات الأساسية!")
