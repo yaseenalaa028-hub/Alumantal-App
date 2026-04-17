@@ -14,13 +14,13 @@ if 'page' not in st.session_state:
     st.session_state.page = 'home'
 
 # ==========================================
-# الصفحة الرئيسية (بيضاء)
+# الصفحة الرئيسية
 # ==========================================
 if st.session_state.page == 'home':
     st.markdown("""
         <style>
         .stApp { background-color: white; color: black; }
-        .center-box { text-align: center; margin-top: 10%; }
+        .center { text-align: center; margin-top: 10%; }
         .logo { font-size: 50px; font-weight: bold; color: #f1c40f; }
         .sub { font-size: 20px; margin-top: 10px; }
         .footer { font-size: 16px; color: gray; }
@@ -28,7 +28,7 @@ if st.session_state.page == 'home':
     """, unsafe_allow_html=True)
 
     st.markdown("""
-        <div class="center-box">
+        <div class="center">
             <div class="logo">ضجة سمارت</div>
             <div class="sub">نحو دقة أعلى في شغل المطابخ 👌</div>
             <div class="footer">برمجة المهندس / ياسين علاء</div>
@@ -43,14 +43,14 @@ if st.session_state.page == 'home':
 # صفحة التخصيم
 # ==========================================
 else:
-    st.title("🛠️ صفحة التخصيم")
+    st.title("🛠️ التخصيم")
 
     if st.button("🏠 رجوع"):
         st.session_state.page = 'home'
         st.rerun()
 
     # ==========================================
-    # الفورم
+    # الإدخال
     # ==========================================
     with st.form("form"):
         c1, c2 = st.columns(2)
@@ -122,11 +122,11 @@ else:
             ]
 
         # =============================
-        # الأرفف
+        # الأرفف (كل رف = 2 قطعة)
         # =============================
         if sh_n > 0:
-            alum.append(["أرفف عرض", sh_w, sh_n * 4, "مفرد"])
-            alum.append(["أرفف عمق", sh_d, sh_n * 4, "مفرد"])
+            alum.append(["رف عرض", sh_w, sh_n * 2, "مفرد"])
+            alum.append(["رف عمق", sh_d, sh_n * 2, "مفرد"])
 
             fiber.append(["رف", sh_w - 5, sh_d - 5, sh_n])
 
@@ -145,11 +145,11 @@ else:
         if dr_n > 0:
             drawer_w = dr_w - 2.5
 
-            alum.append(["درج عرض", drawer_w, dr_n * 2, "مفرد"])
-            alum.append(["درج عمق", dr_d, dr_n * 2, "مفرد"])
+            alum.append(["درج 2×8 عرض", drawer_w, dr_n * 2, "2×8"])
+            alum.append(["درج 2×8 عمق", dr_d, dr_n * 2, "2×8"])
 
-            fiber.append(["قاعدة درج", drawer_w, dr_d, dr_n])
-            fiber.append(["جنب درج", 8, dr_d, dr_n * 2])
+            fiber.append(["قاعدة درج 2×8", drawer_w, dr_d, dr_n])
+            fiber.append(["جنب درج 2×8", 8, dr_d, dr_n * 2])
 
         # =============================
         # الفيبر الأساسي
@@ -167,11 +167,13 @@ else:
         })
 
     # ==========================================
-    # عرض البيانات
+    # العرض والجرد
     # ==========================================
     if st.session_state.project_list:
 
-        total_muf = total_mut = total_fiber = 0
+        total_muf = 0
+        total_mut = 0
+        total_fiber = 0
 
         for unit in st.session_state.project_list:
             for a in unit["alum"]:
@@ -195,5 +197,11 @@ else:
 
         for unit in st.session_state.project_list:
             st.write("### العميل:", unit["client"])
-            st.table(pd.DataFrame(unit["alum"], columns=["البيان", "المقاس", "العدد", "النوع"]))
-            st.table(pd.DataFrame(unit["fiber"], columns=["البيان", "العرض", "الارتفاع", "العدد"]))
+
+            df1 = pd.DataFrame(unit["alum"], columns=["البيان", "المقاس", "العدد", "النوع"])
+            df1 = df1[df1["العدد"] > 0]
+            st.table(df1)
+
+            df2 = pd.DataFrame(unit["fiber"], columns=["البيان", "العرض", "الارتفاع", "العدد"])
+            df2 = df2[df2["العدد"] > 0]
+            st.table(df2)
