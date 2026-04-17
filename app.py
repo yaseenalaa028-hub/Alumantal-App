@@ -4,7 +4,7 @@ import pandas as pd
 # ==========================================
 # إعداد التطبيق
 # ==========================================
-st.set_page_config(page_title="DOGGA SMART SYSTEM", layout="wide")
+st.set_page_config(page_title="DOGGA SYSTEM", layout="wide")
 
 if "project_list" not in st.session_state:
     st.session_state.project_list = []
@@ -12,30 +12,58 @@ if "project_list" not in st.session_state:
 if "page" not in st.session_state:
     st.session_state.page = "home"
 
-
 page = st.session_state.page
 
 
 # ==========================================
-# الصفحة الرئيسية
+# الصفحة الرئيسية (FIXED + LOGO)
 # ==========================================
 if page == "home":
 
     st.markdown("""
         <style>
-        .stApp { background-color: white; color: black; }
-        .center { text-align: center; margin-top: 10%; }
-        .logo { font-size: 65px; font-weight: bold; color: #f1c40f; }
-        .sub { font-size: 22px; margin-top: 10px; }
-        .footer { font-size: 16px; color: gray; margin-top: 20px; }
+        .stApp {
+            background-color: white;
+            color: black;
+        }
+
+        .logo-box {
+            text-align: center;
+            margin-top: 12%;
+        }
+
+        .logo {
+            font-size: 75px;
+            font-weight: bold;
+            color: #f1c40f;
+        }
+
+        .title {
+            font-size: 26px;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        .sub {
+            font-size: 18px;
+            color: gray;
+            margin-top: 5px;
+        }
+
+        .footer {
+            margin-top: 25px;
+            font-size: 15px;
+            color: #888;
+        }
         </style>
-    """)
+    """, unsafe_allow_html=True)
 
     st.markdown("""
-        <div class="center">
-            <div class="logo">ضجة سمارت</div>
-            <div class="sub">نحو دقة أعلى في شغل المطابخ 👌</div>
-            <div class="footer">برمجة المهندس / ياسين علاء</div>
+        <div class="logo-box">
+            <div class="logo">⚡ ضجة سيستم</div>
+            <div class="title">نظام التخصيم الذكي للمطابخ</div>
+            <div class="sub">برمجة المهندس / ياسين علاء</div>
+            <div class="footer">2026 - All Rights Reserved</div>
         </div>
     """, unsafe_allow_html=True)
 
@@ -51,18 +79,15 @@ elif page == "calc":
 
     st.title("🛠️ التخصيم")
 
-    colA, colB = st.columns([1,1])
+    col1, col2 = st.columns(2)
 
-    with colA:
-        if st.button("🏠 الرئيسية"):
-            st.session_state.page = "home"
-            st.rerun()
+    if col1.button("🏠 الرئيسية"):
+        st.session_state.page = "home"
+        st.rerun()
 
-    with colB:
-        if st.button("🗑️ حذف كل المشاريع"):
-            st.session_state.project_list = []
-            st.rerun()
-
+    if col2.button("🗑️ حذف المشاريع"):
+        st.session_state.project_list = []
+        st.rerun()
 
     # =========================
     # الإدخال
@@ -74,7 +99,6 @@ elif page == "calc":
         unit_type = c2.selectbox("نوع الوحدة", ["وحدة سفلية", "وحدة علوية", "دولاب خزين"])
 
         d1, d2, d3 = st.columns(3)
-
         W = d1.number_input("العرض", step=0.5, value=0.0, format="%.2f")
         H = d2.number_input("الارتفاع", step=0.5, value=0.0, format="%.2f")
         D = d3.number_input("العمق", step=0.5, value=0.0, format="%.2f")
@@ -111,7 +135,6 @@ elif page == "calc":
         alum = []
         fiber = []
 
-        # مونتال
         if unit_type == "وحدة سفلية":
             alum += [
                 ["قائم", h_final, 2, "مفرد"],
@@ -131,23 +154,19 @@ elif page == "calc":
                 ["عمق", d_final, 4, "متقارب"],
             ]
 
-        # أرفف
         if sh_n > 0:
             alum.append(["رف", sh_w, sh_n * 2, "مفرد"])
             fiber.append(["رف", sh_w - 5, sh_d - 5, sh_n])
 
-        # فواصل
         if v_n > 0:
             alum.append(["فاصل", v_h, v_n * 4, "مفرد"])
             fiber.append(["فاصل", v_h - 5, v_d - 5, v_n])
 
-        # أدراج
         if dr_n > 0:
             drawer_w = dr_w - 2.5
             alum.append(["درج 2×8", drawer_w, dr_n * 2, "2×8"])
             fiber.append(["درج", drawer_w, dr_d, dr_n])
 
-        # فيبر أساسي
         fiber += [
             ["ضهرية", w_final, h_final, 1],
             ["أرضية", w_final, d_final, 1],
@@ -186,16 +205,9 @@ elif page == "calc":
         st.write(f"🔹 المتقارب: {total_mut / 600:.2f} عود")
         st.write(f"🔹 الفيبر: {total_fiber / (280 * 130):.2f} لوح")
 
-        col1, col2 = st.columns(2)
-
-        with col1:
-            if st.button("🧾 فتح الفاتورة"):
-                st.session_state.page = "invoice"
-                st.rerun()
-
-        with col2:
-            if st.button("📄 تحديث"):
-                st.rerun()
+        if st.button("🧾 الفاتورة"):
+            st.session_state.page = "invoice"
+            st.rerun()
 
 
 # ==========================================
@@ -203,15 +215,13 @@ elif page == "calc":
 # ==========================================
 elif page == "invoice":
 
-    st.title("📋 فاتورة الخامات (Excel Style)")
+    st.title("📋 فاتورة الخامات")
 
     if st.button("⬅️ رجوع"):
         st.session_state.page = "calc"
         st.rerun()
 
-    total_muf = 0
-    total_mut = 0
-    total_fiber = 0
+    total_muf = total_mut = total_fiber = 0
 
     for u in st.session_state.project_list:
         for a in u["alum"]:
@@ -229,16 +239,6 @@ elif page == "invoice":
         ["فيبر", total_fiber / (280 * 130), 0.0],
         ["درج 2×8", 0, 0.0],
     ], columns=["الصنف", "العدد", "سعر الوحدة"])
-
-    st.markdown("## ➕ إضافة صنف جديد")
-
-    c1, c2, c3 = st.columns(3)
-    n = c1.text_input("الصنف")
-    q = c2.number_input("العدد", 0)
-    p = c3.number_input("السعر", 0.0)
-
-    if st.button("إضافة"):
-        df.loc[len(df)] = [n, q, p]
 
     df = st.data_editor(df, num_rows="dynamic", use_container_width=True)
 
