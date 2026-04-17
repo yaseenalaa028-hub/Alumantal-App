@@ -1,143 +1,185 @@
 import streamlit as st
 import pandas as pd
 
-st.set_page_config(page_title="نظام تخصيم الألومنيوم", layout="wide")
+st.set_page_config(page_title="نظام التخصيم - المهندس ياسين علاء", layout="wide")
 
-# =======================
-# بيانات الجلسة
-# =======================
-if "units" not in st.session_state:
-    st.session_state.units = []
+# =========================
+# STATE
+# =========================
+if "projects" not in st.session_state:
+    st.session_state.projects = []
 
-# =======================
-# العنوان
-# =======================
-st.title("🧠 نظام تخصيم الألومنيوم - نسخة احترافية (Web)")
+# =========================
+# HOME STYLE
+# =========================
+st.markdown("""
+<style>
+.big-title{
+    text-align:center;
+    font-size:40px;
+    font-weight:bold;
+    color:#f1c40f;
+}
+.sub{
+    text-align:center;
+    font-size:18px;
+    color:gray;
+}
+.box{
+    padding:10px;
+    border-radius:10px;
+}
+</style>
+""", unsafe_allow_html=True)
 
-st.markdown("برنامج حساب التخصيم + الرفوف + الفواصل + الأدراج + الجرد")
+st.markdown('<div class="big-title">نظام التخصيم الذكي</div>', unsafe_allow_html=True)
+st.markdown('<div class="sub">برمجة المهندس / ياسين علاء</div>', unsafe_allow_html=True)
 
-# =======================
-# الإدخالات
-# =======================
-col1, col2, col3 = st.columns(3)
+st.divider()
 
-with col1:
-    name = st.text_input("اسم الوحدة")
+# =========================
+# INPUT
+# =========================
+st.markdown("## 🛠️ إدخال بيانات الوحدة")
 
-with col2:
-    unit_type = st.selectbox("نوع الوحدة", ["سفلية", "علوية", "دولاب خزين", "وحدة أخرى"])
+c1, c2 = st.columns(2)
+client = c1.text_input("اسم العميل")
+unit_type = c2.selectbox("نوع الوحدة", ["سفلية", "علوية", "دولاب خزين"])
 
-with col3:
-    w = st.number_input("العرض", min_value=0.0, step=0.5)
-    h = st.number_input("الارتفاع", min_value=0.0, step=0.5)
-    d = st.number_input("العمق", min_value=0.0, step=0.5)
+c1, c2, c3 = st.columns(3)
+W = c1.number_input("العرض", min_value=0.0)
+H = c2.number_input("الارتفاع", min_value=0.0)
+D = c3.number_input("العمق", min_value=0.0)
 
-col4, col5, col6 = st.columns(3)
+st.markdown("### 🧱 الأرفف")
+c1, c2, c3 = st.columns(3)
+sh_n = c1.number_input("عدد الأرفف", 0)
+sh_w = c2.number_input("عرض الرف", 0.0)
+sh_d = c3.number_input("عمق الرف", 0.0)
 
-with col4:
-    shelves = st.number_input("عدد الرفوف", min_value=0)
+st.markdown("### 📐 الفواصل")
+c1, c2, c3 = st.columns(3)
+v_n = c1.number_input("عدد الفواصل", 0)
+v_h = c2.number_input("ارتفاع الفاصل", 0.0)
+v_d = c3.number_input("عمق الفاصل", 0.0)
 
-with col5:
-    dividers = st.number_input("عدد الفواصل", min_value=0)
+st.markdown("### 🗄️ الأدراج")
+c1, c2, c3 = st.columns(3)
+dr_n = c1.number_input("عدد الأدراج", 0)
+dr_w = c2.number_input("عرض الدرج", 0.0)
+dr_d = c3.number_input("عمق الدرج", 0.0)
 
-with col6:
-    drawers = st.number_input("عدد الأدراج", min_value=0)
+# =========================
+# CALC FUNCTION (نفس منطقك)
+# =========================
+def build_unit():
 
-# =======================
-# دالة التخصيم
-# =======================
-def calc_cut(w, h, d, t):
-    if t in ["سفلية", "دولاب خزين"]:
-        h2 = h - 13
+    h_final = H - (13 if unit_type in ["سفلية", "دولاب خزين"] else 5)
+    w_final = W - 5
+    d_final = D - 5
+
+    alum = []
+    fiber = []
+
+    # ================= المونتال =================
+    if unit_type == "سفلية":
+        alum += [
+            ["ارتفاع", h_final, 2, "مفرد"],
+            ["ارتفاع", h_final, 2, "متقارب"],
+            ["عرض", w_final, 3, "مفرد"],
+            ["عرض", w_final, 1, "متقارب"],
+            ["عمق", d_final, 2, "مفرد"],
+            ["عمق", d_final, 2, "متقارب"],
+        ]
     else:
-        h2 = h - 5
+        alum += [
+            ["ارتفاع", h_final, 2, "مفرد"],
+            ["ارتفاع", h_final, 2, "متقارب"],
+            ["عرض", w_final, 2, "مفرد"],
+            ["عرض", w_final, 2, "متقارب"],
+            ["عمق", d_final, 0, "مفرد"],
+            ["عمق", d_final, 4, "متقارب"],
+        ]
 
-    w2 = w - 5
-    d2 = d - 5
+    # ================= الأرفف =================
+    if sh_n > 0:
+        alum.append(["رف عرض", sh_w, sh_n * 2, "مفرد"])
+        alum.append(["رف عمق", sh_d, sh_n * 2, "مفرد"])
+        fiber.append(["رف", sh_w - 5, sh_d - 5, sh_n])
 
-    return max(h2, 0), max(w2, 0), max(d2, 0)
+    # ================= الفواصل =================
+    if v_n > 0:
+        alum.append(["فاصل ارتفاع", v_h, v_n * 2, "مفرد"])
+        alum.append(["فاصل عمق", v_d, v_n * 2, "مفرد"])
+        fiber.append(["فاصل", v_h - 5, v_d - 5, v_n])
 
-# =======================
-# إضافة وحدة
-# =======================
+    # ================= الأدراج =================
+    if dr_n > 0:
+        dw = dr_w - 2.5
+        alum.append(["درج عرض", dw, dr_n * 2, "متقارب"])
+        alum.append(["درج عمق", dr_d, dr_n * 2, "متقارب"])
+        fiber.append(["قاعدة درج", dw, dr_d, dr_n])
+
+    # ================= الفيبر الأساسي =================
+    fiber += [
+        ["ضهرية", w_final, h_final, 1],
+        ["أرضية", w_final, d_final, 1],
+        ["أجناب", h_final, d_final, 2],
+    ]
+
+    return {
+        "client": client,
+        "type": unit_type,
+        "alum": alum,
+        "fiber": fiber
+    }
+
+# =========================
+# ADD BUTTON
+# =========================
 if st.button("➕ إضافة وحدة"):
-    if name and w > 0 and h > 0 and d > 0:
 
-        h2, w2, d2 = calc_cut(w, h, d, unit_type)
+    if W > 0 and H > 0 and D > 0:
 
-        unit = {
-            "اسم الوحدة": name,
-            "النوع": unit_type,
-            "العرض": w,
-            "الارتفاع": h,
-            "العمق": d,
-            "تخصيم_ارتفاع": h2,
-            "تخصيم_عرض": w2,
-            "تخصيم_عمق": d2,
-            "رفوف": int(shelves),
-            "فواصل": int(dividers),
-            "أدراج": int(drawers),
-        }
+        st.session_state.projects.append(build_unit())
+        st.success("تمت الإضافة بنجاح")
 
-        st.session_state.units.append(unit)
-        st.success("✔ تم إضافة الوحدة بنجاح")
+# =========================
+# REPORT (الجرد)
+# =========================
+if st.session_state.projects:
 
-    else:
-        st.error("❌ املأ البيانات الأساسية")
+    total_m = 0
+    total_t = 0
+    fiber_sum = 0
 
-# =======================
-# الجدول
-# =======================
-if st.session_state.units:
-    df = pd.DataFrame(st.session_state.units)
+    for u in st.session_state.projects:
 
-    st.subheader("📋 جدول الوحدات")
-    st.dataframe(df, use_container_width=True)
+        for a in u["alum"]:
+            if a[3] == "مفرد":
+                total_m += a[1] * a[2]
+            else:
+                total_t += a[1] * a[2]
 
-    # =======================
-    # الجرد (Totals)
-    # =======================
-    st.subheader("📊 جرد المشروع")
+        for f in u["fiber"]:
+            fiber_sum += f[1] * f[2] * f[3]
 
-    total_units = len(st.session_state.units)
-    total_shelves = sum(u["رفوف"] for u in st.session_state.units)
-    total_dividers = sum(u["فواصل"] for u in st.session_state.units)
-    total_drawers = sum(u["أدراج"] for u in st.session_state.units)
+    st.markdown("## 📊 جرد الخامات النهائي")
 
-    # حساب خامات تقريبية (زي فكرة مشروعك)
-    alu_simple = sum(u["تخصيم_عرض"] + u["تخصيم_ارتفاع"] + u["تخصيم_عمق"] for u in st.session_state.units)
-    fiber_area = sum(u["تخصيم_عرض"] * u["تخصيم_ارتفاع"] for u in st.session_state.units)
+    st.write(f"🔹 ألومنيوم مفرد: {total_m/600:.2f} عود")
+    st.write(f"🔹 ألومنيوم متقارب: {total_t/600:.2f} عود")
+    st.write(f"🔹 فيبر: {fiber_sum/(280*130):.2f} لوح")
 
-    colA, colB, colC, colD = st.columns(4)
+# =========================
+# DETAILS (زي برنامجك القديم)
+# =========================
+if st.session_state.projects:
 
-    colA.metric("عدد الوحدات", total_units)
-    colB.metric("الرفوف", total_shelves)
-    colC.metric("الفواصل", total_dividers)
-    colD.metric("الأدراج", total_drawers)
+    st.markdown("## 📋 تفاصيل كل الوحدات")
 
-    st.divider()
+    for u in st.session_state.projects:
 
-    st.write("🔩 تقدير الألومنيوم:", round(alu_simple / 600, 2), "عود")
-    st.write("🪵 تقدير الفيبر:", round(fiber_area / 36400, 2), "لوح")
+        st.write(f"### 🏷️ {u['type']} - {u['client']}")
 
-# =======================
-# مسح البيانات
-# =======================
-if st.button("🗑️ مسح المشروع بالكامل"):
-    st.session_state.units = []
-    st.rerun()
-
-# =======================
-# تحميل التقرير
-# =======================
-if st.session_state.units:
-    report_df = pd.DataFrame(st.session_state.units)
-
-    csv = report_df.to_csv(index=False).encode("utf-8")
-
-    st.download_button(
-        "⬇️ تحميل التقرير (CSV)",
-        data=csv,
-        file_name="aluminum_report.csv",
-        mime="text/csv"
-    )
+        st.table(pd.DataFrame(u["alum"], columns=["البيان","المقاس","العدد","النوع"]))
+        st.table(pd.DataFrame(u["fiber"], columns=["البيان","العرض","الطول","العدد"]))
