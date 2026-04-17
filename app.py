@@ -12,9 +12,6 @@ if "project_list" not in st.session_state:
 if "page" not in st.session_state:
     st.session_state.page = "home"
 
-if "extra_items" not in st.session_state:
-    st.session_state.extra_items = []
-
 
 # ==========================================
 # الصفحة الرئيسية
@@ -56,7 +53,7 @@ elif st.session_state.page == "calc":
         st.rerun()
 
     # =========================
-    # الإدخال
+    # الإدخال (عشري)
     # =========================
     with st.form("form"):
 
@@ -65,21 +62,28 @@ elif st.session_state.page == "calc":
         unit_type = c2.selectbox("نوع الوحدة", ["وحدة سفلية", "وحدة علوية", "دولاب خزين"])
 
         d1, d2, d3 = st.columns(3)
-        W = d1.number_input("العرض", step=1.0, value=0.0, format="%.0f")
-        H = d2.number_input("الارتفاع", step=1.0, value=0.0, format="%.0f")
-        D = d3.number_input("العمق", step=1.0, value=0.0, format="%.0f")
 
-        sh_n = st.number_input("عدد الأرفف", 0)
-        sh_w = st.number_input("عرض الرف", step=1.0, value=0.0, format="%.0f")
-        sh_d = st.number_input("عمق الرف", step=1.0, value=0.0, format="%.0f")
+        W = d1.number_input("العرض", step=0.5, value=0.0, format="%.2f")
+        H = d2.number_input("الارتفاع", step=0.5, value=0.0, format="%.2f")
+        D = d3.number_input("العمق", step=0.5, value=0.0, format="%.2f")
 
-        v_n = st.number_input("عدد الفواصل", 0)
-        v_h = st.number_input("ارتفاع الفاصل", step=1.0, value=0.0, format="%.0f")
-        v_d = st.number_input("عمق الفاصل", step=1.0, value=0.0, format="%.0f")
+        st.markdown("### الأرفف")
+        sh1, sh2, sh3 = st.columns(3)
+        sh_n = sh1.number_input("عدد الأرفف", 0)
+        sh_w = sh2.number_input("عرض الرف", step=0.5, value=0.0, format="%.2f")
+        sh_d = sh3.number_input("عمق الرف", step=0.5, value=0.0, format="%.2f")
 
-        dr_n = st.number_input("عدد الأدراج 2×8", 0)
-        dr_w = st.number_input("عرض الدرج", step=1.0, value=0.0, format="%.0f")
-        dr_d = st.number_input("عمق الدرج", step=1.0, value=0.0, format="%.0f")
+        st.markdown("### الفواصل")
+        v1, v2, v3 = st.columns(3)
+        v_n = v1.number_input("عدد الفواصل", 0)
+        v_h = v2.number_input("ارتفاع الفاصل", step=0.5, value=0.0, format="%.2f")
+        v_d = v3.number_input("عمق الفاصل", step=0.5, value=0.0, format="%.2f")
+
+        st.markdown("### الأدراج")
+        dr1, dr2, dr3 = st.columns(3)
+        dr_n = dr1.number_input("عدد الأدراج", 0)
+        dr_w = dr2.number_input("عرض الدرج", step=0.5, value=0.0, format="%.2f")
+        dr_d = dr3.number_input("عمق الدرج", step=0.5, value=0.0, format="%.2f")
 
         submit = st.form_submit_button("حساب")
 
@@ -95,45 +99,47 @@ elif st.session_state.page == "calc":
         alum = []
         fiber = []
 
+        # مونتال
         if unit_type == "وحدة سفلية":
             alum += [
-                ["ارتفاع", int(h_final), 2, "مفرد"],
-                ["ارتفاع", int(h_final), 2, "متقارب"],
-                ["عرض", int(w_final), 3, "مفرد"],
-                ["عرض", int(w_final), 1, "متقارب"],
-                ["عمق", int(d_final), 2, "مفرد"],
-                ["عمق", int(d_final), 2, "متقارب"],
+                ["ارتفاع", h_final, 2, "مفرد"],
+                ["ارتفاع", h_final, 2, "متقارب"],
+                ["عرض", w_final, 3, "مفرد"],
+                ["عرض", w_final, 1, "متقارب"],
+                ["عمق", d_final, 2, "مفرد"],
+                ["عمق", d_final, 2, "متقارب"],
             ]
         else:
             alum += [
-                ["ارتفاع", int(h_final), 2, "مفرد"],
-                ["ارتفاع", int(h_final), 2, "متقارب"],
-                ["عرض", int(w_final), 2, "مفرد"],
-                ["عرض", int(w_final), 2, "متقارب"],
-                ["عمق", int(d_final), 0, "مفرد"],
-                ["عمق", int(d_final), 4, "متقارب"],
+                ["ارتفاع", h_final, 2, "مفرد"],
+                ["ارتفاع", h_final, 2, "متقارب"],
+                ["عرض", w_final, 2, "مفرد"],
+                ["عرض", w_final, 2, "متقارب"],
+                ["عمق", d_final, 0, "مفرد"],
+                ["عمق", d_final, 4, "متقارب"],
             ]
 
+        # أرفف
         if sh_n > 0:
-            alum.append(["رف عرض", int(sh_w), sh_n * 2, "مفرد"])
-            alum.append(["رف عمق", int(sh_d), sh_n * 2, "مفرد"])
-            fiber.append(["رف", int(sh_w - 5), int(sh_d - 5), sh_n])
+            alum.append(["رف", sh_w, sh_n * 2, "مفرد"])
+            fiber.append(["رف", sh_w - 5, sh_d - 5, sh_n])
 
+        # فواصل
         if v_n > 0:
-            alum.append(["فواصل ارتفاع", int(v_h), v_n * 4, "مفرد"])
-            alum.append(["فواصل عمق", int(v_d), v_n * 4, "مفرد"])
-            fiber.append(["فاصل", int(v_h - 5), int(v_d - 5), v_n])
+            alum.append(["فاصل", v_h, v_n * 4, "مفرد"])
+            fiber.append(["فاصل", v_h - 5, v_d - 5, v_n])
 
+        # أدراج
         if dr_n > 0:
             drawer_w = dr_w - 2.5
-            alum.append(["درج 2×8 عرض", int(drawer_w), dr_n * 2, "2×8"])
-            alum.append(["درج 2×8 عمق", int(dr_d), dr_n * 2, "2×8"])
-            fiber.append(["قاعدة درج 2×8", int(drawer_w), int(dr_d), dr_n])
+            alum.append(["درج 2×8", drawer_w, dr_n * 2, "2×8"])
+            fiber.append(["درج", drawer_w, dr_d, dr_n])
 
+        # فيبر أساسي
         fiber += [
-            ["ضهرية", int(w_final), int(h_final), 1],
-            ["أرضية", int(w_final), int(d_final), 1],
-            ["أجناب", int(h_final), int(d_final), 2],
+            ["ضهرية", w_final, h_final, 1],
+            ["أرضية", w_final, d_final, 1],
+            ["أجناب", h_final, d_final, 2],
         ]
 
         st.session_state.project_list.append({
@@ -174,13 +180,12 @@ elif st.session_state.page == "calc":
 
 
 # ==========================================
-# صفحة الفاتورة (Excel Style)
+# صفحة الفاتورة (Excel)
 # ==========================================
 elif st.session_state.page == "invoice":
 
     st.title("📋 فاتورة الخامات (Excel Style)")
 
-    # حساب الخامات
     total_muf = 0
     total_mut = 0
     total_fiber = 0
@@ -195,14 +200,10 @@ elif st.session_state.page == "invoice":
         for f in unit["fiber"]:
             total_fiber += f[1] * f[2] * f[3]
 
-    muf = int(total_muf / 600)
-    mut = int(total_mut / 600)
-    fiber = int(total_fiber / (280 * 130))
-
     df = pd.DataFrame([
-        ["مونتال مفرد", muf, 0.0],
-        ["مونتال متقارب", mut, 0.0],
-        ["فيبر", fiber, 0.0],
+        ["مونتال مفرد", total_muf / 600, 0.0],
+        ["مونتال متقارب", total_mut / 600, 0.0],
+        ["فيبر", total_fiber / (280 * 130), 0.0],
         ["درج 2×8", 0, 0.0],
     ], columns=["الصنف", "العدد", "سعر الوحدة"])
 
@@ -216,16 +217,15 @@ elif st.session_state.page == "invoice":
     if st.button("إضافة"):
         df.loc[len(df)] = [name, qty, price]
 
-    # Excel style edit
+    # Excel editor
     df = st.data_editor(df, num_rows="dynamic", use_container_width=True)
 
     df["الإجمالي"] = df["العدد"] * df["سعر الوحدة"]
 
-    st.markdown("## 📊 الفاتورة")
     st.table(df)
 
     st.markdown(f"## 💰 الإجمالي النهائي: {df['الإجمالي'].sum():.2f}")
 
-    if st.button("⬅️ رجوع للتخصيم"):
+    if st.button("⬅️ رجوع"):
         st.session_state.page = "calc"
         st.rerun()
