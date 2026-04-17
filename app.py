@@ -13,50 +13,31 @@ if "page" not in st.session_state:
 if "projects" not in st.session_state:
     st.session_state.projects = []
 
-if "invoice" not in st.session_state:
-    st.session_state.invoice = []
-
-
-# =========================
-# CSS (واجهة شركات)
-# =========================
-st.markdown("""
-<style>
-.stApp { background-color: white; }
-
-.logo {
-    text-align:center;
-    font-size:70px;
-    font-weight:bold;
-    color:#f1c40f;
-    margin-top:8%;
-}
-
-.sub {
-    text-align:center;
-    font-size:22px;
-    margin-top:10px;
-}
-
-.by {
-    text-align:center;
-    color:gray;
-    margin-top:5px;
-}
-
-.center-btn {
-    display:flex;
-    justify-content:center;
-    margin-top:30px;
-}
-</style>
-""", unsafe_allow_html=True)
-
-
 # =========================
 # HOME
 # =========================
 if st.session_state.page == "home":
+
+    st.markdown("""
+    <style>
+    .logo {
+        text-align:center;
+        font-size:70px;
+        font-weight:bold;
+        color:#f1c40f;
+        margin-top:8%;
+    }
+    .sub {
+        text-align:center;
+        font-size:22px;
+        margin-top:10px;
+    }
+    .by {
+        text-align:center;
+        color:gray;
+    }
+    </style>
+    """, unsafe_allow_html=True)
 
     st.markdown('<div class="logo">ضجة سمارت</div>', unsafe_allow_html=True)
     st.markdown('<div class="sub">نظام ERP لتخصيم المطابخ</div>', unsafe_allow_html=True)
@@ -74,18 +55,12 @@ elif st.session_state.page == "calc":
 
     st.title("🛠️ نظام التخصيم")
 
-    col1, col2 = st.columns(2)
-
-    if col1.button("🏠 الرئيسية"):
+    if st.button("🏠 الرئيسية"):
         st.session_state.page = "home"
         st.rerun()
 
-    if col2.button("🗑️ حذف الكل"):
-        st.session_state.projects = []
-        st.rerun()
-
     # =========================
-    # Excel Input (فاضي فعلياً)
+    # إدخال كامل (كل الخانات محفوظة)
     # =========================
     df_input = pd.DataFrame([{
         "العميل": "",
@@ -93,16 +68,20 @@ elif st.session_state.page == "calc":
         "عرض": "",
         "ارتفاع": "",
         "عمق": "",
-        "أرفف": "",
-        "فواصل": "",
-        "أدراج": "",
-        "عرض درج": "",
-        "عمق درج": ""
+        "عدد الأرفف": "",
+        "عرض الرف": "",
+        "عمق الرف": "",
+        "عدد الفواصل": "",
+        "ارتفاع الفاصل": "",
+        "عمق الفاصل": "",
+        "عدد الأدراج": "",
+        "عرض الدرج": "",
+        "عمق الدرج": ""
     }])
 
     edited = st.data_editor(df_input, num_rows="dynamic", use_container_width=True)
 
-    if st.button("💾 حفظ + حساب التخصيم"):
+    if st.button("💾 حساب التخصيم"):
 
         for _, r in edited.iterrows():
 
@@ -116,7 +95,7 @@ elif st.session_state.page == "calc":
             unit = r["الوحدة"]
 
             # =========================
-            # خصم المقاسات
+            # الخصم
             # =========================
             if unit == "وحدة سفلية":
                 Hf = H - 13
@@ -144,7 +123,7 @@ elif st.session_state.page == "calc":
             # =========================
             # أرفف
             # =========================
-            sh = int(r["أرفف"] or 0)
+            sh = int(r["عدد الأرفف"] or 0)
             if sh > 0:
                 alum.append(["رف", Wf, sh * 2, "مفرد"])
                 fiber.append(["رف", Wf - 5, Df - 5, sh])
@@ -152,7 +131,7 @@ elif st.session_state.page == "calc":
             # =========================
             # فواصل
             # =========================
-            vf = int(r["فواصل"] or 0)
+            vf = int(r["عدد الفواصل"] or 0)
             if vf > 0:
                 alum.append(["فاصل", Hf, vf * 4, "مفرد"])
                 fiber.append(["فاصل", Hf - 5, Df - 5, vf])
@@ -160,10 +139,10 @@ elif st.session_state.page == "calc":
             # =========================
             # أدراج
             # =========================
-            dr = int(r["أدراج"] or 0)
+            dr = int(r["عدد الأدراج"] or 0)
             if dr > 0:
-                dw = float(r["عرض درج"] or 0) - 2.5
-                dh = float(r["عمق درج"] or 0)
+                dw = float(r["عرض الدرج"] or 0) - 2.5
+                dh = float(r["عمق الدرج"] or 0)
 
                 alum.append(["درج 2×8", dw, dr * 2, "2×8"])
                 fiber.append(["درج", dw, dh, dr])
@@ -184,10 +163,10 @@ elif st.session_state.page == "calc":
                 "fiber": fiber
             })
 
-        st.success("تم الحفظ بنجاح")
+        st.success("تم الحساب بنجاح")
 
     # =========================
-    # جرد الخامات
+    # الجرد
     # =========================
     if st.session_state.projects:
 
@@ -203,23 +182,23 @@ elif st.session_state.page == "calc":
             for f in p["fiber"]:
                 fib += f[1] * f[2] * f[3]
 
-        st.markdown("## 📊 الجرد")
+        st.markdown("## 📊 جرد الخامات")
 
         st.success(f"المفرد: {math.ceil(muf / 600)} عود")
         st.success(f"المتقارب: {math.ceil(mut / 600)} عود")
         st.success(f"الفيبر: {math.ceil(fib / (280*130))} لوح")
 
-        if st.button("💰 فتح الفاتورة"):
+        if st.button("💰 الفاتورة"):
             st.session_state.page = "invoice"
             st.rerun()
 
 
 # =========================
-# INVOICE PAGE
+# INVOICE PAGE (جدول تحت بعضه)
 # =========================
 elif st.session_state.page == "invoice":
 
-    st.title("📋 الفاتورة النهائية (ERP)")
+    st.title("📋 الفاتورة النهائية")
 
     if st.button("⬅️ رجوع"):
         st.session_state.page = "calc"
@@ -228,23 +207,33 @@ elif st.session_state.page == "invoice":
     rows = []
 
     for p in st.session_state.projects:
+
         for a in p["alum"]:
             rows.append({
-                "الصنف": f"مونتال - {a[0]}",
+                "القسم": "مونتال",
+                "الصنف": a[0],
                 "العدد": a[2],
                 "سعر الوحدة": 0.0
             })
 
         for f in p["fiber"]:
             rows.append({
-                "الصنف": f"فيبر - {f[0]}",
+                "القسم": "فيبر",
+                "الصنف": f[0],
                 "العدد": f[3],
                 "سعر الوحدة": 0.0
             })
 
-    df = st.data_editor(pd.DataFrame(rows), num_rows="dynamic", use_container_width=True)
+    df = pd.DataFrame(rows)
 
-    df["الإجمالي"] = df["العدد"] * df["سعر الوحدة"]
+    # ⭐ هنا التعديل المهم: جدول واحد تحت بعضه (مش جنب بعض)
+    edited = st.data_editor(
+        df,
+        num_rows="dynamic",
+        use_container_width=True
+    )
+
+    edited["الإجمالي"] = edited["العدد"] * edited["سعر الوحدة"]
 
     st.markdown("## 💰 الإجمالي النهائي")
-    st.success(f"{df['الإجمالي'].sum():.2f} جنيه")
+    st.success(f"{edited['الإجمالي'].sum():.2f} جنيه")
