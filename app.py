@@ -58,54 +58,61 @@ else:
 
     st.divider()
 
-    # --- نموذج الإدخال (بدون مسح تلقائي) ---
+    # --- نموذج الإدخال ---
     with st.expander("📝 إدخال وتعديل المقاسات", expanded=True):
-        # تم إزالة clear_on_submit=True لتبقى المقاسات ثابتة
-        with st.form("workshop_form"):
+        with st.form("workshop_form", clear_on_submit=False):
             f1, f2 = st.columns(2)
             client_name = f1.text_input("اسم العميل / رقم الوحدة")
             unit_type = f2.selectbox("نوع الوحدة", ["وحدة سفلية", "وحدة علوية", "دولاب خزين"])
             
             d1, d2, d3 = st.columns(3)
-            W_val = d1.number_input("العرض الكلي", value=0.0)
-            H_val = d2.number_input("الارتفاع الكلي", value=0.0)
-            D_val = d3.number_input("العمق الكلي", value=0.0)
+            W_val = d1.number_input("العرض الكلي (سم)", value=0.0)
+            H_val = d2.number_input("الارتفاع الكلي (سم)", value=0.0)
+            D_val = d3.number_input("العمق الكلي (سم)", value=0.0)
 
-            st.markdown("#### ➕ الأرفف والفواصل")
+            st.markdown(f"<div style='color:{accent}; border-bottom:1px solid {accent}; margin:10px 0;'>➕ الأرفف والفواصل</div>", unsafe_allow_html=True)
+            
             a1, a2, a3 = st.columns(3)
-            sh_n = a1.number_input("عدد الأرفف", min_value=0, value=0)
+            sh_n = a1.number_input("عدد الأرفف", min_value=0, step=1)
             sh_w = a2.number_input("عرض الرف", value=0.0)
             sh_d = a3.number_input("عمق الرف", value=0.0)
             
             v1, v2, v3 = st.columns(3)
-            v_n = v1.number_input("عدد الفواصل", min_value=0, value=0)
+            v_n = v1.number_input("عدد الفواصل", min_value=0, step=1)
             v_h = v2.number_input("ارتفاع الفاصل", value=0.0)
             v_d = v3.number_input("عمق الفاصل", value=0.0)
 
-            # زر الحساب يضيف للجدول دون مسح الخانات
             if st.form_submit_button("✅ حفظ وإضافة للجدول", use_container_width=True):
                 if W_val > 0 and H_val > 0 and D_val > 0:
+                    # منطق التخصيم الأساسي (خصم 13 للسفلي و 5 للعلوي)
                     h_final = (H_val - 13) if (unit_type in ["وحدة سفلية", "دولاب خزين"]) else (H_val - 5)
                     w_final = W_val - 5
                     d_final = D_val - 5
 
                     alum_res = []
+                    # تخصيم الهيكل الأساسي
                     if unit_type == "وحدة سفلية":
-                        alum_res.extend([["قوايم ارتفاع", int(h_final), 2, "مفرد"], ["قوايم ارتفاع", int(h_final), 2, "متقارب"],
-                                         ["عوارض عرض", int(w_final), 3, "مفرد"], ["عوارض عرض", int(w_final), 1, "متقارب"],
-                                         ["عوارض عمق", int(d_final), 2, "مفرد"], ["عوارض عمق", int(d_final), 2, "متقارب"]])
+                        alum_res.extend([
+                            ["قوايم ارتفاع", int(h_final), 2, "مفرد"], ["قوايم ارتفاع", int(h_final), 2, "متقارب"],
+                            ["عوارض عرض", int(w_final), 3, "مفرد"], ["عوارض عرض", int(w_final), 1, "متقارب"],
+                            ["عوارض عمق", int(d_final), 2, "مفرد"], ["عوارض عمق", int(d_final), 2, "متقارب"]
+                        ])
                     else:
-                        alum_res.extend([["قوايم ارتفاع", int(h_final), 2, "مفرد"], ["قوايم ارتفاع", int(h_final), 2, "متقارب"],
-                                         ["عوارض عرض", int(w_final), 2, "مفرد"], ["عوارض عرض", int(w_final), 2, "متقارب"],
-                                         ["عوارض عمق", int(d_final), 0, "مفرد"], ["عوارض عمق", int(d_final), 4, "متقارب"]])
+                        alum_res.extend([
+                            ["قوايم ارتفاع", int(h_final), 2, "مفرد"], ["قوايم ارتفاع", int(h_final), 2, "متقارب"],
+                            ["عوارض عرض", int(w_final), 2, "مفرد"], ["عوارض عرض", int(w_final), 2, "متقارب"],
+                            ["عوارض عمق", int(d_final), 0, "مفرد"], ["عوارض عمق", int(d_final), 4, "متقارب"]
+                        ])
 
+                    # تخصيم ألمنيوم الأرفف والفواصل (العدد * 4 أعواد حسب طلبك)
                     if sh_n > 0:
-                        alum_res.append(["أعواد أرفف (عرض)", int(sh_w), int(sh_n*2), "مفرد"])
-                        alum_res.append(["أعواد أرفف (عمق)", int(sh_d), int(sh_n*2), "مفرد"])
+                        alum_res.append(["أعواد أرفف (عرض)", int(sh_w), int(sh_n * 4), "مفرد"])
+                        alum_res.append(["أعواد أرفف (عمق)", int(sh_d), int(sh_n * 4), "مفرد"])
                     if v_n > 0:
-                        alum_res.append(["أعواد فواصل (ارتفاع)", int(v_h), int(v_n*2), "مفرد"])
-                        alum_res.append(["أعواد فواصل (عمق)", int(v_d), int(v_n*2), "مفرد"])
+                        alum_res.append(["أعواد فواصل (ارتفاع)", int(v_h), int(v_n * 4), "مفرد"])
+                        alum_res.append(["أعواد فواصل (عمق)", int(v_d), int(v_n * 4), "مفرد"])
 
+                    # تخصيم الفيبر
                     fiber_res = [
                         ["ضهرية", int(w_final), int(h_final), 1],
                         ["أرضية", int(w_final), int(d_final), 1],
@@ -115,18 +122,18 @@ else:
                     if v_n > 0: fiber_res.append(["فيبر فواصل", int(v_h-5), int(v_d-5), v_n])
 
                     st.session_state.project_list.append({
-                        "client": client_name if client_name else "بدون اسم",
+                        "client": client_name if client_name else "وحدة بدون اسم",
                         "type": unit_type,
                         "dims": f"{W_val}x{H_val}x{D_val}",
                         "alum": alum_res,
                         "fiber": fiber_res
                     })
-                    st.success(f"تمت إضافة وحدة {client_name} بنجاح!")
+                    st.success(f"تمت إضافة {unit_type} - {client_name} بنجاح!")
                     st.rerun()
 
-    # --- الجرد النهائي ---
+    # --- عرض النتائج والجرد ---
     if st.session_state.project_list:
-        tab1, tab2 = st.tabs(["📊 حساب الخامات الإجمالي", "📋 تفصيل كل وحدة"])
+        tab1, tab2 = st.tabs(["📊 جرد الخامات (الطلبيه)", "📋 تفصيل الوحدات"])
         
         with tab1:
             total_muf_cm = total_mut_cm = total_fiber_sqcm = 0
@@ -144,35 +151,42 @@ else:
                     fib_all.append({"البيان": f[0], "المقاس": f"{f[1]}*{f[2]}", "العدد": f[3]})
                     total_fiber_sqcm += (f[1] * f[2] * f[3])
 
-            st.markdown("<div class='section-header'>تقرير الخامات الإجمالي</div>", unsafe_allow_html=True)
+            st.markdown("<div class='section-header'>ملخص الكميات المطلوبة</div>", unsafe_allow_html=True)
             r1, r2, r3 = st.columns(3)
-            with r1: st.markdown(f"<div class='metric-box'><h3>أعواد المفرد</h3><h2>{math.ceil(total_muf_cm / 600)} عود</h2></div>", unsafe_allow_html=True)
-            with r2: st.markdown(f"<div class='metric-box'><h3>أعواد المتقارب</h3><h2>{math.ceil(total_mut_cm / 600)} عود</h2></div>", unsafe_allow_html=True)
+            with r1: st.markdown(f"<div class='metric-box'><h3>أعواد المفرد (6م)</h3><h2>{math.ceil(total_muf_cm / 600)} عود</h2></div>", unsafe_allow_html=True)
+            with r2: st.markdown(f"<div class='metric-box'><h3>أعواد المتقارب (6م)</h3><h2>{math.ceil(total_mut_cm / 600)} عود</h2></div>", unsafe_allow_html=True)
             with r3:
                 panel_area = 280 * 130 
                 needed_panels = math.ceil((total_fiber_sqcm * 1.10) / panel_area)
-                st.markdown(f"<div class='metric-box'><h3>ألواح الفيبر</h3><h2>{needed_panels} لوح</h2></div>", unsafe_allow_html=True)
+                st.markdown(f"<div class='metric-box'><h3>ألواح الفيبر (280*130)</h3><h2>{needed_panels} لوح</h2></div>", unsafe_allow_html=True)
 
             c1, c2, c3 = st.columns(3)
             with c1:
-                st.subheader("📋 جرد المفرد")
-                if muf_all: st.table(pd.DataFrame(muf_all).groupby("المقاس").sum().reset_index().sort_values("المقاس", ascending=False))
+                st.subheader("📋 قطعيات المفرد")
+                if muf_all:
+                    df_muf = pd.DataFrame(muf_all).groupby("المقاس").sum().reset_index()
+                    st.table(df_muf.sort_values("المقاس", ascending=False))
             with c2:
-                st.subheader("📋 جرد المتقارب")
-                if mut_all: st.table(pd.DataFrame(mut_all).groupby("المقاس").sum().reset_index().sort_values("المقاس", ascending=False))
+                st.subheader("📋 قطعيات المتقارب")
+                if mut_all:
+                    df_mut = pd.DataFrame(mut_all).groupby("المقاس").sum().reset_index()
+                    st.table(df_mut.sort_values("المقاس", ascending=False))
             with c3:
-                st.subheader("🖼️ جرد الفيبر")
+                st.subheader("🖼️ قطعيات الفيبر")
                 if fib_all: st.table(pd.DataFrame(fib_all))
 
         with tab2:
             for idx, unit in enumerate(st.session_state.project_list):
-                with st.expander(f"📌 وحدة {idx+1}: {unit['client']} ({unit['dims']})"):
-                    st.write("**الألمنيوم:**")
-                    st.table(pd.DataFrame(unit['alum'], columns=["البيان", "المقاس", "العدد", "النوع"]))
-                    st.write("**الفيبر:**")
-                    st.table(pd.DataFrame(unit['fiber'], columns=["البيان", "العرض", "الارتفاع", "العدد"]))
+                with st.expander(f"📍 وحدة {idx+1}: {unit['client']} | {unit['type']}"):
+                    col_a, col_b = st.columns(2)
+                    with col_a:
+                        st.write("**الألمنيوم:**")
+                        st.dataframe(pd.DataFrame(unit['alum'], columns=["البيان", "المقاس", "العدد", "النوع"]), hide_index=True)
+                    with col_b:
+                        st.write("**الفيبر:**")
+                        st.dataframe(pd.DataFrame(unit['fiber'], columns=["البيان", "العرض", "الارتفاع", "العدد"]), hide_index=True)
 
-        if st.button("🗑️ مسح الجدول بالكامل (تفريغ المشروع)", use_container_width=True):
+        if st.button("🗑️ تفريغ كافة البيانات والبدء من جديد", use_container_width=True):
             st.session_state.project_list = []
             st.rerun()
 
