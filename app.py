@@ -163,6 +163,7 @@ else:
 
         st.session_state.project_list.append({
             "client": client,
+            "unit_type": unit_type,
             "alum": alum,
             "fiber": fiber
         })
@@ -198,22 +199,23 @@ else:
 
         for unit in st.session_state.project_list:
 
-            st.write("### العميل:", unit["client"])
+            st.write(f"### 🏷️ {unit['unit_type']} - {unit['client']}")
 
+            # =====================
+            # جدول المونتال
+            # =====================
             df1 = pd.DataFrame(unit["alum"], columns=["البيان", "المقاس", "العدد", "النوع"])
             df1 = df1[df1["العدد"] > 0]
+            df1.insert(0, "القسم", "مونتال")
+            df1["المقاس"] = df1["المقاس"].astype(int)
+            st.table(df1)
 
+            # =====================
+            # جدول الفيبر
+            # =====================
             df2 = pd.DataFrame(unit["fiber"], columns=["البيان", "العرض", "الارتفاع", "العدد"])
             df2 = df2[df2["العدد"] > 0]
-
-            st.table(df1)
+            df2.insert(0, "القسم", "فيبر")
+            df2["العرض"] = df2["العرض"].astype(int)
+            df2["الارتفاع"] = df2["الارتفاع"].astype(int)
             st.table(df2)
-
-        # ==========================================
-        # زرار مشروع جديد
-        # ==========================================
-        st.markdown("## ⚙️ إدارة المشاريع")
-
-        if st.button("🗑️ مشروع جديد", use_container_width=True):
-            st.session_state.project_list = []
-            st.rerun()
