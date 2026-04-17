@@ -5,7 +5,7 @@ import pandas as pd
 # 1. إعدادات النظام والتنسيق الكامل
 # ==========================================
 st.set_page_config(
-    page_title="ضجه سمارت سستيم", 
+    page_title="دجة سمارت سستيم", 
     page_icon="🔨",
     layout="wide", 
     initial_sidebar_state="collapsed"
@@ -166,6 +166,14 @@ else:  # calc page
     
     if st.session_state.projects:
         col_stats.metric("📦 **عدد الوحدات في الجرد**", len(st.session_state.projects))
+
+    # عرض الجرد الحالي
+    if st.session_state.projects:
+        st.markdown("### 📋 **الجرد الحالي**")
+        for i, project in enumerate(st.session_state.projects):
+            with st.expander(f"وحدة {i+1}: {project.get('client_name', 'غير محدد')} - {project.get('unit_type', 'غير محدد')}"):
+                st.write(f"**الألمنيوم:** {len(project['alum_items'])} قطعة")
+                st.write(f"**الفيبر:** {len(project['fiber_items'])} قطعة")
 
     # ===== النموذج الكامل مع كل الخانات فاضية =====
     with st.form(key="complete_calc_form", clear_on_submit=False):
@@ -360,11 +368,4 @@ else:  # calc page
                     alum_items.extend([
                         {"name": "عرض جانبي", "length": final_width, "count": 2, "type": "مفرد"},
                         {"name": "عرض متقارب", "length": final_width, "count": 2, "type": "متقارب"},
-                        {"name": "عمق متقارب", "length": final_depth, "count": 4, "type": "متقارب"}
-                    ])
-
-                # ===== الأرفف الكاملة =====
-                if shelves_count is not None and shelf_width is not None and shelf_depth is not None and shelves_count > 0:
-                    alum_items.extend([
-                        {"name": "رفوف عرض", "length": shelf_width, "count": int(shelves_count) * 2, "type": "مفرد"},
-                        {"name": "رفوف عمق", "length": shelf_depth, "count": int(shelves_count) * 2, "type": "مفرد
+                        {"name": "عمق متقارب", "length": final_depth, "count": 
