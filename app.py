@@ -15,11 +15,9 @@ if "projects" not in st.session_state:
 
 
 # =========================
-# تنظيف الأرقام (حل 0.00 نهائي)
+# تنظيف الأرقام
 # =========================
 def clean_num(x):
-    if x is None:
-        return ""
     try:
         x = float(x)
         if x == 0:
@@ -32,25 +30,24 @@ def clean_num(x):
 
 
 # =========================
-# HOME PAGE
+# HOME
 # =========================
 if st.session_state.page == "home":
 
     st.markdown("""
     <style>
-    .logo {
+    .logo{
         text-align:center;
         font-size:70px;
         font-weight:bold;
         color:#f1c40f;
         margin-top:8%;
     }
-    .sub {
+    .sub{
         text-align:center;
         font-size:22px;
-        margin-top:10px;
     }
-    .by {
+    .by{
         text-align:center;
         color:gray;
     }
@@ -67,7 +64,7 @@ if st.session_state.page == "home":
 
 
 # =========================
-# CALC PAGE
+# CALC
 # =========================
 elif st.session_state.page == "calc":
 
@@ -78,34 +75,40 @@ elif st.session_state.page == "calc":
         st.rerun()
 
     # =========================
-    # إدخال كامل
+    # إدخال احترافي (بدون placeholders مزعجة)
     # =========================
+    st.markdown("### 👤 بيانات العميل")
     client = st.text_input("اسم العميل")
+
     unit = st.selectbox("نوع الوحدة", ["وحدة سفلية", "وحدة علوية", "دولاب خزين"])
 
+    st.markdown("### 📏 المقاسات الأساسية")
     W = st.number_input("العرض", value=0.0)
     H = st.number_input("الارتفاع", value=0.0)
     D = st.number_input("العمق", value=0.0)
 
+    st.markdown("### 📚 الأرفف")
     sh = st.number_input("عدد الأرفف", value=0)
     sh_w = st.number_input("عرض الرف", value=0.0)
     sh_d = st.number_input("عمق الرف", value=0.0)
 
+    st.markdown("### 🧱 الفواصل")
     vf = st.number_input("عدد الفواصل", value=0)
     vf_h = st.number_input("ارتفاع الفاصل", value=0.0)
     vf_d = st.number_input("عمق الفاصل", value=0.0)
 
+    st.markdown("### 🧰 الأدراج (2×8)")
     dr = st.number_input("عدد الأدراج", value=0)
     dr_w = st.number_input("عرض الدرج", value=0.0)
     dr_d = st.number_input("عمق الدرج", value=0.0)
 
+    # =========================
+    # الحساب
+    # =========================
     if st.button("💾 حساب التخصيم"):
 
         if W and H and D:
 
-            # =========================
-            # الخصم
-            # =========================
             Hf = H - (13 if unit == "وحدة سفلية" else 5)
             Wf = W - 5
             Df = D - 5
@@ -113,9 +116,6 @@ elif st.session_state.page == "calc":
             alum = []
             fiber = []
 
-            # =========================
-            # مونتال
-            # =========================
             alum += [
                 ["قائم", Hf, 2, "مفرد"],
                 ["قائم", Hf, 2, "متقارب"],
@@ -125,30 +125,18 @@ elif st.session_state.page == "calc":
                 ["عمق", Df, 2, "متقارب"],
             ]
 
-            # =========================
-            # أرفف
-            # =========================
             if sh > 0:
                 alum.append(["رف", Wf, sh * 2, "مفرد"])
                 fiber.append(["رف", Wf - 5, Df - 5, sh])
 
-            # =========================
-            # فواصل
-            # =========================
             if vf > 0:
                 alum.append(["فاصل", Hf, vf * 4, "مفرد"])
                 fiber.append(["فاصل", Hf - 5, Df - 5, vf])
 
-            # =========================
-            # أدراج
-            # =========================
             if dr > 0:
                 dw = dr_w - 2.5
                 fiber.append(["درج", dw, dr_d, dr])
 
-            # =========================
-            # فيبر أساسي
-            # =========================
             fiber += [
                 ["ضهرية", Wf, Hf, 1],
                 ["أرضية", Wf, Df, 1],
@@ -165,7 +153,7 @@ elif st.session_state.page == "calc":
             st.success("تم الحساب بنجاح")
 
     # =========================
-    # الجرد
+    # جرد الخامات
     # =========================
     if st.session_state.projects:
 
@@ -193,7 +181,7 @@ elif st.session_state.page == "calc":
 
 
 # =========================
-# INVOICE PAGE (CLEAN + NO 0.00)
+# INVOICE
 # =========================
 elif st.session_state.page == "invoice":
 
