@@ -3,13 +3,22 @@ import math
 
 st.set_page_config(page_title="DOGGA SMART ERP", layout="wide")
 
+# =========================
+# STATE
+# =========================
 if "page" not in st.session_state:
     st.session_state.page = "home"
 
 if "projects" not in st.session_state:
     st.session_state.projects = []
 
+if "step" not in st.session_state:
+    st.session_state.step = 0
 
+
+# =========================
+# CONVERT
+# =========================
 def num(x):
     try:
         return float(x) if x != "" else 0
@@ -52,7 +61,7 @@ if st.session_state.page == "home":
 
 
 # =========================
-# CALC
+# CALC PAGE
 # =========================
 elif st.session_state.page == "calc":
 
@@ -63,46 +72,60 @@ elif st.session_state.page == "calc":
         st.rerun()
 
     # =========================
-    # بيانات أساسية
+    # INPUTS
     # =========================
     client = st.text_input("اسم العميل")
+
     unit = st.selectbox("نوع الوحدة", ["وحدة سفلية", "وحدة علوية", "دولاب خزين"])
 
     W = st.text_input("العرض")
     H = st.text_input("الارتفاع")
     D = st.text_input("العمق")
 
-    # =========================
-    # 🪵 الرفوف
-    # =========================
     st.markdown("### 🪵 الرفوف")
-
     sh = st.text_input("عدد الرفوف")
     sh_w = st.text_input("عرض الرف")
     sh_d = st.text_input("عمق الرف")
 
-    # =========================
-    # 🧱 الفواصل
-    # =========================
     st.markdown("### 🧱 الفواصل")
-
     vf = st.text_input("عدد الفواصل")
     vf_h = st.text_input("ارتفاع الفاصل")
     vf_d = st.text_input("عمق الفاصل")
 
-    # =========================
-    # 🧰 الأدراج
-    # =========================
-    st.markdown("### 🧰 الأدراج (2×8)")
-
+    st.markdown("### 🧰 الأدراج")
     dr = st.text_input("عدد الأدراج")
     dr_w = st.text_input("عرض الدرج")
     dr_d = st.text_input("عمق الدرج")
 
     # =========================
-    # حساب
+    # STEP SYSTEM (NEXT BUTTON)
     # =========================
-    if st.button("💾 حساب التخصيم"):
+    inputs = [
+        W, H, D,
+        sh, sh_w, sh_d,
+        vf, vf_h, vf_d,
+        dr, dr_w, dr_d
+    ]
+
+    st.markdown("---")
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+        if st.button("💾 حساب التخصيم", use_container_width=True):
+            pass
+
+    with col2:
+        if st.button("➡️ التالي (Next)", use_container_width=True):
+            st.session_state.step += 1
+            if st.session_state.step > len(inputs):
+                st.session_state.step = len(inputs)
+            st.rerun()
+
+    # =========================
+    # CALC
+    # =========================
+    if st.button("💾 تنفيذ الحساب النهائي"):
 
         W = num(W)
         H = num(H)
@@ -138,23 +161,14 @@ elif st.session_state.page == "calc":
                 ["عمق", Df, 2, "متقارب"],
             ]
 
-            # =========================
-            # الرفوف
-            # =========================
             if sh > 0:
                 alum.append(["رف", Wf, sh * 2, "مفرد"])
                 fiber.append(["رف", Wf - 5, Df - 5, sh])
 
-            # =========================
-            # الفواصل
-            # =========================
             if vf > 0:
                 alum.append(["فاصل", Hf, vf * 4, "مفرد"])
                 fiber.append(["فاصل", Hf - 5, Df - 5, vf])
 
-            # =========================
-            # الأدراج
-            # =========================
             if dr > 0:
                 dw = dr_w - 2.5
                 fiber.append(["درج", dw, dr_d, dr])
@@ -175,7 +189,7 @@ elif st.session_state.page == "calc":
             st.success("تم الحساب بنجاح")
 
     # =========================
-    # الجرد
+    # INVENTORY
     # =========================
     if st.session_state.projects:
 
@@ -216,33 +230,15 @@ elif st.session_state.page == "invoice":
     for p in st.session_state.projects:
 
         st.markdown("---")
-
         st.markdown(f"## 👤 العميل: {p['client']}")
-        st.markdown(f"### 🏷️ نوع الوحدة: {p['unit']}")
+        st.markdown(f"### 🏷️ الوحدة: {p['unit']}")
 
         st.markdown("## 🛠️ مونتال")
-
         for a in p["alum"]:
-            st.markdown(f"""
-            ▪ **{a[0]}**  
-            المقاس: {a[1]}  
-            العدد: {a[2]}  
-            النوع: مونتال  
-            ---
-            """)
+            st.write(a)
 
         st.markdown("## 🪵 فيبر")
-
         for f in p["fiber"]:
-            st.markdown(f"""
-            ▪ **{f[0]}**  
-            المقاس: {f[1]} × {f[2]}  
-            العدد: {f[3]}  
-            النوع: فيبر  
-            ---
-            """)
+            st.write(f)
 
-        st.success("تم حساب الوحدة بالكامل")
-
-    st.markdown("---")
-    st.success("📦 نهاية الفاتورة")
+    st.success("تم عرض الفاتورة بالكامل")
