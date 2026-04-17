@@ -12,11 +12,11 @@ if "project_list" not in st.session_state:
 if "page" not in st.session_state:
     st.session_state.page = "home"
 
-if "show_price" not in st.session_state:
-    st.session_state.show_price = False
+if "invoice_page" not in st.session_state:
+    st.session_state.invoice_page = False
 
-if "show_rods" not in st.session_state:
-    st.session_state.show_rods = False
+if "extra_items" not in st.session_state:
+    st.session_state.extra_items = []
 
 
 # ==========================================
@@ -184,45 +184,66 @@ else:
         st.write(f"🔹 الفيبر: {total_fiber / panel_area:.2f} لوح")
 
         # ==========================================
-        # حساب الأعواد
+        # زرار الفاتورة (تحويل لصفحة جديدة)
         # ==========================================
-        muf_rods = int(total_muf / 600)
-        mut_rods = int(total_mut / 600)
+        if st.button("🧾 حساب الخامات"):
+            st.session_state.invoice_page = True
 
-        st.markdown("## 🧾 الخامات")
+    # ==========================================
+    # صفحة الفاتورة
+    # ==========================================
+    if st.session_state.invoice_page:
 
-        if st.button("🧾 حساب الخامات (الأعواد)"):
-            st.session_state.show_rods = True
+        st.title("📋 فاتورة الخامات")
 
-        # ==========================================
-        # فاتورة الأعواد
-        # ==========================================
-        if st.session_state.get("show_rods", False):
+        muf = int(total_muf / 600)
+        mut = int(total_mut / 600)
+        fiber = int(total_fiber / (280 * 130))
 
-            rod_rows = [
-                {"النوع": "مفرد", "العدد": muf_rods, "سعر العود": 0.0},
-                {"النوع": "متقارب", "العدد": mut_rods, "سعر العود": 0.0},
-            ]
+        invoice = [
+            {"الصنف": "مونتال - مفرد", "العدد": muf, "سعر": 0.0},
+            {"الصنف": "مونتال - متقارب", "العدد": mut, "سعر": 0.0},
+            {"الصنف": "فيبر", "العدد": fiber, "سعر": 0.0},
+            {"الصنف": "درج 2×8", "العدد": 0, "سعر": 0.0},
+        ]
 
-            df_rods = pd.DataFrame(rod_rows)
+        df = pd.DataFrame(invoice)
 
-            st.markdown("## 📋 فاتورة الأعواد")
+        st.markdown("### ➕ إضافة خامة جديدة")
 
-            for i in range(len(df_rods)):
+        c1, c2, c3 = st.columns(3)
+        new_name = c1.text_input("اسم الصنف")
+        new_qty = c2.number_input("العدد", 0)
+        new_price = c3.number_input("سعر الوحدة", 0.0)
 
-                price = st.number_input(
-                    f"سعر {df_rods.iloc[i]['النوع']}",
-                    value=0.0,
-                    key=f"rod_price_{i}"
-                )
+        if st.button("إضافة"):
+            st.session_state.extra_items.append({
+                "الصنف": new_name,
+                "العدد": new_qty,
+                "سعر": new_price
+            })
+            st.rerun()
 
-                df_rods.at[i, "سعر العود"] = price
+        for e in st.session_state.extra_items:
+            df.loc[len(df)] = [e["الصنف"], e["العدد"], e["سعر"]]
 
-            df_rods["الإجمالي"] = df_rods["العدد"] * df_rods["سعر العود"]
+        for i in range(len(df)):
+            price = st.number_input(
+                f"سعر {df.iloc[i]['الصنف']}",
+                value=float(df.iloc[i]['سعر']),
+                key=f"inv_{i}"
+            )
+            df.at[i, "سعر"] = price
 
-            st.table(df_rods)
+        df["الإجمالي"] = df["العدد"] * df["سعر"]
 
-            st.markdown(f"## 💰 إجمالي الأعواد: {df_rods['الإجمالي'].sum():.2f}")
+        st.table(df)
+
+        st.markdown(f"## 💰 الإجمالي النهائي: {df['الإجمالي'].sum():.2f}")
+
+        if st.button("⬅️ رجوع"):
+            st.session_state.invoice_page = False
+            st.rerun()
 
     # ==========================================
     # التفاصيل
@@ -236,12 +257,7 @@ else:
             st.write(f"### 🏷️ {unit['unit_type']} - {unit['client']}")
 
             df1 = pd.DataFrame(unit["alum"], columns=["البيان", "المقاس", "العدد", "النوع"])
-            df1 = df1[df1["العدد"] > 0]
-            df1.insert(0, "القسم", "مونتال")
-
             df2 = pd.DataFrame(unit["fiber"], columns=["البيان", "العرض", "الارتفاع", "العدد"])
-            df2 = df2[df2["العدد"] > 0]
-            df2.insert(0, "القسم", "فيبر")
 
             st.table(df1)
             st.table(df2)
