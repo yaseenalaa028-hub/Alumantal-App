@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 
-st.set_page_config(page_title="نظام التخصيم - المهندس ياسين علاء", layout="wide")
+st.set_page_config(page_title="نظام التخصيم الذكي", layout="wide")
 
 # =========================
 # STATE
@@ -9,47 +9,33 @@ st.set_page_config(page_title="نظام التخصيم - المهندس ياسي
 if "projects" not in st.session_state:
     st.session_state.projects = []
 
+if "price_mode" not in st.session_state:
+    st.session_state.price_mode = False
+
+
 # =========================
-# HOME STYLE
+# HEADER
 # =========================
 st.markdown("""
-<style>
-.big-title{
-    text-align:center;
-    font-size:40px;
-    font-weight:bold;
-    color:#f1c40f;
-}
-.sub{
-    text-align:center;
-    font-size:18px;
-    color:gray;
-}
-.box{
-    padding:10px;
-    border-radius:10px;
-}
-</style>
+<h1 style='text-align:center;color:#f1c40f;'>نظام التخصيم الذكي</h1>
+<p style='text-align:center;color:gray;'>برمجة المهندس / ياسين علاء</p>
+<hr>
 """, unsafe_allow_html=True)
 
-st.markdown('<div class="big-title">نظام التخصيم الذكي</div>', unsafe_allow_html=True)
-st.markdown('<div class="sub">برمجة المهندس / ياسين علاء</div>', unsafe_allow_html=True)
-
-st.divider()
 
 # =========================
-# INPUT
+# INPUTS
 # =========================
-st.markdown("## 🛠️ إدخال بيانات الوحدة")
+st.markdown("## 🛠️ إدخال البيانات")
 
 c1, c2 = st.columns(2)
 client = c1.text_input("اسم العميل")
 unit_type = c2.selectbox("نوع الوحدة", ["سفلية", "علوية", "دولاب خزين"])
 
 c1, c2, c3 = st.columns(3)
-W = c1.number_input("العرض", min_value=0.0)
-H = c2.number_input("الارتفاع", min_value=0.0)
-D = c3.number_input("العمق", min_value=0.0)
+W = c1.number_input("العرض", 0.0)
+H = c2.number_input("الارتفاع", 0.0)
+D = c3.number_input("العمق", 0.0)
 
 st.markdown("### 🧱 الأرفف")
 c1, c2, c3 = st.columns(3)
@@ -69,8 +55,9 @@ dr_n = c1.number_input("عدد الأدراج", 0)
 dr_w = c2.number_input("عرض الدرج", 0.0)
 dr_d = c3.number_input("عمق الدرج", 0.0)
 
+
 # =========================
-# CALC FUNCTION (نفس منطقك)
+# BUILD UNIT FUNCTION
 # =========================
 def build_unit():
 
@@ -120,7 +107,7 @@ def build_unit():
         alum.append(["درج عمق", dr_d, dr_n * 2, "متقارب"])
         fiber.append(["قاعدة درج", dw, dr_d, dr_n])
 
-    # ================= الفيبر الأساسي =================
+    # ================= الفيبر =================
     fiber += [
         ["ضهرية", w_final, h_final, 1],
         ["أرضية", w_final, d_final, 1],
@@ -134,18 +121,19 @@ def build_unit():
         "fiber": fiber
     }
 
+
 # =========================
-# ADD BUTTON
+# ADD UNIT
 # =========================
 if st.button("➕ إضافة وحدة"):
 
     if W > 0 and H > 0 and D > 0:
-
         st.session_state.projects.append(build_unit())
         st.success("تمت الإضافة بنجاح")
 
+
 # =========================
-# REPORT (الجرد)
+# INVENTORY
 # =========================
 if st.session_state.projects:
 
@@ -164,18 +152,19 @@ if st.session_state.projects:
         for f in u["fiber"]:
             fiber_sum += f[1] * f[2] * f[3]
 
-    st.markdown("## 📊 جرد الخامات النهائي")
+    st.markdown("## 📊 الجرد")
 
     st.write(f"🔹 ألومنيوم مفرد: {total_m/600:.2f} عود")
     st.write(f"🔹 ألومنيوم متقارب: {total_t/600:.2f} عود")
     st.write(f"🔹 فيبر: {fiber_sum/(280*130):.2f} لوح")
 
+
 # =========================
-# DETAILS (زي برنامجك القديم)
+# DETAILS
 # =========================
 if st.session_state.projects:
 
-    st.markdown("## 📋 تفاصيل كل الوحدات")
+    st.markdown("## 📋 التفاصيل")
 
     for u in st.session_state.projects:
 
@@ -183,3 +172,64 @@ if st.session_state.projects:
 
         st.table(pd.DataFrame(u["alum"], columns=["البيان","المقاس","العدد","النوع"]))
         st.table(pd.DataFrame(u["fiber"], columns=["البيان","العرض","الطول","العدد"]))
+
+
+# =========================
+# PRICING SYSTEM
+# =========================
+st.divider()
+
+if st.session_state.projects:
+
+    st.markdown("## 💰 الفاتورة والتسعير")
+
+    if st.button("💰 فتح الفاتورة"):
+        st.session_state.price_mode = True
+
+    if st.session_state.price_mode:
+
+        rows = []
+
+        for u in st.session_state.projects:
+
+            for a in u["alum"]:
+                rows.append({
+                    "الصنف": f"مونتال - {a[0]}",
+                    "المقاس": a[1],
+                    "العدد": a[2],
+                    "النوع": a[3],
+                    "سعر الوحدة": 0
+                })
+
+            for f in u["fiber"]:
+                rows.append({
+                    "الصنف": f"فيبر - {f[0]}",
+                    "المقاس": f"{f[1]}x{f[2]}",
+                    "العدد": f[3],
+                    "النوع": "فيبر",
+                    "سعر الوحدة": 0
+                })
+
+        df = pd.DataFrame(rows)
+
+        st.markdown("### 🧾 إدخال الأسعار")
+
+        for i in range(len(df)):
+
+            price = st.number_input(
+                f"سعر {df.iloc[i]['الصنف']} ({i})",
+                min_value=0.0,
+                key=f"p_{i}"
+            )
+
+            df.at[i, "سعر الوحدة"] = price
+            df.at[i, "الإجمالي"] = price * df.at[i, "العدد"]
+
+        st.markdown("### 📋 الفاتورة")
+
+        st.dataframe(df, use_container_width=True)
+
+        st.markdown(f"## 💰 الإجمالي النهائي: {df['الإجمالي'].sum():.2f}")
+
+        if st.button("🧹 إغلاق الفاتورة"):
+            st.session_state.price_mode = False
