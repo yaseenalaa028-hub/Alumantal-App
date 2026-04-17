@@ -15,8 +15,8 @@ if "page" not in st.session_state:
 if "show_price" not in st.session_state:
     st.session_state.show_price = False
 
-if "show_invoice" not in st.session_state:
-    st.session_state.show_invoice = False
+if "show_rods" not in st.session_state:
+    st.session_state.show_rods = False
 
 
 # ==========================================
@@ -32,7 +32,7 @@ if st.session_state.page == "home":
         .sub { font-size: 20px; margin-top: 10px; }
         .footer { font-size: 16px; color: gray; }
         </style>
-    """, unsafe_allow_html=True)
+    """)
 
     st.markdown("""
         <div class="center">
@@ -40,7 +40,7 @@ if st.session_state.page == "home":
             <div class="sub">نحو دقة أعلى في شغل المطابخ 👌</div>
             <div class="footer">برمجة المهندس / ياسين علاء</div>
         </div>
-    """, unsafe_allow_html=True)
+    """)
 
     if st.button("🚀 ابدأ التخصيم", use_container_width=True):
         st.session_state.page = "calc"
@@ -108,9 +108,6 @@ else:
         alum = []
         fiber = []
 
-        # =============================
-        # المونتال
-        # =============================
         if unit_type == "وحدة سفلية":
             alum += [
                 ["ارتفاع", int(h_final), 2, "مفرد"],
@@ -130,34 +127,22 @@ else:
                 ["عمق", int(d_final), 4, "متقارب"],
             ]
 
-        # =============================
-        # الأرفف
-        # =============================
         if sh_n > 0:
             alum.append(["رف عرض", int(sh_w), sh_n * 2, "مفرد"])
             alum.append(["رف عمق", int(sh_d), sh_n * 2, "مفرد"])
             fiber.append(["رف", int(sh_w - 5), int(sh_d - 5), sh_n])
 
-        # =============================
-        # الفواصل
-        # =============================
         if v_n > 0:
             alum.append(["فواصل ارتفاع", int(v_h), v_n * 4, "مفرد"])
             alum.append(["فواصل عمق", int(v_d), v_n * 4, "مفرد"])
             fiber.append(["فاصل", int(v_h - 5), int(v_d - 5), v_n])
 
-        # =============================
-        # الأدراج
-        # =============================
         if dr_n > 0:
             drawer_w = dr_w - 2.5
             alum.append(["درج 2×8 عرض", int(drawer_w), dr_n * 2, "2×8"])
             alum.append(["درج 2×8 عمق", int(dr_d), dr_n * 2, "2×8"])
             fiber.append(["قاعدة درج 2×8", int(drawer_w), int(dr_d), dr_n])
 
-        # =============================
-        # الفيبر الأساسي
-        # =============================
         fiber += [
             ["ضهرية", int(w_final), int(h_final), 1],
             ["أرضية", int(w_final), int(d_final), 1],
@@ -199,54 +184,45 @@ else:
         st.write(f"🔹 الفيبر: {total_fiber / panel_area:.2f} لوح")
 
         # ==========================================
-        # زرار التسعير
+        # حساب الأعواد
         # ==========================================
-        st.markdown("## 💰 التسعير")
+        muf_rods = int(total_muf / 600)
+        mut_rods = int(total_mut / 600)
 
-        if st.button("💰 حساب سعر الخامات", use_container_width=True):
-            st.session_state.show_price = not st.session_state.show_price
+        st.markdown("## 🧾 الخامات")
+
+        if st.button("🧾 حساب الخامات (الأعواد)"):
+            st.session_state.show_rods = True
 
         # ==========================================
-        # جدول التسعير
+        # فاتورة الأعواد
         # ==========================================
-        if st.session_state.show_price:
+        if st.session_state.get("show_rods", False):
 
-            rows = []
+            rod_rows = [
+                {"النوع": "مفرد", "العدد": muf_rods, "سعر العود": 0.0},
+                {"النوع": "متقارب", "العدد": mut_rods, "سعر العود": 0.0},
+            ]
 
-            for unit in st.session_state.project_list:
-                for a in unit["alum"]:
-                    rows.append({
-                        "النوع": f"مونتال - {a[0]}",
-                        "العدد": a[2],
-                        "سعر الوحدة": 0.0
-                    })
+            df_rods = pd.DataFrame(rod_rows)
 
-                for f in unit["fiber"]:
-                    rows.append({
-                        "النوع": f"فيبر - {f[0]}",
-                        "العدد": f[3],
-                        "سعر الوحدة": 0.0
-                    })
+            st.markdown("## 📋 فاتورة الأعواد")
 
-            df = pd.DataFrame(rows)
-
-            for i in range(len(df)):
-                key = f"price_{df.iloc[i]['النوع']}_{i}"
+            for i in range(len(df_rods)):
 
                 price = st.number_input(
-                    f"سعر {df.iloc[i]['النوع']} - {i}",
-                    value=st.session_state.get(key, 0.0),
-                    key=key
+                    f"سعر {df_rods.iloc[i]['النوع']}",
+                    value=0.0,
+                    key=f"rod_price_{i}"
                 )
 
-                df.at[i, "سعر الوحدة"] = price
+                df_rods.at[i, "سعر العود"] = price
 
-            df["الإجمالي"] = df["العدد"] * df["سعر الوحدة"]
+            df_rods["الإجمالي"] = df_rods["العدد"] * df_rods["سعر العود"]
 
-            st.markdown("### 📋 الفاتورة")
-            st.table(df)
+            st.table(df_rods)
 
-            st.markdown(f"## 💰 الإجمالي النهائي: {df['الإجمالي'].sum():.2f}")
+            st.markdown(f"## 💰 إجمالي الأعواد: {df_rods['الإجمالي'].sum():.2f}")
 
     # ==========================================
     # التفاصيل
@@ -262,7 +238,6 @@ else:
             df1 = pd.DataFrame(unit["alum"], columns=["البيان", "المقاس", "العدد", "النوع"])
             df1 = df1[df1["العدد"] > 0]
             df1.insert(0, "القسم", "مونتال")
-            df1["المقاس"] = df1["المقاس"].astype(int)
 
             df2 = pd.DataFrame(unit["fiber"], columns=["البيان", "العرض", "الارتفاع", "العدد"])
             df2 = df2[df2["العدد"] > 0]
