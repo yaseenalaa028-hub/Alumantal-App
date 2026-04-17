@@ -15,6 +15,23 @@ if "projects" not in st.session_state:
 
 
 # =========================
+# تنظيف الأرقام (حل 0.00 نهائي)
+# =========================
+def clean_num(x):
+    if x is None:
+        return ""
+    try:
+        x = float(x)
+        if x == 0:
+            return ""
+        if x.is_integer():
+            return int(x)
+        return round(x, 2)
+    except:
+        return x
+
+
+# =========================
 # HOME PAGE
 # =========================
 if st.session_state.page == "home":
@@ -61,14 +78,14 @@ elif st.session_state.page == "calc":
         st.rerun()
 
     # =========================
-    # إدخال كامل بدون Excel
+    # إدخال كامل
     # =========================
     client = st.text_input("اسم العميل")
     unit = st.selectbox("نوع الوحدة", ["وحدة سفلية", "وحدة علوية", "دولاب خزين"])
 
-    W = st.number_input("العرض", value=None)
-    H = st.number_input("الارتفاع", value=None)
-    D = st.number_input("العمق", value=None)
+    W = st.number_input("العرض", value=0.0)
+    H = st.number_input("الارتفاع", value=0.0)
+    D = st.number_input("العمق", value=0.0)
 
     sh = st.number_input("عدد الأرفف", value=0)
     sh_w = st.number_input("عرض الرف", value=0.0)
@@ -87,13 +104,9 @@ elif st.session_state.page == "calc":
         if W and H and D:
 
             # =========================
-            # خصم المقاسات
+            # الخصم
             # =========================
-            if unit == "وحدة سفلية":
-                Hf = H - 13
-            else:
-                Hf = H - 5
-
+            Hf = H - (13 if unit == "وحدة سفلية" else 5)
             Wf = W - 5
             Df = D - 5
 
@@ -152,7 +165,7 @@ elif st.session_state.page == "calc":
             st.success("تم الحساب بنجاح")
 
     # =========================
-    # جرد الخامات
+    # الجرد
     # =========================
     if st.session_state.projects:
 
@@ -180,7 +193,7 @@ elif st.session_state.page == "calc":
 
 
 # =========================
-# INVOICE PAGE (CARDS ONLY)
+# INVOICE PAGE (CLEAN + NO 0.00)
 # =========================
 elif st.session_state.page == "invoice":
 
@@ -201,37 +214,23 @@ elif st.session_state.page == "invoice":
 
         for a in p["alum"]:
             st.markdown(f"""
-            <div style="
-                border:1px solid #ddd;
-                padding:10px;
-                border-radius:10px;
-                margin-bottom:10px;
-                background:#f9f9f9;
-            ">
-                <b>▪ {a[0]}</b><br>
-                المقاس: {round(a[1],2)}<br>
-                العدد: {a[2]}<br>
-                النوع: مونتال
-            </div>
-            """, unsafe_allow_html=True)
+            ▪ **{a[0]}**  
+            المقاس: {clean_num(a[1])}  
+            العدد: {clean_num(a[2])}  
+            النوع: مونتال  
+            ---
+            """)
 
         st.markdown("## 🪵 فيبر")
 
         for f in p["fiber"]:
             st.markdown(f"""
-            <div style="
-                border:1px solid #ddd;
-                padding:10px;
-                border-radius:10px;
-                margin-bottom:10px;
-                background:#f1f1f1;
-            ">
-                <b>▪ {f[0]}</b><br>
-                المقاس: {round(f[1],2)} × {round(f[2],2)}<br>
-                العدد: {f[3]}<br>
-                النوع: فيبر
-            </div>
-            """, unsafe_allow_html=True)
+            ▪ **{f[0]}**  
+            المقاس: {clean_num(f[1])} × {clean_num(f[2])}  
+            العدد: {clean_num(f[3])}  
+            النوع: فيبر  
+            ---
+            """)
 
         st.success("تم حساب الوحدة بالكامل")
 
