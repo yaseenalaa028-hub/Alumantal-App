@@ -35,7 +35,7 @@ if st.session_state.page == "home":
         st.rerun()
 
 # ==========================================
-# 3. صفحة الفاتورة (حل مشكلة TypeError الظاهرة في الصورة 3)
+# 3. صفحة الفاتورة
 # ==========================================
 elif st.session_state.page == "invoice":
     st.title("📄 فاتورة الخامات النهائية")
@@ -44,15 +44,14 @@ elif st.session_state.page == "invoice":
         st.session_state.page = "calc"
         st.rerun()
 
-    # حساب الجرد (صمام أمان لمنع القفلة)
+    # حساب الجرد الإجمالي (مع صمام أمان لمنع القفلة TypeError)
     t_m = 0; t_t = 0; t_f = 0
     for u in st.session_state.project_list:
         for a in u["alum"]:
-            # معالجة القيم الفارغة (None) لضمان عدم حدوث TypeError
             val = a[1] if (a[1] is not None) else 0
             count = a[2] if (a[2] is not None) else 0
             if a[3] == "مفرد": t_m += val * count
-            else: t_t += val * count # هنا تم حل المشكلة الظاهرة في الصورة
+            else: t_t += val * count
         for f in u["fiber"]:
             w = f[1] if (f[1] is not None) else 0
             h = f[2] if (f[2] is not None) else 0
@@ -78,7 +77,7 @@ elif st.session_state.page == "invoice":
     st.success(f"### 💰 إجمالي الفاتورة: {edited_df['الإجمالي'].sum():,.2f} جنيه")
 
 # ==========================================
-# 4. صفحة التخصيم (الكود الكامل والشامل)
+# 4. صفحة التخصيم (الكود الكامل مع زر المسح)
 # ==========================================
 else:
     st.title("🛠️ لوحة تخصيم الوحدات")
@@ -87,8 +86,8 @@ else:
         st.session_state.page = "home"
         st.rerun()
 
-    # Form يضمن بقاء الأرقام بعد التخصيم
-    with st.form(key="full_calculation_form", clear_on_submit=False):
+    # Form يضمن بقاء الأرقام بعد التخصيم للمراجعة
+    with st.form(key="full_calc_form", clear_on_submit=False):
         c1, c2 = st.columns(2)
         client = c1.text_input("👤 اسم العميل", key="c_name")
         unit_type = c2.selectbox("📦 نوع الوحدة", ["وحدة سفلية", "وحدة علوية", "دولاب خزين"])
@@ -122,19 +121,14 @@ else:
     # معالجة البيانات ومنع التكرار التلقائي
     if submit_btn:
         if W and H and D:
-            # توليد بصمة فريدة للمدخلات لمنع تكرار الإضافة عند أي تفاعل آخر
             op_id = f"{client}-{W}-{H}-{D}-{sh_n}-{v_n}-{dr_n}"
-            
             if st.session_state.last_processed_id != op_id:
-                # --- حسابات التخصيم الأصلية ---
+                # معادلات التخصيم
                 h_f = H - (13 if unit_type in ["وحدة سفلية", "دولاب خزين"] else 5)
                 w_f = W - 5
                 d_f = D - 5
+                alum = []; fiber = []
 
-                alum = []
-                fiber = []
-
-                # ألمنيوم الهيكل
                 if unit_type == "وحدة سفلية":
                     alum = [
                         ["ارتفاع", h_f, 2, "مفرد"], ["ارتفاع", h_f, 2, "متقارب"],
@@ -148,45 +142,47 @@ else:
                         ["عمق", d_f, 0, "مفرد"], ["عمق", d_f, 4, "متقارب"]
                     ]
 
-                # تخصيم الأرفف (ألمنيوم وفيبر)
                 if sh_n and sh_n > 0:
                     alum += [["رف عرض", sh_w, sh_n * 2, "مفرد"], ["رف عمق", sh_d, sh_n * 2, "مفرد"]]
                     fiber.append(["لوح رف", sh_w - 5, sh_d - 5, sh_n])
 
-                # تخصيم الفواصل (ألمنيوم وفيبر)
                 if v_n and v_n > 0:
                     alum += [["فاصل ارتفاع", v_h, v_n * 2, "مفرد"], ["فاصل عمق", v_d, v_n * 2, "مفرد"]]
                     fiber.append(["لوح فاصل", v_h - 5, v_d - 5, v_n])
 
-                # تخصيم الأدراج (ألمنيوم وفيبر - إضافة عمق الدرج)
                 if dr_n and dr_n > 0:
                     alum += [["درج عرض", dr_w - 2.5, dr_n * 2, "2x8"], ["درج عمق", dr_d, dr_n * 2, "2x8"]]
                     fiber.append(["لوح درج", dr_w, dr_d, dr_n])
 
-                # فيبر الهيكل
                 fiber += [["ضهرية", w_f, h_f, 1], ["أرضية", w_f, d_f, 1], ["أجناب", h_f, d_f, 2]]
 
-                # تخزين المشروع
                 st.session_state.project_list.append({"client": client, "unit_type": unit_type, "alum": alum, "fiber": fiber})
                 st.session_state.last_processed_id = op_id
-                
-                # تحديث الفاتورة
                 if "df_invoice" in st.session_state: del st.session_state.df_invoice
-                st.success("✅ تم الحساب بنجاح. الأرقام محفوظة بالأعلى.")
+                st.success("✅ تم الحساب بنجاح.")
             else:
-                st.info("ℹ️ هذه الوحدة مضافة بالفعل في الجرد.")
+                st.info("ℹ️ هذه الوحدة مضافة بالفعل.")
         else:
-            st.error("⚠️ يرجى إدخال المقاسات الأساسية للمتابعة.")
+            st.error("⚠️ يرجى إدخال المقاسات الأساسية.")
 
-    # عرض الجرد الصافي (بدون أصفار زائدة)
+    # عرض الجرد وأزرار التحكم
     if st.session_state.project_list:
         st.markdown("---")
-        if st.button("📄 فتح الفاتورة النهائية", use_container_width=True, type="primary"):
+        col_btn1, col_btn2 = st.columns(2)
+        
+        if col_btn1.button("📄 فتح الفاتورة النهائية", use_container_width=True, type="primary"):
             st.session_state.page = "invoice"
+            st.rerun()
+            
+        # زر مسح المشروع (الذي تم إعادته بناءً على طلبك)
+        if col_btn2.button("🗑️ مسح كافة الوحدات (مشروع جديد)", use_container_width=True):
+            st.session_state.project_list = []
+            st.session_state.last_processed_id = None
+            if "df_invoice" in st.session_state: del st.session_state.df_invoice
             st.rerun()
         
         for unit in st.session_state.project_list:
-            with st.expander(f"📦 وحدة: {unit['unit_type']} - العميل: {unit['client']}"):
+            with st.expander(f"📦 جرد: {unit['unit_type']} - العميل: {unit['client']}"):
                 c_a, c_f = st.columns(2)
                 with c_a:
                     st.write("**الألمنيوم:**")
