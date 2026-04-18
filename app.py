@@ -14,42 +14,22 @@ st.markdown("""
         direction: rtl;
     }
     .main-header { background-color: #2c3e50; color: white; padding: 20px; border-radius: 10px; text-align: center; margin-bottom: 20px; }
-    .unit-card { background-color: #f8f9fa; border: 1px solid #dee2e6; padding: 20px; border-radius: 10px; margin-bottom: 20px; }
-    .section-title { color: #2c3e50; border-bottom: 2px solid #e67e22; padding-bottom: 5px; margin-bottom: 10px; font-weight: bold; }
-    .alum-box { color: #d35400; font-weight: bold; }
-    .fiber-box { color: #27ae60; font-weight: bold; }
-    .extra-box { color: #2980b9; font-weight: bold; }
+    .unit-card { background-color: #ffffff; border: 2px solid #e9ecef; padding: 20px; border-radius: 12px; margin-bottom: 25px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+    .section-title { color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 5px; margin-bottom: 15px; font-weight: bold; font-size: 1.1em; }
+    .total-section { background-color: #1e272e; color: #f1c40f; padding: 25px; border-radius: 10px; text-align: center; margin-top: 30px; }
     </style>
     """, unsafe_allow_html=True)
 
-# 2. نظام تسجيل الدخول
-if 'logged_in' not in st.session_state:
-    st.session_state.logged_in = False
-
-if not st.session_state.logged_in:
-    st.markdown('<div class="main-header"><h1>🔐 تسجيل دخول نظام الورشة</h1></div>', unsafe_allow_html=True)
-    with st.form("login_form"):
-        user = st.text_input("اسم المستخدم")
-        password = st.text_input("كلمة المرور", type="password")
-        submit = st.form_submit_button("دخول للنظام")
-        if submit:
-            if user == "admin" and password == "123":
-                st.session_state.logged_in = True
-                st.rerun()
-            else:
-                st.error("❌ بيانات الدخول غير صحيحة")
-    st.stop()
-
-# 3. إدارة البيانات (Session State)
+# 2. إدارة البيانات (Session State)
 if 'project_storage' not in st.session_state:
     st.session_state.project_storage = []
 
-st.markdown('<div class="main-header"><h1>🏗️ لوحة تحكم تخصيم الألومنيوم والفيبر</h1></div>', unsafe_allow_html=True)
+st.markdown('<div class="main-header"><h1>🏗️ نظام تخصيم الألومنيوم والفيبر التفصيلي</h1></div>', unsafe_allow_html=True)
 
 # --- القائمة الجانبية لإدخال البيانات ---
 with st.sidebar:
     st.header("⚙️ إضافة وحدة جديدة")
-    u_title = st.text_input("اسم الوحدة (مثال: علوية مطبخ)")
+    u_title = st.text_input("اسم الوحدة (مثل: مطبخ علوي)")
     u_type = st.selectbox("نوع الوحدة", ["سفلية", "علوية", "دولاب خزين", "وحدة أخرى"])
     
     col_dim1, col_dim2, col_dim3 = st.columns(3)
@@ -76,13 +56,13 @@ with st.sidebar:
                 'sh_n': s_n, 'sh_w': s_w, 'sh_d': s_d,
                 'dr_n': dr_n, 'dr_w': dr_w, 'dr_d': dr_d
             })
-            st.success("تم الحفظ بنجاح")
+            st.success("✅ تم حفظ الوحدة")
         else:
-            st.error("يرجى إدخال المقاسات الأساسية")
+            st.error("⚠️ يرجى إدخال المقاسات")
 
 # --- عرض النتائج والجرد ---
 if st.session_state.project_storage:
-    tab1, tab2 = st.tabs(["📋 قائمة الوحدات", "📊 بيان التقطيع والجرد"])
+    tab1, tab2 = st.tabs(["📋 الوحدات المضافة", "🪚 بيان التقطيع والجرد"])
     
     with tab1:
         df = pd.DataFrame(st.session_state.project_storage)
@@ -99,7 +79,7 @@ if st.session_state.project_storage:
             h_b = u['h'] - 13 if u['type'] in ["سفلية", "دولاب خزين"] else u['h'] - 5
             w_b, d_b = u['w'] - 5, u['d'] - 5
             
-            # حساب الخامات الإجمالية
+            # حساب الخامات الإجمالية للوحدة
             if u['type'] == "سفلية":
                 m_curr = (h_b*2)+(w_b*3)+(d_b*2)
                 t_curr = (h_b*2)+(w_b*1)+(d_b*2)
@@ -109,7 +89,7 @@ if st.session_state.project_storage:
                 t_curr = (h_b*2)+(w_b*2)+(d_b*4)
                 f_unit = (w_b*h_b) + (w_b*d_b*2) + (h_b*d_b*2)
             
-            # إضافة الرفوف والأدراج للحسابات
+            # حساب الإضافات
             m_curr += (u['sh_w']*2 + u['sh_d']*2) * u['sh_n']
             m_curr += ((u['dr_w']-2.5)*2 + u['dr_d']*2) * u['dr_n']
             f_unit += (u['sh_w']-5)*(u['sh_d']-5)*u['sh_n']
@@ -118,42 +98,43 @@ if st.session_state.project_storage:
             t_total += t_curr
             f_total += f_unit
 
-            # عرض الوحدة في قسم منفصل
+            # عرض التقطيع التفصيلي لكل وحدة
             with st.container():
                 st.markdown(f'<div class="unit-card">', unsafe_allow_html=True)
-                st.subheader(f"📍 {u['title']} ({u['type']})")
+                st.subheader(f"📍 وحدة: {u['title']} | {u['type']}")
                 
                 c1, c2, c3 = st.columns(3)
                 with c1:
-                    st.markdown('<p class="section-title">📏 بند الألومنيوم</p>', unsafe_allow_html=True)
-                    st.write(f"• ارتفاع: {h_b} سم (4 قطع)")
-                    st.write(f"• عرض: {w_b} سم (4 قطع)")
-                    st.write(f"• عمق: {d_b} سم (4 قطع)")
+                    st.markdown('<p class="section-title">📏 تقطيع الألومنيوم</p>', unsafe_allow_html=True)
+                    st.write(f"• ارتفاع: **{h_b}** سم (4 قطع)")
+                    st.write(f"• عرض: **{w_b}** سم (4 قطع)")
+                    st.write(f"• عمق: **{d_b}** سم (4 قطع)")
                 
                 with c2:
-                    st.markdown('<p class="section-title">🪵 بند الفيبر</p>', unsafe_allow_html=True)
-                    st.write(f"• ضهرية: {w_b} × {h_b}")
-                    st.write(f"• أرضية/سقف: {w_b} × {d_b}")
-                    st.write(f"• أجناب: {h_b} × {d_b}")
+                    st.markdown('<p class="section-title">🪵 تقطيع الفيبر</p>', unsafe_allow_html=True)
+                    st.write(f"• ضهرية: **{w_b} × {h_b}**")
+                    st.write(f"• أرضية/سقف: **{w_b} × {d_b}**")
+                    st.write(f"• أجناب: **{h_b} × {d_b}**")
 
                 with c3:
-                    st.markdown('<p class="section-title">⚙️ بند الإضافات</p>', unsafe_allow_html=True)
+                    st.markdown('<p class="section-title">⚙️ تقطيع الإضافات</p>', unsafe_allow_html=True)
                     if u['sh_n'] > 0:
-                        st.write(f"• {u['sh_n']} رف: {u['sh_w']} × {u['sh_d']}")
+                        st.write(f"• {u['sh_n']} رف: **{u['sh_w']} × {u['sh_d']}**")
                     if u['dr_n'] > 0:
-                        st.write(f"• {u['dr_n']} درج: عرض {u['dr_w']-2.5} × عمق {u['dr_d']}")
+                        st.write(f"• {u['dr_n']} درج: عرض **{u['dr_w']-2.5}** × عمق **{u['dr_d']}**")
                     if u['sh_n'] == 0 and u['dr_n'] == 0:
                         st.write("لا توجد إضافات")
                 
                 st.markdown('</div>', unsafe_allow_html=True)
 
-        # الجرد النهائي للمشروع
-        st.divider()
-        st.markdown('<div class="main-header"><h2>💰 إجمالي خامات المشروع بالكامل</h2></div>', unsafe_allow_html=True)
+        # الجرد الإجمالي النهائي
+        st.markdown('<div class="total-section">', unsafe_allow_html=True)
+        st.header("💰 جرد خامات المشروع بالكامل")
         res1, res2, res3 = st.columns(3)
-        res1.metric("ألومنيوم مفرد (عود)", f"{m_total/600:.2f}")
-        res2.metric("ألومنيوم متقارب (عود)", f"{t_total/600:.2f}")
-        res3.metric("فيبر لوح (2.8*1.3)", f"{f_total/36400:.2f}")
+        res1.metric("إجمالي ألومنيوم مفرد (عود)", f"{m_total/600:.2f}")
+        res2.metric("إجمالي ألومنيوم متقارب (عود)", f"{t_total/600:.2f}")
+        res3.metric("إجمالي لوح فيبر (2.8*1.3)", f"{f_total/36400:.2f}")
+        st.markdown('</div>', unsafe_allow_html=True)
 
 else:
-    st.info("👋 مرحباً بك! قم بإضافة الوحدات من القائمة الجانبية لعرض بيان التقطيع.")
+    st.info("💡 ابدأ بإضافة مقاسات الوحدة من القائمة الجانبية (Sidebar) ليتم عرض بيان التقطيع هنا.")
