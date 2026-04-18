@@ -1,247 +1,236 @@
-import streamlit as st
-import pandas as pd
+import sys
+from PyQt5.QtWidgets import (QApplication, QWidget, QVBoxLayout, QHBoxLayout,
+                             QLabel, QLineEdit, QPushButton, QTextEdit,
+                             QComboBox, QGroupBox, QTableWidget, QTableWidgetItem, QHeaderView,
+                             QGridLayout, QMessageBox, QDialog)
+from PyQt5.QtGui import QFont
+from PyQt5.QtCore import Qt
 
-# ==========================================
-# 1. إعدادات النظام والتنسيق الكامل
-# ==========================================
-st.set_page_config(
-    page_title="دجة سمارت سستيم", 
-    page_icon="🔨",
-    layout="wide", 
-    initial_sidebar_state="collapsed"
-)
+class SummaryDialog(QDialog):
+    def __init__(self, report):
+        super().__init__()
+        self.setWindowTitle("📊 فاتورة جرد خامات المشروع التفصيلية")
+        self.setMinimumSize(700, 600)
+        layout = QVBoxLayout()
+        view = QTextEdit()
+        view.setReadOnly(True)
+        view.setStyleSheet("background-color: #1e272e; color: #f1c40f; font-family: 'Consolas'; font-size: 12pt; padding: 15px;")
+        view.setText(report)
+        layout.addWidget(view)
+        self.setLayout(layout)
 
-# تهيئة Session State كاملة
-if "projects" not in st.session_state:
-    st.session_state.projects = []
-if "current_page" not in st.session_state:
-    st.session_state.current_page = "home"
-if "last_unit_id" not in st.session_state:
-    st.session_state.last_unit_id = None
-if "df_invoice" not in st.session_state:
-    st.session_state.df_invoice = None
+class AluminumMasterApp(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.project_storage = [] 
+        self.initUI()
 
-# وظيفة تنظيف الأرقام المتقدمة
-@st.cache_data
-def clean_numbers(df):
-    def format_num(x):
-        if pd.isna(x) or x is None:
-            return ""
-        if isinstance(x, (int, float)):
-            return f"{float(x):g}"
-        return str(x)
-    return df.map(format_num)
+    def initUI(self):
+        self.setWindowTitle('نظام تخصيم الألومنيوم - نسخة الورشة النهائية')
+        self.setGeometry(30, 30, 1300, 950)
+        self.setFont(QFont("Segoe UI", 11))
 
-# ==========================================
-# 2. الصفحة الرئيسية الكاملة
-# ==========================================
-if st.session_state.current_page == "home":
-    st.markdown("""
-        <div style='text-align:center; padding: 5rem 2rem; background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); border-radius: 20px; margin: 2rem 0;'>
-            <h1 style='color:#f39c12; font-size: 4.5em; font-weight: bold; text-shadow: 2px 2px 4px rgba(0,0,0,0.3);'>دجة سمارت</h1>
-            <h2 style='color:#ecf0f1; font-size: 2em; margin: 1rem 0;'>نظام التخصيم الفني المتكامل</h2>
-            <p style='color:#bdc3c7; font-size: 1.4em; margin: 2rem 0;'>حسابات دقيقة للألمنيوم والفيبرجلاس بأعلى سرعة ودقة</p>
-        </div>
-    """, unsafe_allow_html=True)
-    
-    col1, col2 = st.columns(2)
-    if col1.button("🚀 **ابدأ التخصيم**", use_container_width=True, type="primary"):
-        st.session_state.current_page = "calc"
-        st.rerun()
-    
-    st.info("📋 **المميزات:**\n• حسابات تلقائية كاملة\n• جرد تفصيلي\n• فاتورة جاهزة للطباعة\n• تصدير Excel")
+        main_layout = QVBoxLayout()
 
-# ==========================================
-# 3. صفحة الفاتورة الكاملة
-# ==========================================
-elif st.session_state.current_page == "invoice":
-    st.markdown("### 📄 **فاتورة الخامات النهائية**")
-    
-    col_back, col_reset = st.columns([1, 1])
-    if col_back.button("⬅️ **العودة للتخصيم**", use_container_width=True):
-        st.session_state.current_page = "calc"
-        st.rerun()
-    
-    if col_reset.button("🔄 **إعادة حساب الفاتورة**", use_container_width=True):
-        if "df_invoice" in st.session_state:
-            del st.session_state.df_invoice
-        st.rerun()
+        self.total_btn = QPushButton("📊 جرد خامات المشروع بالكامل (فاتورة قص تفصيلية)")
+        self.total_btn.setStyleSheet("background-color: #d35400; color: white; font-weight: bold; height: 60px; font-size: 14pt; border-radius: 10px;")
+        self.total_btn.clicked.connect(self.show_project_totals)
+        main_layout.addWidget(self.total_btn)
 
-    if st.session_state.projects:
-        total_mufred = total_motaqarib = total_fiber = 0
+        input_group = QGroupBox("📝 مدخلات المقاسات (تحرك بالأسهم)")
+        grid = QGridLayout()
+
+        self.unit_title = QLineEdit(); self.unit_title.setPlaceholderText("اسم الوحدة")
+        self.unit_type = QComboBox(); self.unit_type.addItems(["سفلية", "علوية", "دولاب خزين", "وحدة أخرى"])
         
-        for project in st.session_state.projects:
-            for item in project["alum_items"]:
-                length = item.get("الطول (سم)", 0)
-                count = item.get("العدد", 0)
-                if item.get("النوع") == "مفرد":
-                    total_mufred += length * count
-                else:
-                    total_motaqarib += length * count
+        self.w = QLineEdit(); self.w.setPlaceholderText("العرض الكلي")
+        self.h = QLineEdit(); self.h.setPlaceholderText("الارتفاع الكلي")
+        self.d = QLineEdit(); self.d.setPlaceholderText("العمق الكلي")
+        
+        self.sh_w = QLineEdit(); self.sh_w.setPlaceholderText("الرف (عرض)")
+        self.sh_d = QLineEdit(); self.sh_d.setPlaceholderText("الرف (عمق)")
+        self.sh_n = QLineEdit(); self.sh_n.setPlaceholderText("الرفوف (عدد)")
+        
+        self.dv_h = QLineEdit(); self.dv_h.setPlaceholderText("الفاصل (ارتفاع)")
+        self.dv_d = QLineEdit(); self.dv_d.setPlaceholderText("الفاصل (عمق)")
+        self.dv_n = QLineEdit(); self.dv_n.setPlaceholderText("الفواصل (عدد)")
+
+        self.dr_w = QLineEdit(); self.dr_w.setPlaceholderText("الدرج (عرض)")
+        self.dr_d = QLineEdit(); self.dr_d.setPlaceholderText("الدرج (عمق)")
+        self.dr_n = QLineEdit(); self.dr_n.setPlaceholderText("الأدراج (عدد)")
+
+        grid.addWidget(self.unit_title, 0, 0, 1, 2); grid.addWidget(self.unit_type, 0, 2)
+        grid.addWidget(self.w, 1, 0); grid.addWidget(self.h, 1, 1); grid.addWidget(self.d, 1, 2)
+        grid.addWidget(self.sh_w, 2, 0); grid.addWidget(self.sh_d, 2, 1); grid.addWidget(self.sh_n, 2, 2)
+        grid.addWidget(self.dv_h, 3, 0); grid.addWidget(self.dv_d, 3, 1); grid.addWidget(self.dv_n, 3, 2)
+        grid.addWidget(self.dr_w, 4, 0); grid.addWidget(self.dr_d, 4, 1); grid.addWidget(self.dr_n, 4, 2)
+
+        input_group.setLayout(grid)
+        main_layout.addWidget(input_group)
+
+        self.nav_map = [
+            [self.unit_title, self.unit_title, self.unit_type],
+            [self.w, self.h, self.d],
+            [self.sh_w, self.sh_d, self.sh_n],
+            [self.dv_h, self.dv_d, self.dv_n],
+            [self.dr_w, self.dr_d, self.dr_n]
+        ]
+
+        btns = QHBoxLayout()
+        self.add_btn = QPushButton("💾 إضافة للجدول")
+        self.add_btn.setStyleSheet("background-color: #27ae60; color: white; height: 50px; font-weight: bold;")
+        self.add_btn.clicked.connect(self.process_unit)
+        self.clear_btn = QPushButton("🗑️ مسح الكل")
+        self.clear_btn.setStyleSheet("background-color: #c0392b; color: white; height: 50px; font-weight: bold;")
+        self.clear_btn.clicked.connect(self.clear_all)
+        btns.addWidget(self.add_btn); btns.addWidget(self.clear_btn)
+        main_layout.addLayout(btns)
+
+        display = QHBoxLayout()
+        self.result_sheet = QTextEdit(); self.result_sheet.setReadOnly(True)
+        self.result_sheet.setStyleSheet("background-color: #ffffff; border: 2px solid #2ecc71; font-family: 'Courier New'; font-size: 11pt; padding: 10px;")
+        self.table = QTableWidget(); self.table.setColumnCount(4)
+        self.table.setHorizontalHeaderLabels(["الوحدة", "العرض", "الارتفاع", "العمق"])
+        self.table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        display.addWidget(self.result_sheet, 7); display.addWidget(self.table, 3)
+        main_layout.addLayout(display)
+        self.setLayout(main_layout)
+
+    def keyPressEvent(self, event):
+        curr = self.focusWidget()
+        r, c = -1, -1
+        for row in range(5):
+            if curr in self.nav_map[row]: r, c = row, self.nav_map[row].index(curr); break
+        if r != -1:
+            if event.key() == Qt.Key_Right: self.nav_map[r][min(c+1, 2)].setFocus()
+            elif event.key() == Qt.Key_Left: self.nav_map[r][max(c-1, 0)].setFocus()
+            elif event.key() == Qt.Key_Down:
+                if r < 4: self.nav_map[r+1][c].setFocus()
+                else: self.add_btn.setFocus()
+            elif event.key() == Qt.Key_Up:
+                if r > 0: self.nav_map[r-1][c].setFocus()
+            elif event.key() == Qt.Key_Return:
+                if r < 4: self.nav_map[r+1][c].setFocus()
+                else: self.process_unit()
+
+    def process_unit(self):
+        try:
+            u = {
+                'title': self.unit_title.text() or "وحدة", 'type': self.unit_type.currentText(),
+                'w': float(self.w.text() or 0), 'h': float(self.h.text() or 0), 'd': float(self.d.text() or 0),
+                'sh_w': float(self.sh_w.text() or 0), 'sh_d': float(self.sh_d.text() or 0), 'sh_n': int(self.sh_n.text() or 0),
+                'dv_h': float(self.dv_h.text() or 0), 'dv_d': float(self.dv_d.text() or 0), 'dv_n': int(self.dv_n.text() or 0),
+                'dr_w': float(self.dr_w.text() or 0), 'dr_d': float(self.dr_d.text() or 0), 'dr_n': int(self.dr_n.text() or 0)
+            }
+            if self.project_storage and u == self.project_storage[-1]:
+                if QMessageBox.question(self, "تنبيه", "تكرار الوحدة؟", QMessageBox.Yes|QMessageBox.No) == QMessageBox.No: return
+
+            h_baky = u['h'] - 13 if u['type'] in ["سفلية", "دولاب خزين"] else u['h'] - 5
+            w_baky, d_baky = u['w'] - 5, u['d'] - 5
+
+            txt = f"\n📦 {u['title']} | النوع: {u['type']} | {u['w']}x{u['h']}x{u['d']}\n"
+            txt += "━" * 55 + "\n"
             
-            for item in project["fiber_items"]:
-                width = item.get("العرض", 0)
-                height = item.get("الارتفاع", 0)
-                qty = item.get("الكمية", 0)
-                total_fiber += width * height * qty
+            txt += "📐 [1] تخصيم الألومنيوم (2*8):\n"
+            if u['type'] == "سفلية":
+                txt += f"  - ارتفاع {h_baky}: [2 مفرد] [2 متقارب]\n"
+                txt += f"  - عــــرض {w_baky}: [3 مفرد] [1 متقارب]\n"
+                txt += f"  - عمــــق {d_baky}: [2 مفرد] [2 متقارب]\n"
+            else:
+                txt += f"  - ارتفاع {h_baky}: [2 مفرد] [2 متقارب]\n"
+                txt += f"  - عــــرض {w_baky}: [2 مفرد] [2 متقارب]\n"
+                txt += f"  - عمــــق {d_baky}: [4 متقارب]\n"
 
-        qty_alum_m = round(total_mufred / 600, 2)
-        qty_alum_t = round(total_motaqarib / 600, 2)
-        qty_fiber = round(total_fiber / (280 * 130), 2)
+            txt += "\n🪵 [2] تخصيم الفيبر (التقطيع):\n"
+            txt += f"  - ضهرية: {w_baky} × {h_baky} (1)\n"
+            txt += f"  - أرضية: {w_baky} × {d_baky} ({'1' if u['type']=='سفلية' else '2'})\n"
+            txt += f"  - أجناب: {h_baky} × {d_baky} (2)\n"
 
-        invoice_data = {
-            "البيان": ["أعواد ألمنيوم (مفرد)", "أعواد ألمنيوم (متقارب)", "ألواح فيبرجلاس"],
-            "الكمية": [qty_alum_m, qty_alum_t, qty_fiber],
-            "سعر الوحدة": [0.0, 0.0, 0.0],
-            "الإجمالي": [0.0, 0.0, 0.0]
-        }
+            if u['sh_n'] > 0:
+                txt += f"\n🧱 [3] الرفوف ({u['sh_n']}):\n"
+                txt += f"  - ألومنيوم: {u['sh_w']} × {u['sh_n']*2} قطعة | {u['sh_d']} × {u['sh_n']*2} قطعة [مفرد]\n"
+                txt += f"  - فيبر الرف: {u['sh_w']-5} × {u['sh_d']-5} ({u['sh_n']} قطعة)\n"
+
+            if u['dv_n'] > 0:
+                txt += f"\n📐 [4] الفواصل ({u['dv_n']}):\n"
+                txt += f"  - ألومنيوم: {u['dv_h']} × {u['dv_n']*2} قطعة | {u['dv_d']} × {u['dv_n']*2} قطعة [مفرد]\n"
+                txt += f"  - فيبر الفاصل: {u['dv_h']-5} × {u['dv_d']-5} ({u['dv_n']} قطعة)\n"
+
+            if u['dr_n'] > 0:
+                txt += f"\n🗄️ [5] الأدراج ({u['dr_n']}):\n"
+                txt += f"  - ألومنيوم العرض: {u['dr_w']-2.5} × {u['dr_n']*2} | العمق: {u['dr_d']} × {u['dr_n']*2}\n"
+
+            txt += "━" * 55
+            self.result_sheet.append(txt); self.project_storage.append(u)
+            row = self.table.rowCount(); self.table.insertRow(row)
+            self.table.setItem(row, 0, QTableWidgetItem(u['title']))
+            self.table.setItem(row, 1, QTableWidgetItem(str(u['w'])))
+            self.table.setItem(row, 2, QTableWidgetItem(str(u['h'])))
+            self.table.setItem(row, 3, QTableWidgetItem(str(u['d'])))
+            
+            self.unit_title.clear(); self.w.clear(); self.h.clear(); self.d.clear(); self.unit_title.setFocus()
+        except: QMessageBox.critical(self, "خطأ", "برجاء مراجعة المقاسات")
+
+    def clear_all(self):
+        if QMessageBox.question(self, "تأكيد", "مسح كل البيانات؟", QMessageBox.Yes|QMessageBox.No) == QMessageBox.Yes:
+            self.project_storage = []; self.table.setRowCount(0); self.result_sheet.clear()
+
+    def show_project_totals(self):
+        if not self.project_storage: return
+        m_sum, t_sum, f_area = 0, 0, 0
+        rep = "📝 تفاصيل تقطيع المشروع بالكامل:\n"
+        rep += "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
         
-        df_invoice = pd.DataFrame(invoice_data)
-        st.session_state.df_invoice = df_invoice
-        
-        st.markdown("### ✏️ **تحرير الأسعار والكميات**")
-        edited_df = st.data_editor(
-            st.session_state.df_invoice,
-            column_config={
-                "سعر الوحدة": st.column_config.NumberColumn("سعر الوحدة", format="%.2f"),
-                "الكمية": st.column_config.NumberColumn("الكمية", format="%.3f")
-            },
-            num_rows="fixed",
-            use_container_width=True,
-            hide_index=True
-        )
-        
-        edited_df["الإجمالي"] = edited_df["الكمية"] * edited_df["سعر الوحدة"]
-        st.dataframe(clean_numbers(edited_df), use_container_width=True)
-        
-        total_amount = edited_df["الإجمالي"].sum()
-        st.markdown(f"""
-            <div style='background: linear-gradient(90deg, #27ae60, #2ecc71); color: white; padding: 2rem; border-radius: 15px; text-align: center;'>
-                <h2 style='margin: 0;'>💰 إجمالي الفاتورة: {total_amount:,.2f} جنيه</h2>
-            </div>
-        """, unsafe_allow_html=True)
-        
-        csv_data = edited_df.to_csv(index=False, encoding='utf-8-sig')
-        st.download_button("📥 تحميل الفاتورة", data=csv_data, file_name="invoice.csv", mime="text/csv")
-    else:
-        st.warning("⚠️ لا توجد وحدات في الجرد.")
+        for u in self.project_storage:
+            h_b = u['h'] - 13 if u['type'] in ["سفلية", "دولاب خزين"] else u['h'] - 5
+            w_b, d_b = u['w'] - 5, u['d'] - 5
+            
+            rep += f"📍 وحدة: {u['title']} | {u['w']}x{u['h']}x{u['d']}\n"
+            
+            # تخصيم الهيكل
+            if u['type'] == "سفلية":
+                m_sum += (h_b*2)+(w_b*3)+(d_b*2); t_sum += (h_b*2)+(w_b*1)+(d_b*2)
+                f_u = (w_b*h_b) + (w_b*d_b) + (h_b*d_b*2)
+                rep += f"  - ألومنيوم: {h_b}×4 | {w_b}×4 | {d_b}×4\n"
+            else:
+                m_sum += (h_b*2)+(w_b*2); t_sum += (h_b*2)+(w_b*2)+(d_b*4)
+                f_u = (w_b*h_b) + (w_b*d_b*2) + (h_b*d_b*2)
+                rep += f"  - ألومنيوم: {h_b}×4 | {w_b}×4 | {d_b}×4\n"
+            
+            f_area += f_u
+            rep += f"  - فيبر: ضهرية {w_b}x{h_b} | أرضية/سقف {w_b}x{d_b} | أجناب {h_b}x{d_b}\n"
 
-# ==========================================
-# 4. صفحة التخصيم الكاملة (كل الخانات)
-# ==========================================
-else: 
-    st.markdown("### 🛠️ **لوحة التخصيم المتقدمة**")
-    
-    col_home, col_invoice, col_clear, col_stats = st.columns(4)
-    if col_home.button("🏠 الرئيسية", use_container_width=True):
-        st.session_state.current_page = "home"
-        st.rerun()
-    if col_invoice.button("📄 الفاتورة", use_container_width=True, type="primary"):
-        st.session_state.current_page = "invoice"
-        st.rerun()
-    if col_clear.button("🗑️ مسح الجرد", use_container_width=True):
-        st.session_state.projects = []
-        st.session_state.last_unit_id = None
-        st.rerun()
-    if st.session_state.projects:
-        col_stats.metric("📦 عدد الوحدات", len(st.session_state.projects))
+            # الرفوف
+            if u['sh_n'] > 0:
+                m_sh = (u['sh_w']*2 + u['sh_d']*2) * u['sh_n']
+                m_sum += m_sh
+                f_sh = (u['sh_w']-5)*(u['sh_d']-5)*u['sh_n']
+                f_area += f_sh
+                rep += f"  - الرفوف ({u['sh_n']}): ألومنيوم {u['sh_w']}x{u['sh_n']*2} و {u['sh_d']}x{u['sh_n']*2}\n"
 
-    # عرض الجرد الحالي (خانات التخصيم التفصيلية)
-    if st.session_state.projects:
-        st.markdown("### 📋 **الجرد التفصيلي ومقاسات القطع**")
-        for i, project in enumerate(st.session_state.projects):
-            with st.expander(f"وحدة {i+1}: {project['client_name']} - {project['unit_type']}", expanded=False):
-                col_a, col_f = st.columns(2)
-                with col_a:
-                    st.write("📐 **تخصيم الألمنيوم:**")
-                    st.table(pd.DataFrame(project['alum_items']))
-                with col_f:
-                    st.write("🖼️ **تخصيم الفيبر:**")
-                    st.table(pd.DataFrame(project['fiber_items']))
+            # الفواصل
+            if u['dv_n'] > 0:
+                m_dv = (u['dv_h']*2 + u['dv_d']*2) * u['dv_n']
+                m_sum += m_dv
+                f_dv = (u['dv_h']-5)*(u['dv_d']-5)*u['dv_n']
+                f_area += f_dv
+                rep += f"  - الفواصل ({u['dv_n']}): ألومنيوم {u['dv_h']}x{u['dv_n']*2} و {u['dv_d']}x{u['dv_n']*2}\n"
 
-    # النموذج الكامل بكل خاناتك
-    with st.form(key="complete_calc_form"):
-        st.markdown("---")
-        col_client, col_unit = st.columns([2, 1])
-        client_name = col_client.text_input("👤 اسم العميل", placeholder="اكتب اسم العميل")
-        unit_type = col_unit.selectbox("📦 نوع الوحدة", ["وحدة سفلية", "وحدة علوية", "دولاب خزينة"])
+            # الأدراج
+            if u['dr_n'] > 0:
+                m_dr = ((u['dr_w']-2.5)*2 + u['dr_d']*2) * u['dr_n']
+                m_sum += m_dr
+                rep += f"  - الأدراج ({u['dr_n']}): ألومنيوم عرض {u['dr_w']-2.5}x{u['dr_n']*2} و عمق {u['dr_d']}x{u['dr_n']*2}\n"
+            
+            rep += "----------------------------------------\n"
 
-        st.markdown("### 📐 المقاسات الأساسية (سم)")
-        col_w, col_h, col_d = st.columns(3)
-        width = col_w.number_input("العرض الكلي", value=None, min_value=0.0, step=0.5)
-        height = col_h.number_input("الارتفاع الكلي", value=None, min_value=0.0, step=0.5)
-        depth = col_d.number_input("العمق الكلي", value=None, min_value=0.0, step=0.5)
+        rep += f"\n📊 الجرد الإجمالي النهائي:\n"
+        rep += "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
+        rep += f"🔹 ألومنيوم مفرد:   {m_sum/600:.2f} عود\n"
+        rep += f"🔹 ألومنيوم متقارب: {t_sum/600:.2f} عود\n"
+        rep += f"🔹 فيبر (2.8*1.3):  {f_area/36400:.2f} لوح\n"
+        rep += "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        SummaryDialog(rep).exec_()
 
-        st.markdown("### 🗄️ الأرفف")
-        col_sh1, col_sh2, col_sh3 = st.columns(3)
-        shelves_count = col_sh1.number_input("عدد الأرفف", value=None, min_value=0, step=1)
-        shelf_width = col_sh2.number_input("عرض الرف", value=None, min_value=0.0)
-        shelf_depth = col_sh3.number_input("عمق الرف", value=None, min_value=0.0)
-
-        st.markdown("### 🔀 الفواصل")
-        col_v1, col_v2, col_v3 = st.columns(3)
-        dividers_count = col_v1.number_input("عدد الفواصل", value=None, min_value=0, step=1)
-        divider_height = col_v2.number_input("ارتفاع الفاصل", value=None, min_value=0.0)
-        divider_depth = col_v3.number_input("عمق الفاصل", value=None, min_value=0.0)
-
-        st.markdown("### 📂 الأدراج")
-        col_dr1, col_dr2, col_dr3 = st.columns(3)
-        drawers_count = col_dr1.number_input("عدد الأدراج", value=None, min_value=0, step=1)
-        drawer_width = col_dr2.number_input("عرض الدرج", value=None, min_value=0.0)
-        drawer_depth = col_dr3.number_input("عمق الدرج", value=None, min_value=0.0)
-
-        st.markdown("### ➕ إضافات")
-        col_e1, col_e2, col_e3 = st.columns(3)
-        extra_v = col_e1.number_input("أعواد رأسية إضافية", value=None, min_value=0)
-        extra_h = col_e2.number_input("أعواد أفقية إضافية", value=None, min_value=0)
-        extra_l = col_e3.number_input("طول العود الإضافي", value=None, min_value=0.0)
-
-        submit_btn = st.form_submit_button("🔨 احسب وأضف للجرد", use_container_width=True, type="primary")
-
-    if submit_btn:
-        if width and height and depth:
-            unit_id = f"{client_name}_{width}_{height}_{depth}"
-            if st.session_state.last_unit_id != unit_id:
-                # معادلات التخصيم
-                f_h = height - (13 if unit_type != "وحدة علوية" else 5)
-                f_w = width - 5
-                f_d = depth - 5
-                
-                alum_items = [
-                    {"القطعة": "قائم رئيسي", "الطول (سم)": f_h, "العدد": 2, "النوع": "مفرد"},
-                    {"القطعة": "قائم متقارب", "الطول (سم)": f_h, "العدد": 2, "النوع": "متقارب"},
-                    {"القطعة": "عرض أفقي", "الطول (سم)": f_w, "العدد": 4, "النوع": "مفرد"}
-                ]
-                
-                fiber_items = [
-                    {"اللوح": "جوانب", "العرض": f_h, "الارتفاع": f_d, "الكمية": 2},
-                    {"اللوح": "أرضية", "العرض": f_w, "الارتفاع": f_d, "الكمية": 1},
-                    {"اللوح": "ظهر", "العرض": f_h, "الارتفاع": f_w, "الكمية": 1}
-                ]
-
-                # معالجة الأرفف
-                if shelves_count and shelf_width and shelf_depth:
-                    alum_items.append({"القطعة": "إطار رف", "الطول (سم)": shelf_width, "العدد": int(shelves_count)*2, "النوع": "متقارب"})
-                    fiber_items.append({"اللوح": "رف", "العرض": shelf_width, "الارتفاع": shelf_depth, "الكمية": int(shelves_count)})
-
-                # معالجة الفواصل
-                if dividers_count and divider_height:
-                    alum_items.append({"القطعة": "قائم فاصل", "الطول (سم)": divider_height, "العدد": int(dividers_count)*2, "النوع": "متقارب"})
-                    fiber_items.append({"اللوح": "فاصل", "العرض": divider_height, "الارتفاع": divider_depth, "الكمية": int(dividers_count)})
-
-                # معالجة الأدراج
-                if drawers_count and drawer_width:
-                    alum_items.append({"القطعة": "جنب درج", "الطول (سم)": drawer_depth, "العدد": int(drawers_count)*2, "النوع": "مفرد"})
-                    fiber_items.append({"اللوح": "قاع درج", "العرض": drawer_width, "الارتفاع": drawer_depth, "الكمية": int(drawers_count)})
-
-                # معالجة الإضافات
-                if extra_v and extra_l: alum_items.append({"القطعة": "إضافي رأسي", "الطول (سم)": extra_l, "العدد": int(extra_v), "النوع": "مفرد"})
-                if extra_h and extra_l: alum_items.append({"القطعة": "إضافي أفقي", "الطول (سم)": extra_l, "العدد": int(extra_h), "النوع": "متقارب"})
-
-                st.session_state.projects.append({
-                    "client_name": client_name, "unit_type": unit_type,
-                    "alum_items": alum_items, "fiber_items": fiber_items
-                })
-                st.session_state.last_unit_id = unit_id
-                st.success("✅ تمت الإضافة للجرد!")
-                st.rerun()
+if __name__ == '__main__':
+    app = QApplication(sys.argv); ex = AluminumMasterApp(); ex.show(); sys.exit(app.exec_())
