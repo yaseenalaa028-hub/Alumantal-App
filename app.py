@@ -93,7 +93,8 @@ else:
                     'sh_n': sh_n, 'dv_n': dv_n, 'dr_n': dr_n
                 })
                 st.success(f"تمت إضافة {u_name} بنجاح")
-                st.rerun()if st.session_state.db:
+                st.rerun()
+                if st.session_state.db:
         st.divider()
         total_m, total_t, total_f = 0, 0, 0
         total_joints, total_handles, total_hinges = 0, 0, 0
@@ -145,7 +146,8 @@ else:
         
         if st.button("🗑️ مسح المشروع بالكامل"): st.session_state.db = []; st.rerun()
         st.markdown('</div>', unsafe_allow_html=True)
-        st.markdown("<p style='text-align:center; margin-top:30px;'>تمت البرمجة بواسطة المهندس ياسين علاء © 2026</p>", unsafe_allow_html=True)# --- [ الجزء الثالث والأخير: تقارير الطباعة والتوقيع النهائي ] ---
+        st.markdown("<p style='text-align:center; margin-top:30px;'>تمت البرمجة بواسطة المهندس ياسين علاء © 2026</p>", unsafe_allow_html=True)
+        # --- [ الجزء الثالث والأخير: تقارير الطباعة والتوقيع النهائي ] ---
 # برمجة المهندس ياسين علاء
 
         # 5. قسم الطباعة والتصدير (Layout for Print)
