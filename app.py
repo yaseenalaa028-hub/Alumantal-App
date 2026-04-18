@@ -1,10 +1,10 @@
 import streamlit as st
 import pandas as pd
 
-# 1. إعدادات الصفحة والواجهة (بدون شريط جانبي وبكامل العرض)
-st.set_page_config(page_title="نظام تخصيم الألومنيوم والفيبر PRO", layout="wide")
+# 1. إعدادات الصفحة والواجهة (كامل العرض)
+st.set_page_config(page_title="نظام تخصيم الألومنيوم PRO - النسخة الكاملة", layout="wide")
 
-# 2. تنسيقات CSS مخصصة لتحسين شكل الواجهة والجدول
+# تنسيق اللغة العربية والشكل العام (CSS)
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap');
@@ -16,11 +16,33 @@ st.markdown("""
     .main-header {
         background-color: #2c3e50;
         color: white;
-        padding: 50px;
+        padding: 40px;
         border-radius: 20px;
         text-align: center;
         margin-bottom: 30px;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+    }
+    .stTable { background-color: white; border-radius: 10px; }
+    th {
+        background-color: #2c3e50 !important;
+        color: white !important;
+        text-align: center !important;
+        font-size: 16px;
+    }
+    td {
+        text-align: center !important;
+        font-weight: bold !important;
+        font-size: 14px;
+        border: 1px solid #dee2e6 !important;
+    }
+    .total-box {
+        background-color: #1e272e;
+        color: #f1c40f;
+        padding: 25px;
+        border-radius: 15px;
+        text-align: center;
+        border: 2px solid #f1c40f;
+        margin-top: 30px;
     }
     .start-btn button {
         background-color: #27ae60 !important;
@@ -32,167 +54,153 @@ st.markdown("""
         border-radius: 15px !important;
         margin: 20px auto !important;
         display: block !important;
-        border: none !important;
-    }
-    th {
-        background-color: #2c3e50 !important;
-        color: white !important;
-        text-align: center !important;
-        font-size: 16px !important;
-    }
-    td {
-        text-align: center !important;
-        font-weight: bold !important;
-        font-size: 15px !important;
-        border: 1px solid #dee2e6 !important;
-    }
-    .total-card {
-        background-color: #1e272e;
-        color: #f1c40f;
-        padding: 25px;
-        border-radius: 15px;
-        text-align: center;
-        border: 2px solid #f1c40f;
-        margin-top: 30px;
-    }
-    .stNumberInput, .stTextInput, .stSelectbox {
-        margin-bottom: 10px;
     }
     </style>
     """, unsafe_allow_html=True)
 
-# 3. إدارة حالة البرنامج (بدأ الشغل أم لا + مخزن البيانات)
-if 'is_started' not in st.session_state:
-    st.session_state.is_started = False
-if 'project_data' not in st.session_state:
-    st.session_state.project_data = []
+# 2. إدارة البيانات والتنقل (Session State)
+if 'page' not in st.session_state:
+    st.session_state.page = 'home'
+if 'project_storage' not in st.session_state:
+    st.session_state.project_storage = []
 
-# ---------------------------------------------------------
-# الشاشة الأولى: صفحة الترحيب
-# ---------------------------------------------------------
-if not st.session_state.is_started:
+# --- [الشاشة الأولى: صفحة الترحيب] ---
+if st.session_state.page == 'home':
     st.markdown('<div class="main-header">', unsafe_allow_html=True)
-    st.title("🏗️ نظام تخصيم الألومنيوم والفيبر")
-    st.subheader("نسخة الورشة الاحترافية - حسابات دقيقة وجرد شامل")
+    st.title("🏗️ نظام تخصيم الألومنيوم والفيبر الاحترافي")
+    st.subheader("إدارة متكاملة لبيانات المقاسات - جرد الخامات - فواتير القص")
     st.markdown('</div>', unsafe_allow_html=True)
     
     col_s1, col_s2, col_s3 = st.columns([1, 1, 1])
     with col_s2:
         if st.button("🚀 ابدأ التخصيم الآن"):
-            st.session_state.is_started = True
+            st.session_state.page = 'work'
             st.rerun()
 
-# ---------------------------------------------------------
-# الشاشة الثانية: لوحة العمل الكاملة
-# ---------------------------------------------------------
+# --- [الشاشة الثانية: واجهة العمل الكاملة] ---
 else:
-    # هيدر الصفحة
+    # رأس الصفحة وأزرار التحكم العامة
     col_h1, col_h2 = st.columns([8, 2])
-    col_h1.title("🛠️ لوحة العمليات والحسابات")
+    col_h1.title("🛠️ لوحة إدخال البيانات والتخصيم")
     if col_h2.button("🏠 العودة للرئيسية"):
-        st.session_state.is_started = False
+        st.session_state.page = 'home'
         st.rerun()
 
     st.divider()
 
-    # قسم إدخال البيانات (عرض كامل)
+    # قسم المدخلات (كامل دون نقص)
     with st.container():
-        st.subheader("📝 إدخال مقاسات الوحدة")
-        row1_col1, row1_col2, row1_col3, row1_col4 = st.columns([2, 1, 1, 1])
-        u_name = row1_col1.text_input("اسم الوحدة (مثلاً: مطبخ علوي زاوية)")
-        u_type = row1_col2.selectbox("نوع الوحدة", ["سفلية", "علوية", "دولاب خزين", "وحدة أخرى"])
-        u_width = row1_col3.number_input("العرض الكلي (سم)", min_value=0.0, step=0.1)
-        u_height = row1_col4.number_input("الارتفاع الكلي (سم)", min_value=0.0, step=0.1)
+        st.subheader("📝 مقاسات الهيكل الأساسي")
+        c1, c2, c3, c4, c5 = st.columns([2, 1, 1, 1, 1])
+        u_title = c1.text_input("اسم الوحدة (مثل: مطبخ علوي)")
+        u_type = c2.selectbox("نوع الوحدة", ["سفلية", "علوية", "دولاب خزين", "وحدة أخرى"])
+        u_w = c3.number_input("العرض الكلي", min_value=0.0, format="%.1f")
+        u_h = c4.number_input("الارتفاع الكلي", min_value=0.0, format="%.1f")
+        u_d = c5.number_input("العمق الكلي", min_value=0.0, format="%.1f")
 
-        row2_col1, row2_col2, row2_col3, row2_col4 = st.columns(4)
-        u_depth = row2_col1.number_input("العمق الكلي (سم)", min_value=0.0, step=0.1)
-        u_shelves = row2_col2.number_input("عدد الرفوف", min_value=0, step=1)
-        u_dividers = row2_col3.number_input("عدد الفواصل", min_value=0, step=1)
-        u_drawers = row2_col4.number_input("عدد الأدراج", min_value=0, step=1)
+        st.markdown("#### 🧱 تفاصيل الإضافات (الرفوف، الفواصل، الأدراج)")
+        
+        # مدخلات الرفوف
+        st.write("➖ **الرفوف:**")
+        sc1, sc2, sc3 = st.columns(3)
+        sh_n = sc1.number_input("عدد الرفوف", min_value=0, step=1, key="sh_n")
+        sh_w = sc2.number_input("عرض الرف", min_value=0.0, format="%.1f", key="sh_w")
+        sh_d = sc3.number_input("عمق الرف", min_value=0.0, format="%.1f", key="sh_d")
 
+        # مدخلات الفواصل
+        st.write("➖ **الفواصل:**")
+        vc1, vc2, vc3 = st.columns(3)
+        dv_n = vc1.number_input("عدد الفواصل", min_value=0, step=1, key="dv_n")
+        dv_h = vc2.number_input("ارتفاع الفاصل", min_value=0.0, format="%.1f", key="dv_h")
+        dv_d = vc3.number_input("عمق الفاصل", min_value=0.0, format="%.1f", key="dv_d")
+
+        # مدخلات الأدراج
+        st.write("➖ **الأدراج:**")
+        rc1, rc2, rc3 = st.columns(3)
+        dr_n = rc1.number_input("عدد الأدراج", min_value=0, step=1, key="dr_n")
+        dr_w = rc2.number_input("عرض الدرج", min_value=0.0, format="%.1f", key="dr_w")
+        dr_d = rc3.number_input("عمق الدرج", min_value=0.0, format="%.1f", key="dr_d")
+
+        st.write("")
         btn_col1, btn_col2 = st.columns(2)
-        if btn_col1.button("💾 حفظ الوحدة وإظهار التخصيم في الجدول", type="primary", use_container_width=True):
-            if u_width > 0 and u_height > 0:
-                st.session_state.project_data.append({
-                    'title': u_name or f"وحدة {len(st.session_state.project_data)+1}",
-                    'type': u_type, 'w': u_width, 'h': u_height, 'd': u_depth,
-                    'sh_n': u_shelves, 'dv_n': u_dividers, 'dr_n': u_drawers
+        if btn_col1.button("💾 حفظ الوحدة وإضافتها للجدول", type="primary", use_container_width=True):
+            if u_w > 0 and u_h > 0:
+                st.session_state.project_storage.append({
+                    'title': u_title or f"وحدة {len(st.session_state.project_storage)+1}",
+                    'type': u_type, 'w': u_w, 'h': u_h, 'd': u_d,
+                    'sh_n': sh_n, 'sh_w': sh_w, 'sh_d': sh_d,
+                    'dv_n': dv_n, 'dv_h': dv_h, 'dv_d': dv_d,
+                    'dr_n': dr_n, 'dr_w': dr_w, 'dr_d': dr_d
                 })
-                st.success(f"✅ تم إضافة {u_name or 'الوحدة'} بنجاح")
                 st.rerun()
             else:
-                st.error("⚠️ يرجى إدخال الطول والعرض للوحدة")
-        
-        if btn_col2.button("🗑️ مسح وإفراغ المشروع الحالي", use_container_width=True):
-            st.session_state.project_data = []
+                st.error("⚠️ يرجى إدخال المقاسات الأساسية (العرض والارتفاع)")
+
+        if btn_col2.button("🗑️ مسح كل الوحدات", use_container_width=True):
+            st.session_state.project_storage = []
             st.rerun()
 
-    # 4. معالجة البيانات وعرض الجدول الشامل
-    if st.session_state.project_data:
+    # --- عرض النتائج في جدول شامل وفاتورة جرد ---
+    if st.session_state.project_storage:
         st.divider()
-        st.subheader("📋 جدول التخصيم والتقطيع التفصيلي")
+        st.subheader("📋 جدول تخصيم الوحدات التفصيلي")
         
-        display_list = []
-        total_mufard, total_mutaqarib, total_fiber = 0, 0, 0
+        table_rows = []
+        sum_mufard, sum_mutaqarib, sum_fiber = 0, 0, 0
 
-        for unit in st.session_state.project_data:
-            # حسابات التخصيم (نفس منطق الكود الأصلي الخاص بك)
-            # Baky Calculations
-            h_baky = unit['h'] - 13 if unit['type'] in ["سفلية", "دولاب خزين"] else unit['h'] - 5
-            w_baky = unit['w'] - 5
-            d_baky = unit['d'] - 5
-            
-            # Aluminum & Fiber Inventory Logic
-            if unit['type'] == "سفلية":
-                # Aluminum: (H*2)+(W*3)+(D*2) مفرد | (H*2)+(W*1)+(D*2) متقارب
-                m_unit = (h_baky * 2) + (w_baky * 3) + (d_baky * 2)
-                t_unit = (h_baky * 2) + (w_baky * 1) + (d_baky * 2)
-                # Fiber: ضهرية + أرضية + 2 جنب
-                f_unit = (w_baky * h_baky) + (w_baky * d_baky) + (h_baky * d_baky * 2)
+        for u in st.session_state.project_storage:
+            # 1. تخصيم الهيكل (Baky)
+            h_b = u['h'] - 13 if u['type'] in ["سفلية", "دولاب خزين"] else u['h'] - 5
+            w_b = u['w'] - 5
+            d_b = u['d'] - 5
+
+            # 2. منطق جرد الخامات (سم طولي و سم مربع)
+            if u['type'] == "سفلية":
+                m_u = (h_b * 2) + (w_b * 3) + (d_b * 2)
+                t_u = (h_b * 2) + (w_b * 1) + (d_b * 2)
+                f_u = (w_b * h_b) + (w_b * d_b) + (h_b * d_b * 2)
             else:
-                # Aluminum for Upper: (H*2)+(W*2) مفرد | (H*2)+(W*2)+(D*4) متقارب
-                m_unit = (h_baky * 2) + (w_baky * 2)
-                t_unit = (h_baky * 2) + (w_baky * 2) + (d_baky * 4)
-                # Fiber: ضهرية + 2 أرضية + 2 جنب
-                f_unit = (w_baky * h_baky) + (w_baky * d_baky * 2) + (h_baky * d_baky * 2)
-            
-            # Extras (Shelves)
-            if unit['sh_n'] > 0:
-                m_unit += (unit['w'] * 2 + unit['d'] * 2) * unit['sh_n']
-                f_unit += (unit['w'] - 5) * (unit['d'] - 5) * unit['sh_n']
+                m_u = (h_b * 2) + (w_b * 2)
+                t_u = (h_b * 2) + (w_b * 2) + (d_b * 4)
+                f_u = (w_b * h_b) + (w_b * d_b * 2) + (h_b * d_b * 2)
 
-            # Cumulative Totals
-            total_mufard += m_unit
-            total_mutaqarib += t_unit
-            total_fiber += f_unit
+            # 3. حساب الإضافات في الجرد
+            m_u += (u['sh_w'] * 2 + u['sh_d'] * 2) * u['sh_n']
+            m_u += (u['dv_h'] * 2 + u['dv_d'] * 2) * u['dv_n']
+            m_u += ((u['dr_w'] - 2.5) * 2 + u['dr_d'] * 2) * u['dr_n']
+            f_u += (u['sh_w'] - 5) * (u['sh_d'] - 5) * u['sh_n']
+            f_u += (u['dv_h'] - 5) * (u['dv_d'] - 5) * u['dv_n']
 
-            # Add to Display Table
-            display_list.append({
-                "الوحدة": unit['title'],
-                "النوع": unit['type'],
-                "ارتفاع الألومنيوم": h_baky,
-                "عرض الألومنيوم": w_baky,
-                "عمق الألومنيوم": d_baky,
-                "الفيبر (الضهر)": f"{w_baky} × {h_baky}",
-                "الفيبر (الأرضية)": f"{w_baky} × {d_baky}",
-                "الفيبر (الأجناب)": f"{h_baky} × {d_baky}",
-                "الرفوف": f"{unit['sh_n']} رف",
-                "الأدراج": f"{unit['dr_n']} درج (عرض {unit['w']-2.5})"
+            sum_mufard += m_u
+            sum_mutaqarib += t_u
+            sum_fiber += f_u
+
+            # 4. بناء سطر الجدول
+            table_rows.append({
+                "اسم الوحدة": u['title'],
+                "النوع": u['type'],
+                "ارتفاع الألوم": h_b,
+                "عرض الألوم": w_b,
+                "عمق الألوم": d_b,
+                "فيبر ضهر": f"{w_b}×{h_b}",
+                "فيبر أرضية": f"{w_b}×{d_b}",
+                "فيبر أجناب": f"{h_b}×{d_b}",
+                "الرفوف": f"{u['sh_n']} رف ({u['sh_w']}×{u['sh_d']})",
+                "الفواصل": f"{u['dv_n']} فاصل ({u['dv_h']}×{u['dv_d']})",
+                "الأدراج": f"{u['dr_n']} درج (عرض {u['dr_w']-2.5})"
             })
 
-        # عرض الجدول الكبير الموحد
-        df_final = pd.DataFrame(display_list)
-        st.table(df_final)
+        # عرض الجدول
+        df = pd.DataFrame(table_rows)
+        st.table(df)
 
-        # 5. جرد خامات المشروع (فاتورة القص النهائية)
-        st.markdown('<div class="total-card">', unsafe_allow_html=True)
-        st.subheader("📊 الفاتورة الإجمالية لجرد خامات المشروع")
-        col_res1, col_res2, col_res3 = st.columns(3)
-        
-        # تحويل من سم إلى عود (600 سم) ومن سم2 إلى لوح (36400 سم2)
-        col_res1.metric("ألومنيوم مفرد (عود)", f"{total_mufard / 600:.2f}")
-        col_res2.metric("ألومنيوم متقارب (عود)", f"{total_mutaqarib / 600:.2f}")
-        col_res3.metric("فيبر (2.8 * 1.3) لوح", f"{total_fiber / 36400:.2f}")
+        # 5. فاتورة الجرد النهائي للمشروع
+        st.markdown('<div class="total-box">', unsafe_allow_html=True)
+        st.subheader("📊 إجمالي خامات المشروع بالكامل (فاتورة القص)")
+        res1, res2, res3 = st.columns(3)
+        res1.metric("ألومنيوم مفرد (عـود 6م)", f"{sum_mufard/600:.2f}")
+        res2.metric("ألومنيوم متقارب (عـود 6م)", f"{sum_mutaqarib/600:.2f}")
+        res3.metric("فيبر (لوح 2.8×1.3)", f"{sum_fiber/36400:.2f}")
         st.markdown('</div>', unsafe_allow_html=True)
     else:
-        st.info("💡 لا يوجد بيانات لعرضها. يرجى إدخال مقاسات الوحدة بالأعلى والضغط على 'حفظ'.")
+        st.info("💡 لم تقم بإضافة أي وحدات بعد. أدخل المقاسات أعلاه واضغط حفظ.")
