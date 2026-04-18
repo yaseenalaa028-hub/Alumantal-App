@@ -1,163 +1,193 @@
 import streamlit as st
 import pandas as pd
 
-# -------------------------
-# إعداد الصفحة
-# -------------------------
 st.set_page_config(page_title="Kitchen Pro ERP", layout="wide")
 
-# -------------------------
-# CSS احترافي
-# -------------------------
+# ---------------- CSS ----------------
 st.markdown("""
 <style>
-body {
-    font-family: 'Cairo', sans-serif;
-}
-
-.main-box {
-    text-align: center;
-    padding: 60px;
+body {font-family: Cairo;}
+.header{
     background: linear-gradient(90deg,#1e272e,#2c3e50);
-    color: white;
-    border-radius: 20px;
-    margin-top: 50px;
+    padding:25px;
+    text-align:center;
+    color:#f1c40f;
+    border-radius:15px;
+    font-weight:bold;
 }
-
-.title {
-    font-size: 42px;
-    font-weight: 900;
-    color: #f1c40f;
-}
-
-.sub {
-    font-size: 20px;
-    margin-top: 10px;
-}
-
-.card {
-    background: white;
-    padding: 20px;
-    border-radius: 15px;
-    box-shadow: 0px 4px 15px rgba(0,0,0,0.1);
-    margin-top: 20px;
+.card{
+    background:white;
+    padding:15px;
+    border-radius:15px;
+    box-shadow:0 3px 12px rgba(0,0,0,0.1);
+    margin-top:15px;
 }
 </style>
 """, unsafe_allow_html=True)
 
-# -------------------------
-# Session State
-# -------------------------
+# ---------------- SESSION ----------------
 if "page" not in st.session_state:
     st.session_state.page = "home"
 
 if "db" not in st.session_state:
     st.session_state.db = []
 
-# =========================================================
-# 🟦 الصفحة الرئيسية
-# =========================================================
+# =====================================================
+# 🟦 HOME PAGE
+# =====================================================
 if st.session_state.page == "home":
 
     st.markdown("""
-    <div class="main-box">
-        <div class="title">💎 KITCHEN PRO ERP</div>
-        <div class="sub">برمجة المهندس ياسين علاء</div>
-        <p>نظام إدارة التخصيم والتقطيع الاحترافي للمطابخ</p>
+    <div class="header">
+        💎 KITCHEN PRO ERP <br>
+        برمجة المهندس ياسين علاء
     </div>
     """, unsafe_allow_html=True)
 
-    # لوجو (غير الرابط براحتك)
-    st.image("https://i.imgur.com/8Km9tLL.png", width=180)
-
     st.write("")
+    st.image("https://i.imgur.com/8Km9tLL.png", width=160)
 
-    if st.button("🚀 الدخول إلى نظام التخصيم", use_container_width=True):
-        st.session_state.page = "calc"
+    if st.button("🚀 الدخول للنظام", use_container_width=True):
+        st.session_state.page = "system"
         st.rerun()
 
-# =========================================================
-# 🟩 صفحة التخصيم
-# =========================================================
-elif st.session_state.page == "calc":
+# =====================================================
+# 🟩 SYSTEM PAGE
+# =====================================================
+else:
 
-    st.title("📋 نظام التخصيم الاحترافي للمطابخ")
+    st.title("📋 نظام التخصيم الاحترافي")
 
-    if st.button("⬅ الرجوع للرئيسية"):
+    if st.button("⬅ الرجوع"):
         st.session_state.page = "home"
         st.rerun()
 
     st.divider()
 
-    # -------------------------
-    # إدخال البيانات
-    # -------------------------
-    st.subheader("➕ إضافة وحدة جديدة")
+    # ---------------- INPUT ----------------
+    st.subheader("➕ إضافة وحدة")
 
-    col1, col2, col3, col4 = st.columns(4)
+    c1, c2, c3, c4 = st.columns(4)
+    name = c1.text_input("اسم الوحدة")
+    u_type = c2.selectbox("النوع", ["سفلية", "علوية", "دولاب"])
+    qty = c3.number_input("الكمية", 1)
+    W = c4.number_input("العرض")
 
-    name = col1.text_input("اسم الوحدة")
-    W = col2.number_input("العرض", min_value=0.0)
-    H = col3.number_input("الارتفاع", min_value=0.0)
-    D = col4.number_input("العمق", min_value=0.0)
+    c5, c6, c7 = st.columns(3)
+    H = c5.number_input("الارتفاع")
+    D = c6.number_input("العمق")
 
-    qty = st.number_input("العدد", min_value=1, value=1)
+    shelves = c7.number_input("رفوف", 0)
 
-    if st.button("➕ إضافة إلى النظام", use_container_width=True):
+    c8, c9, c10 = st.columns(3)
+    dividers = c8.number_input("فواصل", 0)
+    drawers = c9.number_input("أدراج", 0)
 
-        if W > 0 and H > 0:
+    if st.button("➕ إضافة الوحدة", use_container_width=True):
+
+        if W > 0 and H > 0 and D > 0:
+
             st.session_state.db.append({
-                "name": name if name else f"UNIT-{len(st.session_state.db)+1}",
+                "name": name or f"UNIT-{len(st.session_state.db)+1}",
+                "type": u_type,
+                "qty": qty,
                 "W": W,
                 "H": H,
                 "D": D,
-                "qty": qty
+                "sh": shelves,
+                "dv": dividers,
+                "dr": drawers
             })
+
             st.success("تمت الإضافة ✔")
             st.rerun()
 
     st.divider()
 
-    # -------------------------
-    # جدول التخصيم
-    # -------------------------
+    # =====================================================
+    # 📊 CALCULATION ENGINE
+    # =====================================================
     if st.session_state.db:
 
-        st.subheader("📊 جدول التخصيم")
+        st.subheader("📊 جدول التخصيم الكامل")
 
-        data = []
+        table = []
+
+        total_aluminum = 0
+        total_fiber = 0
 
         for u in st.session_state.db:
 
-            h = u["H"] - 13
-            w = u["W"] - 5
-            d = u["D"] - 5
+            # =========================
+            # الخصم حسب النوع
+            # =========================
+            h_deduct = 13 if u["type"] == "سفلية" or u["type"] == "دولاب" else 5
 
-            data.append({
+            W = u["W"] - 5
+            H = u["H"] - h_deduct
+            D = u["D"] - 5
+
+            # =========================
+            # الألومنيوم (المعادلات)
+            # =========================
+            alum_single = (H * 2) + (W * 3) + (D * 2)
+            alum_double = (H * 2) + (W * 1) + (D * 2)
+
+            if u["type"] != "سفلية":
+                alum_single = (H * 2) + (W * 2)
+                alum_double = (H * 2) + (W * 2) + (D * 4)
+
+            # إضافات
+            alum_single += (u["sh"] + u["dv"]) * 4 * 10
+            alum_single += u["dr"] * 20
+
+            # =========================
+            # الفيبر
+            # =========================
+            fiber = (W * H) + (W * D) + (H * D * 2)
+
+            if u["sh"] > 0:
+                fiber += u["sh"] * (W * (D - 5))
+
+            if u["dv"] > 0:
+                fiber += u["dv"] * (H * (D - 5))
+
+            # =========================
+            # الإجمالي
+            # =========================
+            total_aluminum += alum_single * u["qty"]
+            total_fiber += fiber * u["qty"]
+
+            table.append({
                 "الوحدة": u["name"],
-                "العرض": u["W"],
-                "الارتفاع": u["H"],
-                "العمق": u["D"],
+                "النوع": u["type"],
                 "العدد": u["qty"],
-                "المقاس بعد التخصيم (H)": h,
-                "المقاس بعد التخصيم (W)": w,
-                "المقاس بعد التخصيم (D)": d
+                "W": W,
+                "H": H,
+                "D": D,
+                "ألمنيوم مفرد": alum_single,
+                "ألمنيوم متقارب": alum_double,
+                "فيبر": fiber
             })
 
-        df = pd.DataFrame(data)
-        st.table(df)
+        st.table(pd.DataFrame(table))
 
-        st.write("---")
+        st.divider()
 
-        # إجمالي بسيط
-        total_units = sum([u["qty"] for u in st.session_state.db])
+        # =========================
+        # TOTAL
+        # =========================
+        st.success(f"""
+        📦 إجمالي الألومنيوم: {round(total_aluminum/600,2)} عود  
+        🪵 إجمالي الفيبر: {round(total_fiber/36400,2)} لوح
+        """)
 
-        st.success(f"📦 إجمالي الوحدات: {total_units}")
-
-        # حذف الكل
-        if st.button("🗑️ مسح كل البيانات"):
+        # =========================
+        # RESET
+        # =========================
+        if st.button("🗑️ مسح المشروع بالكامل"):
             st.session_state.db = []
             st.rerun()
 
     else:
-        st.info("لا يوجد بيانات بعد — أضف وحدة لبدء التخصيم")
+        st.info("ابدأ بإضافة وحدات لعرض التخصيم")
