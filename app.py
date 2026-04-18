@@ -41,7 +41,7 @@ if 'db' not in st.session_state: st.session_state.db = []
 
 # --- [ واجهة الدخول المنفصلة ] ---
 if not st.session_state.auth:
-    st.markdown(f"""
+st.markdown(f"""
         <div class="hero-section">
             <h1 style="font-size: 65px; margin-bottom: 0;">💎 KITCHEN PRO ERP</h1>
             <div class="engineer-tag">برمجة المهندس ياسين علاء</div>
