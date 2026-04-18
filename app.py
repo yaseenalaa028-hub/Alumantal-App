@@ -1,244 +1,178 @@
-import sys
+import streamlit as st
 import pandas as pd
-from PyQt5.QtWidgets import *
-from PyQt5.QtGui import QFont
-from PyQt5.QtCore import Qt
 
-# ===============================
-# فاتورة Excel داخل البرنامج
-# ===============================
-class InvoiceDialog(QDialog):
-    def __init__(self, data):
-        super().__init__()
-        self.setWindowTitle("📋 فاتورة الخامات - Excel")
-        self.setMinimumSize(900, 600)
+st.set_page_config(page_title="DOGGA SMART SYSTEM", layout="wide")
 
-        layout = QVBoxLayout()
-        table = QTableWidget()
-        table.setColumnCount(4)
-        table.setHorizontalHeaderLabels(["القسم", "البيان", "المقاس", "العدد"])
-        table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+# ==============================
+# Session
+# ==============================
+if "data" not in st.session_state:
+    st.session_state.data = []
 
-        row = 0
-        table.setRowCount(1000)
+if "page" not in st.session_state:
+    st.session_state.page = "home"
 
-        for u in data:
-            h_b = u['h'] - 13 if u['type'] in ["سفلية", "دولاب خزين"] else u['h'] - 5
-            w_b = u['w'] - 5
-            d_b = u['d'] - 5
+# ==============================
+# الصفحة الرئيسية
+# ==============================
+if st.session_state.page == "home":
 
-            items = [
-                ("مونتال", "ارتفاع", int(h_b), 4),
-                ("مونتال", "عرض", int(w_b), 4),
-                ("مونتال", "عمق", int(d_b), 4),
-                ("فيبر", "ضهرية", f"{int(w_b)}x{int(h_b)}", 1),
-                ("فيبر", "أرضية", f"{int(w_b)}x{int(d_b)}", 1),
-                ("فيبر", "أجناب", f"{int(h_b)}x{int(d_b)}", 2),
+    st.markdown("<h1 style='text-align:center'>🔥 DOGGA SMART SYSTEM</h1>", unsafe_allow_html=True)
+
+    if st.button("🚀 ابدأ التخصيم", use_container_width=True):
+        st.session_state.page = "calc"
+        st.rerun()
+
+# ==============================
+# صفحة التخصيم
+# ==============================
+elif st.session_state.page == "calc":
+
+    st.title("🛠️ التخصيم")
+
+    if st.button("📊 عرض الجرد والفاتورة"):
+        st.session_state.page = "report"
+        st.rerun()
+
+    with st.form("form"):
+
+        name = st.text_input("اسم الوحدة")
+        unit_type = st.selectbox("النوع", ["سفلية", "علوية", "دولاب خزين"])
+
+        c1, c2, c3 = st.columns(3)
+        w = c1.number_input("عرض", 0.0)
+        h = c2.number_input("ارتفاع", 0.0)
+        d = c3.number_input("عمق", 0.0)
+
+        st.markdown("### الأرفف")
+        sh_n = st.number_input("عدد الأرفف", 0)
+        sh_w = st.number_input("عرض الرف", 0.0)
+        sh_d = st.number_input("عمق الرف", 0.0)
+
+        st.markdown("### الفواصل")
+        dv_n = st.number_input("عدد الفواصل", 0)
+        dv_h = st.number_input("ارتفاع الفاصل", 0.0)
+        dv_d = st.number_input("عمق الفاصل", 0.0)
+
+        st.markdown("### الأدراج")
+        dr_n = st.number_input("عدد الأدراج", 0)
+        dr_w = st.number_input("عرض الدرج", 0.0)
+        dr_d = st.number_input("عمق الدرج", 0.0)
+
+        submit = st.form_submit_button("💾 إضافة")
+
+    if submit:
+
+        h_b = h - 13 if unit_type in ["سفلية", "دولاب خزين"] else h - 5
+        w_b = w - 5
+        d_b = d - 5
+
+        alum = []
+        fiber = []
+
+        # مونتال
+        if unit_type == "سفلية":
+            alum += [
+                ["ارتفاع", h_b, 2, "مفرد"],
+                ["ارتفاع", h_b, 2, "متقارب"],
+                ["عرض", w_b, 3, "مفرد"],
+                ["عرض", w_b, 1, "متقارب"],
+                ["عمق", d_b, 2, "مفرد"],
+                ["عمق", d_b, 2, "متقارب"],
+            ]
+        else:
+            alum += [
+                ["ارتفاع", h_b, 2, "مفرد"],
+                ["ارتفاع", h_b, 2, "متقارب"],
+                ["عرض", w_b, 2, "مفرد"],
+                ["عرض", w_b, 2, "متقارب"],
+                ["عمق", d_b, 4, "متقارب"],
             ]
 
-            for it in items:
-                table.setItem(row, 0, QTableWidgetItem(it[0]))
-                table.setItem(row, 1, QTableWidgetItem(it[1]))
-                table.setItem(row, 2, QTableWidgetItem(str(it[2])))
-                table.setItem(row, 3, QTableWidgetItem(str(it[3])))
-                row += 1
+        # رفوف
+        if sh_n > 0:
+            alum.append(["رف عرض", sh_w, sh_n * 2, "مفرد"])
+            alum.append(["رف عمق", sh_d, sh_n * 2, "مفرد"])
+            fiber.append(["رف", sh_w - 5, sh_d - 5, sh_n])
 
-        table.setRowCount(row)
-        layout.addWidget(table)
-        self.setLayout(layout)
+        # فواصل
+        if dv_n > 0:
+            alum.append(["فاصل ارتفاع", dv_h, dv_n * 2, "مفرد"])
+            alum.append(["فاصل عمق", dv_d, dv_n * 2, "مفرد"])
+            fiber.append(["فاصل", dv_h - 5, dv_d - 5, dv_n])
 
-# ===============================
-# نافذة الجرد
-# ===============================
-class SummaryDialog(QDialog):
-    def __init__(self, report):
-        super().__init__()
-        self.setWindowTitle("📊 جرد تفصيلي")
-        self.setMinimumSize(600, 500)
+        # أدراج
+        if dr_n > 0:
+            alum.append(["درج عرض", dr_w - 2.5, dr_n * 2, "2×8"])
+            alum.append(["درج عمق", dr_d, dr_n * 2, "2×8"])
 
-        layout = QVBoxLayout()
-        view = QTextEdit()
-        view.setReadOnly(True)
-        view.setText(report)
-        layout.addWidget(view)
-        self.setLayout(layout)
+        # فيبر أساسي
+        fiber += [
+            ["ضهرية", w_b, h_b, 1],
+            ["أرضية", w_b, d_b, 1],
+            ["جنب", h_b, d_b, 2],
+        ]
 
-# ===============================
-# البرنامج الرئيسي
-# ===============================
-class AluminumMasterApp(QWidget):
-    def __init__(self):
-        super().__init__()
-        self.project_storage = []
-        self.initUI()
+        st.session_state.data.append({
+            "name": name,
+            "type": unit_type,
+            "alum": alum,
+            "fiber": fiber
+        })
 
-    def initUI(self):
-        self.setWindowTitle('نظام تخصيم الألومنيوم')
-        self.setGeometry(30, 30, 1300, 900)
-        self.setFont(QFont("Segoe UI", 11))
+        st.success("تمت الإضافة ✅")
 
-        layout = QVBoxLayout()
+# ==============================
+# صفحة الجرد والفاتورة
+# ==============================
+elif st.session_state.page == "report":
 
-        # ===== الأزرار =====
-        self.total_btn = QPushButton("📊 جرد تفصيلي")
-        self.total_btn.clicked.connect(self.show_project_totals)
+    st.title("📊 الجرد + 💰 الفاتورة")
 
-        self.invoice_btn = QPushButton("📋 فاتورة Excel")
-        self.invoice_btn.clicked.connect(self.show_invoice)
+    if st.button("⬅️ رجوع"):
+        st.session_state.page = "calc"
+        st.rerun()
 
-        self.export_btn = QPushButton("📥 تصدير Excel")
-        self.export_btn.clicked.connect(self.export_excel)
+    rows = []
 
-        for b in [self.total_btn, self.invoice_btn, self.export_btn]:
-            b.setStyleSheet("height:50px; font-weight:bold;")
-            layout.addWidget(b)
-
-        # ===== المدخلات =====
-        grid = QGridLayout()
-
-        self.unit_title = QLineEdit()
-        self.unit_type = QComboBox()
-        self.unit_type.addItems(["سفلية", "علوية", "دولاب خزين"])
-
-        self.w = QLineEdit()
-        self.h = QLineEdit()
-        self.d = QLineEdit()
-
-        self.sh_w = QLineEdit()
-        self.sh_d = QLineEdit()
-        self.sh_n = QLineEdit()
-
-        self.dv_h = QLineEdit()
-        self.dv_d = QLineEdit()
-        self.dv_n = QLineEdit()
-
-        self.dr_w = QLineEdit()
-        self.dr_d = QLineEdit()
-        self.dr_n = QLineEdit()
-
-        grid.addWidget(self.unit_title,0,0)
-        grid.addWidget(self.unit_type,0,1)
-
-        grid.addWidget(self.w,1,0)
-        grid.addWidget(self.h,1,1)
-        grid.addWidget(self.d,1,2)
-
-        grid.addWidget(self.sh_w,2,0)
-        grid.addWidget(self.sh_d,2,1)
-        grid.addWidget(self.sh_n,2,2)
-
-        grid.addWidget(self.dv_h,3,0)
-        grid.addWidget(self.dv_d,3,1)
-        grid.addWidget(self.dv_n,3,2)
-
-        grid.addWidget(self.dr_w,4,0)
-        grid.addWidget(self.dr_d,4,1)
-        grid.addWidget(self.dr_n,4,2)
-
-        layout.addLayout(grid)
-
-        # ===== أزرار التحكم =====
-        btns = QHBoxLayout()
-        self.add_btn = QPushButton("إضافة")
-        self.add_btn.clicked.connect(self.process_unit)
-
-        self.clear_btn = QPushButton("مسح")
-        self.clear_btn.clicked.connect(self.clear_all)
-
-        btns.addWidget(self.add_btn)
-        btns.addWidget(self.clear_btn)
-
-        layout.addLayout(btns)
-
-        # ===== العرض =====
-        self.result = QTextEdit()
-        self.table = QTableWidget()
-        self.table.setColumnCount(4)
-        self.table.setHorizontalHeaderLabels(["الوحدة","العرض","الارتفاع","العمق"])
-
-        display = QHBoxLayout()
-        display.addWidget(self.result)
-        display.addWidget(self.table)
-
-        layout.addLayout(display)
-        self.setLayout(layout)
-
-    # ===============================
-    # إضافة وحدة
-    # ===============================
-    def process_unit(self):
-        try:
-            u = {
-                'title': self.unit_title.text(),
-                'type': self.unit_type.currentText(),
-                'w': float(self.w.text() or 0),
-                'h': float(self.h.text() or 0),
-                'd': float(self.d.text() or 0),
-                'sh_w': float(self.sh_w.text() or 0),
-                'sh_d': float(self.sh_d.text() or 0),
-                'sh_n': int(self.sh_n.text() or 0),
-                'dv_h': float(self.dv_h.text() or 0),
-                'dv_d': float(self.dv_d.text() or 0),
-                'dv_n': int(self.dv_n.text() or 0),
-                'dr_w': float(self.dr_w.text() or 0),
-                'dr_d': float(self.dr_d.text() or 0),
-                'dr_n': int(self.dr_n.text() or 0)
-            }
-
-            self.project_storage.append(u)
-
-            row = self.table.rowCount()
-            self.table.insertRow(row)
-            self.table.setItem(row,0,QTableWidgetItem(u['title']))
-            self.table.setItem(row,1,QTableWidgetItem(str(u['w'])))
-            self.table.setItem(row,2,QTableWidgetItem(str(u['h'])))
-            self.table.setItem(row,3,QTableWidgetItem(str(u['d'])))
-
-        except:
-            QMessageBox.critical(self,"خطأ","راجع البيانات")
-
-    # ===============================
-    # جرد تفصيلي
-    # ===============================
-    def show_project_totals(self):
-        report = ""
-        for u in self.project_storage:
-            report += f"{u['title']} - {u['type']}\n"
-        SummaryDialog(report).exec_()
-
-    # ===============================
-    # فاتورة داخل البرنامج
-    # ===============================
-    def show_invoice(self):
-        InvoiceDialog(self.project_storage).exec_()
-
-    # ===============================
-    # تصدير Excel
-    # ===============================
-    def export_excel(self):
-        rows = []
-        for u in self.project_storage:
+    for unit in st.session_state.data:
+        for a in unit["alum"]:
             rows.append({
-                "الوحدة": u['title'],
-                "العرض": u['w'],
-                "الارتفاع": u['h'],
-                "العمق": u['d']
+                "الوحدة": unit["name"],
+                "النوع": f"مونتال - {a[0]}",
+                "المقاس": a[1],
+                "العدد": a[2],
+                "سعر": 0
             })
 
-        df = pd.DataFrame(rows)
-        df.to_excel("report.xlsx", index=False)
-        QMessageBox.information(self,"تم","تم إنشاء ملف Excel")
+        for f in unit["fiber"]:
+            rows.append({
+                "الوحدة": unit["name"],
+                "النوع": f"فيبر - {f[0]}",
+                "المقاس": f"{f[1]}x{f[2]}",
+                "العدد": f[3],
+                "سعر": 0
+            })
 
-    def clear_all(self):
-        self.project_storage=[]
-        self.table.setRowCount(0)
-        self.result.clear()
+    df = pd.DataFrame(rows)
 
-# ===============================
-# تشغيل البرنامج
-# ===============================
-if __name__ == '__main__':
-    app = QApplication(sys.argv)
-    win = AluminumMasterApp()
-    win.show()
-    sys.exit(app.exec_())
+    for i in range(len(df)):
+        df.at[i, "سعر"] = st.number_input(
+            f"سعر {df.iloc[i]['النوع']} - {i}",
+            value=0.0,
+            key=f"p{i}"
+        )
+
+    df["الإجمالي"] = df["العدد"] * df["سعر"]
+
+    st.dataframe(df)
+
+    total = df["الإجمالي"].sum()
+    st.markdown(f"## 💰 الإجمالي: {total:.2f}")
+
+    # تحميل Excel
+    file = "invoice.xlsx"
+    df.to_excel(file, index=False)
+
+    with open(file, "rb") as f:
+        st.download_button("📥 تحميل Excel", f, file_name="invoice.xlsx")
