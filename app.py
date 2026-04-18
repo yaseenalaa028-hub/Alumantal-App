@@ -3,191 +3,148 @@ import pandas as pd
 
 st.set_page_config(page_title="Kitchen Pro ERP", layout="wide")
 
-# ---------------- CSS ----------------
-st.markdown("""
-<style>
-body {font-family: Cairo;}
-.header{
-    background: linear-gradient(90deg,#1e272e,#2c3e50);
-    padding:25px;
-    text-align:center;
-    color:#f1c40f;
-    border-radius:15px;
-    font-weight:bold;
-}
-.card{
-    background:white;
-    padding:15px;
-    border-radius:15px;
-    box-shadow:0 3px 12px rgba(0,0,0,0.1);
-    margin-top:15px;
-}
-</style>
-""", unsafe_allow_html=True)
-
-# ---------------- SESSION ----------------
-if "page" not in st.session_state:
-    st.session_state.page = "home"
-
+# ================= SESSION =================
 if "db" not in st.session_state:
     st.session_state.db = []
 
-# =====================================================
-# 🟦 HOME PAGE
-# =====================================================
-if st.session_state.page == "home":
+# ================= HEADER =================
+st.markdown("""
+<div style="background:#2f3640;color:#fbc531;padding:20px;text-align:center;border-radius:10px;">
+<h2>💎 نظام تخصيم الألومنيوم</h2>
+<p>برمجة المهندس ياسين علاء</p>
+</div>
+""", unsafe_allow_html=True)
 
-    st.markdown("""
-    <div class="header">
-        💎 KITCHEN PRO ERP <br>
-        برمجة المهندس ياسين علاء
-    </div>
-    """, unsafe_allow_html=True)
+# ================= INPUT =================
+st.subheader("📝 إضافة وحدة")
 
-    st.write("")
-    st.image("https://i.imgur.com/8Km9tLL.png", width=160)
+c1, c2, c3 = st.columns(3)
+name = c1.text_input("اسم الوحدة")
+u_type = c2.selectbox("النوع", ["سفلية", "علوية", "دولاب خزين", "وحدة أخرى"])
+qty = c3.number_input("العدد", 1)
 
-    if st.button("🚀 الدخول للنظام", use_container_width=True):
-        st.session_state.page = "system"
-        st.rerun()
+c4, c5, c6 = st.columns(3)
+w = c4.number_input("العرض")
+h = c5.number_input("الارتفاع")
+d = c6.number_input("العمق")
 
-# =====================================================
-# 🟩 SYSTEM PAGE
-# =====================================================
-else:
+st.write("### الإضافات")
 
-    st.title("📋 نظام التخصيم الاحترافي")
+c7, c8, c9 = st.columns(3)
+sh_w = c7.number_input("عرض الرف")
+sh_d = c8.number_input("عمق الرف")
+sh_n = c9.number_input("عدد الرفوف", 0)
 
-    if st.button("⬅ الرجوع"):
-        st.session_state.page = "home"
-        st.rerun()
+c10, c11, c12 = st.columns(3)
+dv_h = c10.number_input("ارتفاع الفاصل")
+dv_d = c11.number_input("عمق الفاصل")
+dv_n = c12.number_input("عدد الفواصل", 0)
 
-    st.divider()
+c13, c14, c15 = st.columns(3)
+dr_w = c13.number_input("عرض الدرج")
+dr_d = c14.number_input("عمق الدرج")
+dr_n = c15.number_input("عدد الأدراج", 0)
 
-    # ---------------- INPUT ----------------
-    st.subheader("➕ إضافة وحدة")
+# ================= ADD =================
+if st.button("➕ إضافة الوحدة"):
 
-    c1, c2, c3, c4 = st.columns(4)
-    name = c1.text_input("اسم الوحدة")
-    u_type = c2.selectbox("النوع", ["سفلية", "علوية", "دولاب"])
-    qty = c3.number_input("الكمية", 1)
-    W = c4.number_input("العرض")
+    if w > 0 and h > 0:
+        st.session_state.db.append({
+            "title": name or f"UNIT-{len(st.session_state.db)+1}",
+            "type": u_type,
+            "qty": qty,
+            "w": w, "h": h, "d": d,
+            "sh_w": sh_w, "sh_d": sh_d, "sh_n": sh_n,
+            "dv_h": dv_h, "dv_d": dv_d, "dv_n": dv_n,
+            "dr_w": dr_w, "dr_d": dr_d, "dr_n": dr_n
+        })
+        st.success("تمت الإضافة ✔")
 
-    c5, c6, c7 = st.columns(3)
-    H = c5.number_input("الارتفاع")
-    D = c6.number_input("العمق")
-
-    shelves = c7.number_input("رفوف", 0)
-
-    c8, c9, c10 = st.columns(3)
-    dividers = c8.number_input("فواصل", 0)
-    drawers = c9.number_input("أدراج", 0)
-
-    if st.button("➕ إضافة الوحدة", use_container_width=True):
-
-        if W > 0 and H > 0 and D > 0:
-
-            st.session_state.db.append({
-                "name": name or f"UNIT-{len(st.session_state.db)+1}",
-                "type": u_type,
-                "qty": qty,
-                "W": W,
-                "H": H,
-                "D": D,
-                "sh": shelves,
-                "dv": dividers,
-                "dr": drawers
-            })
-
-            st.success("تمت الإضافة ✔")
-            st.rerun()
+# ================= MAIN =================
+if st.session_state.db:
 
     st.divider()
 
-    # =====================================================
-    # 📊 CALCULATION ENGINE
-    # =====================================================
-    if st.session_state.db:
+    table_data = []
+    report_text = ""
 
-        st.subheader("📊 جدول التخصيم الكامل")
+    total_m, total_t, total_f = 0, 0, 0
 
-        table = []
+    for u in st.session_state.db:
 
-        total_aluminum = 0
-        total_fiber = 0
+        h_b = u['h'] - 13 if u['type'] in ["سفلية", "دولاب خزين"] else u['h'] - 5
+        w_b = u['w'] - 5
+        d_b = u['d'] - 5
 
-        for u in st.session_state.db:
+        # ================= TABLE =================
+        table_data.append({
+            "الوحدة": u["title"],
+            "النوع": u["type"],
+            "العدد": u["qty"],
+            "W": w_b,
+            "H": h_b,
+            "D": d_b
+        })
 
-            # =========================
-            # الخصم حسب النوع
-            # =========================
-            h_deduct = 13 if u["type"] == "سفلية" or u["type"] == "دولاب" else 5
+        # ================= REPORT =================
+        txt = f"\n📦 {u['title']} | {u['type']} | {u['w']}x{u['h']}x{u['d']}\n"
+        txt += "━"*50 + "\n"
 
-            W = u["W"] - 5
-            H = u["H"] - h_deduct
-            D = u["D"] - 5
+        if u['type'] == "سفلية":
+            txt += f"ارتفاع {h_b}: 2 مفرد / 2 متقارب\n"
+            txt += f"عرض {w_b}: 3 مفرد / 1 متقارب\n"
+            txt += f"عمق {d_b}: 2 مفرد / 2 متقارب\n"
+        else:
+            txt += f"ارتفاع {h_b}: 2 مفرد / 2 متقارب\n"
+            txt += f"عرض {w_b}: 2 مفرد / 2 متقارب\n"
+            txt += f"عمق {d_b}: 4 متقارب\n"
 
-            # =========================
-            # الألومنيوم (المعادلات)
-            # =========================
-            alum_single = (H * 2) + (W * 3) + (D * 2)
-            alum_double = (H * 2) + (W * 1) + (D * 2)
+        txt += f"\n🪵 فيبر: {w_b}×{h_b} | {w_b}×{d_b} | {h_b}×{d_b}\n"
 
-            if u["type"] != "سفلية":
-                alum_single = (H * 2) + (W * 2)
-                alum_double = (H * 2) + (W * 2) + (D * 4)
+        if u['sh_n'] > 0:
+            txt += f"رفوف: {u['sh_n']}\n"
+        if u['dv_n'] > 0:
+            txt += f"فواصل: {u['dv_n']}\n"
+        if u['dr_n'] > 0:
+            txt += f"أدراج: {u['dr_n']}\n"
 
-            # إضافات
-            alum_single += (u["sh"] + u["dv"]) * 4 * 10
-            alum_single += u["dr"] * 20
+        txt += "━"*50
+        report_text += txt + "\n"
 
-            # =========================
-            # الفيبر
-            # =========================
-            fiber = (W * H) + (W * D) + (H * D * 2)
+        # ================= CALC =================
+        if u['type'] == "سفلية":
+            m = (h_b*2)+(w_b*3)+(d_b*2)
+            t = (h_b*2)+(w_b*1)+(d_b*2)
+        else:
+            m = (h_b*2)+(w_b*2)
+            t = (h_b*2)+(w_b*2)+(d_b*4)
 
-            if u["sh"] > 0:
-                fiber += u["sh"] * (W * (D - 5))
+        f = (w_b*h_b)+(w_b*d_b)+(h_b*d_b*2)
 
-            if u["dv"] > 0:
-                fiber += u["dv"] * (H * (D - 5))
+        total_m += m * u["qty"]
+        total_t += t * u["qty"]
+        total_f += f * u["qty"]
 
-            # =========================
-            # الإجمالي
-            # =========================
-            total_aluminum += alum_single * u["qty"]
-            total_fiber += fiber * u["qty"]
+    # ================= TABLE VIEW =================
+    st.subheader("📊 جدول التخصيم")
+    df = pd.DataFrame(table_data)
+    st.dataframe(df, use_container_width=True)
 
-            table.append({
-                "الوحدة": u["name"],
-                "النوع": u["type"],
-                "العدد": u["qty"],
-                "W": W,
-                "H": H,
-                "D": D,
-                "ألمنيوم مفرد": alum_single,
-                "ألمنيوم متقارب": alum_double,
-                "فيبر": fiber
-            })
+    # ================= REPORT VIEW =================
+    st.subheader("📄 تقرير التخصيم")
+    st.text_area("التقرير", report_text, height=300)
 
-        st.table(pd.DataFrame(table))
+    # ================= TOTAL =================
+    st.subheader("📦 إجمالي المشروع")
 
-        st.divider()
+    c1, c2, c3 = st.columns(3)
+    c1.metric("ألومنيوم مفرد", f"{total_m/600:.2f} عود")
+    c2.metric("ألومنيوم متقارب", f"{total_t/600:.2f} عود")
+    c3.metric("فيبر", f"{total_f/36400:.2f} لوح")
 
-        # =========================
-        # TOTAL
-        # =========================
-        st.success(f"""
-        📦 إجمالي الألومنيوم: {round(total_aluminum/600,2)} عود  
-        🪵 إجمالي الفيبر: {round(total_fiber/36400,2)} لوح
-        """)
+    # ================= DOWNLOAD =================
+    st.download_button("💾 تحميل التقرير", report_text, file_name="report.txt")
 
-        # =========================
-        # RESET
-        # =========================
-        if st.button("🗑️ مسح المشروع بالكامل"):
-            st.session_state.db = []
-            st.rerun()
-
-    else:
-        st.info("ابدأ بإضافة وحدات لعرض التخصيم")
+    # ================= CLEAR =================
+    if st.button("🗑️ مسح المشروع"):
+        st.session_state.db = []
