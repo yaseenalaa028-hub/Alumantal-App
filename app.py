@@ -103,7 +103,7 @@ ifnotu_name:
 st.error("⚠️خطأ:يجبإدخالاسمأوكودللوحدةللتمييز.")
 elifu_nameinexisting_names:
 st.error(f"⚠️خطأ:الكود'{u_name}'مسجلمسبقاًفيهذاالمشروع!")
-elifW<=0orH<=0orD<=0:
+elif W <= 0 or H <= 0 or D <= 0:
 st.error("⚠️خطأ:لايمكناعتمادمقاساتصفرية.")
 else:
 st.session_state.db.append({
