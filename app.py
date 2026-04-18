@@ -111,80 +111,53 @@ if st.session_state.project_db:
     st.download_button("📥 تحميل كشف التقطيع", df.to_csv().encode('utf-8-sig'), "Deductions.csv")
 
 st.markdown("<p style='text-align:center; color:#95a5a6; padding-top:50px;'>منظومة DOGGA لبرمجة الألمنيوم - م/ ياسين علاء © 2026</p>", unsafe_allow_html=True)
-# --- [ تابع: قسم التخصيمات والجرد التفصيلي ] ---
+# --- [ إضافة: منطق حساب الرفوف والفواصل التفصيلي ] ---
 
-if st.session_state.project_db:
-    st.markdown("---")
-    st.header("📏 بند التخصيمات والماتريال (Deductions)")
-
-    # إعداد قوائم لتجميع البيانات النهائية للجرد
-    all_cuts = []
-    total_fiber_area = 0
-    total_alum_length = 0
-
-    for idx, u in enumerate(st.session_state.project_db):
-        # 1. معادلات م/ ياسين علاء الأساسية
-        h_deduct = 13 if u['type'] != "علوية" else 5
-        h_final = u['h'] - h_deduct
-        w_final = u['w'] - 5
-        d_final = u['d'] - 5
-        
-        # 2. حسابات الألومنيوم (قوائم + عوارض + أعماق)
-        # القوائم والعوارض والأعماق (4 قطع من كل نوع لكل وحدة)
-        u_alum = (h_final * 4 + w_final * 4 + d_final * 4)
-        
-        # 3. حسابات الإضافات (الرفوف والفواصل تضرب في 2 حسب طلبك)
-        sh_alum = (u['sh'] * w_final * 2) + (u['sh'] * d_final * 2)
-        dv_alum = (u['dv'] * h_final * 2) + (u['dv'] * d_final * 2)
-        
-        # 4. حسابات الفيبر
-        # ضهرية (1) + أرضية (1) + أجناب (2)
-        u_fiber = (w_final * h_final) + (w_final * d_final) + (h_final * d_final * 2)
-        # أضف فيبر الرفوف والفواصل
-        u_fiber += (u['sh'] * w_final * d_final) + (u['dv'] * h_final * d_final)
-
-        # تجميع البيانات لعرضها في كارت الوحدة
-        with st.expander(f"🔍 تفاصيل تقطيع: {u['title']} ({u['type']})", expanded=False):
-            c1, c2 = st.columns(2)
-            with c1:
-                st.write("**✂️ تقطيع الألومنيوم (صافي):**")
-                st.write(f"- ارتفاع (قوائم): {h_final} سم")
-                st.write(f"- عرض (عوارض): {w_final} سم")
-                st.write(f"- عمق (أعماق): {d_final} سم")
-                if u['sh'] > 0: st.write(f"- ألومنيوم رفوف: {u['sh'] * 2} قطعة")
-                if u['dr'] > 0: st.write(f"- أدراج: {u['dr']} درج")
-            
-            with c2:
-                st.write("**🪵 تقطيع الفيبر:**")
-                st.write(f"- ضهرية: {w_final} × {h_final}")
-                st.write(f"- أرضية: {w_final} × {d_final}")
-                st.write(f"- أجناب: {h_final} × {d_final} (عدد 2)")
-
-        # إرسال البيانات للجرد العام
-        total_alum_length += (u_alum + sh_alum + dv_alum) * u['qty']
-        total_fiber_area += u_fiber * u['qty']
-
-    # --- [ القسم الأخير: ملخص الخامات المطلوب شراؤها ] ---
-    st.markdown("### 🛒 إجمالي الطلبية (خامات المشروع)")
+if u['sh'] > 0:  # في حالة وجود رفوف
+    st.markdown("#### 🧱 بند الرفوف")
+    sh_w_final = w_final - 0.5  # خصم خلوص بسيط للرف
+    sh_d_final = d_final - 0.5
     
-    col_fin1, col_fin2, col_fin3 = st.columns(3)
+    # حساب الألومنيوم: الرف له 2 عرض و 2 عمق، والعدد يضرب في 2 (حسب قاعدة المهندس ياسين)
+    sh_alum_w = sh_w_final * (u['sh'] * 2)
+    sh_alum_d = sh_d_final * (u['sh'] * 2)
     
-    with col_fin1:
-        st.info(f"**إجمالي الألومنيوم:**\n\n {total_alum_length/100:.2f} متر طولي")
-        st.write(f"≈ {total_alum_length/600:.2f} عود (6 متر)")
-        
-    with col_fin2:
-        st.success(f"**إجمالي الفيبر:**\n\n {total_fiber_area/10000:.2f} متر مربع")
-        st.write(f"≈ {total_fiber_area/36400:.2f} لوح (2.8*1.3)")
+    c1, c2 = st.columns(2)
+    with c1:
+        st.write(f"• ألومنيوم العرض: {sh_w_final} سم (عدد {u['sh']*2} قطعة)")
+        st.write(f"• ألومنيوم العمق: {sh_d_final} سم (عدد {u['sh']*2} قطعة)")
+    with c2:
+        st.write(f"• فيبر الرفوف: {sh_w_final - 0.5} × {sh_d_final - 0.5} (عدد {u['sh']} قطعة)")
+    
+    # إضافة للجرد العام
+    total_alum_length += (sh_alum_w + sh_alum_d)
+    total_fiber_area += (sh_w_final * sh_d_final) * u['sh']
 
-    with col_fin3:
-        st.warning(f"**إجمالي الوحدات:**\n\n {len(st.session_state.project_db)} وحدات")
-        st.write(f"إجمالي قطع المشروع: {sum([x['qty'] for x in st.session_state.project_db])}")
+if u['dv'] > 0:  # في حالة وجود فواصل رأسية
+    st.markdown("#### 📐 بند الفواصل (Dividers)")
+    dv_h_final = h_final - 0.5
+    dv_d_final = d_final - 0.5
+    
+    # حساب الألومنيوم للفواصل
+    dv_alum_h = dv_h_final * (u['dv'] * 2)
+    dv_alum_d = dv_d_final * (u['dv'] * 2)
+    
+    c1, c2 = st.columns(2)
+    with c1:
+        st.write(f"• ألومنيوم الارتفاع: {dv_h_final} سم (عدد {u['dv']*2} قطعة)")
+        st.write(f"• ألومنيوم العمق: {dv_d_final} سم (عدد {u['dv']*2} قطعة)")
+    with c2:
+        st.write(f"• فيبر الفواصل: {dv_h_final - 0.5} × {dv_d_final - 0.5} (عدد {u['dv']} قطعة)")
+    
+    # إضافة للجرد العام
+    total_alum_length += (dv_alum_h + dv_alum_d)
+    total_fiber_area += (dv_h_final * dv_d_final) * u['dv']
 
-    # زر مسح الجدول لبدء مشروع جديد
-    if st.button("❌ مسح كافة البيانات وبدء مشروع جديد"):
-        st.session_state.project_db = []
-        st.rerun()
-
-# التوقيع النهائي للمنظومة
-st.markdown("<br><br><p style='text-align:center; color:#7f8c8d; font-size:12px;'>DOGGA SYSTEM V2.0 | Developed by Eng. Yassin Alaa</p>", unsafe_allow_html=True)
+# --- [ إضافة: بند الأدراج ] ---
+if u['dr'] > 0:
+    st.markdown("#### 🗄️ بند الأدراج")
+    dr_w_final = w_final - 2.5 # تخصيم السكة
+    dr_d_final = d_final - 2
+    
+    st.write(f"• تقطيع درج: عرض {dr_w_final} سم | عمق {dr_d_final} سم (عدد {u['dr']} درج)")
+    total_alum_length += (dr_w_final * 2 + dr_d_final * 2) * u['dr']
