@@ -1,9 +1,10 @@
 import streamlit as st
 import pandas as pd
 
-# 1. إعدادات الصفحة وتنسيق الواجهة لدعم العربية
-st.set_page_config(page_title="نظام تخصيم الألومنيوم", layout="wide")
+# 1. إعدادات الصفحة وتنسيق الواجهة
+st.set_page_config(page_title="نظام تخصيم الألومنيوم PRO", layout="wide")
 
+# تنسيق CSS مخصص للواجهة واللغة العربية
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap');
@@ -12,148 +13,147 @@ st.markdown("""
         text-align: right;
         direction: rtl;
     }
-    .report-box {
-        background-color: #f8f9fa;
-        border-right: 5px solid #27ae60;
-        padding: 15px;
-        margin-bottom: 10px;
-        border-radius: 5px;
-    }
-    .total-card {
-        background-color: #1e272e;
-        color: white;
-        padding: 20px;
-        border-radius: 10px;
-        text-align: center;
-    }
+    .main-header { background-color: #2c3e50; color: white; padding: 20px; border-radius: 10px; text-align: center; margin-bottom: 20px; }
+    .unit-card { background-color: #f8f9fa; border: 1px solid #dee2e6; padding: 20px; border-radius: 10px; margin-bottom: 20px; }
+    .section-title { color: #2c3e50; border-bottom: 2px solid #e67e22; padding-bottom: 5px; margin-bottom: 10px; font-weight: bold; }
+    .alum-box { color: #d35400; font-weight: bold; }
+    .fiber-box { color: #27ae60; font-weight: bold; }
+    .extra-box { color: #2980b9; font-weight: bold; }
     </style>
     """, unsafe_allow_html=True)
 
-st.title("🏗️ نظام تخصيم الألومنيوم - نسخة الورشة النهائية")
+# 2. نظام تسجيل الدخول
+if 'logged_in' not in st.session_state:
+    st.session_state.logged_in = False
 
-# 2. تهيئة مخزن البيانات في الجلسة
+if not st.session_state.logged_in:
+    st.markdown('<div class="main-header"><h1>🔐 تسجيل دخول نظام الورشة</h1></div>', unsafe_allow_html=True)
+    with st.form("login_form"):
+        user = st.text_input("اسم المستخدم")
+        password = st.text_input("كلمة المرور", type="password")
+        submit = st.form_submit_button("دخول للنظام")
+        if submit:
+            if user == "admin" and password == "123":
+                st.session_state.logged_in = True
+                st.rerun()
+            else:
+                st.error("❌ بيانات الدخول غير صحيحة")
+    st.stop()
+
+# 3. إدارة البيانات (Session State)
 if 'project_storage' not in st.session_state:
     st.session_state.project_storage = []
 
-# 3. قسم المدخلات
-st.header("📝 إدخال بيانات الوحدة")
-with st.container():
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        unit_title = st.text_input("اسم الوحدة (مثال: علوية حوض)")
-        unit_type = st.selectbox("نوع الوحدة", ["سفلية", "علوية", "دولاب خزين", "وحدة أخرى"])
-    with col2:
-        w = st.number_input("العرض الكلي (سم)", min_value=0.0, step=0.1, key='w')
-        h = st.number_input("الارتفاع الكلي (سم)", min_value=0.0, step=0.1, key='h')
-    with col3:
-        d = st.number_input("العمق الكلي (سم)", min_value=0.0, step=0.1, key='d')
+st.markdown('<div class="main-header"><h1>🏗️ لوحة تحكم تخصيم الألومنيوم والفيبر</h1></div>', unsafe_allow_html=True)
 
-    with st.expander("➕ تخصيص (رفوف / فواصل / أدراج)"):
-        c1, c2, c3 = st.columns(3)
-        with c1:
-            sh_w = st.number_input("عرض الرف", min_value=0.0)
-            sh_d = st.number_input("عمق الرف", min_value=0.0)
-            sh_n = st.number_input("عدد الرفوف", min_value=0)
-        with c2:
-            dv_h = st.number_input("ارتفاع الفاصل", min_value=0.0)
-            dv_d = st.number_input("عمق الفاصل", min_value=0.0)
-            dv_n = st.number_input("عدد الفواصل", min_value=0)
-        with c3:
-            dr_w = st.number_input("عرض الدرج", min_value=0.0)
-            dr_d = st.number_input("عمق الدرج", min_value=0.0)
-            dr_n = st.number_input("عدد الأدراج", min_value=0)
-
-    if st.button("💾 إضافة الوحدة الحالية للجدول"):
-        if w > 0 and h > 0:
-            unit_data = {
-                'الوحدة': unit_title or f"وحدة رقم {len(st.session_state.project_storage)+1}",
-                'النوع': unit_type,
-                'عرض': w, 'ارتفاع': h, 'عمق': d,
-                'sh_w': sh_w, 'sh_d': sh_d, 'sh_n': sh_n,
-                'dv_h': dv_h, 'dv_d': dv_d, 'dv_n': dv_n,
-                'dr_w': dr_w, 'dr_d': dr_d, 'dr_n': dr_n
-            }
-            st.session_state.project_storage.append(unit_data)
-            st.success("✅ تمت الإضافة")
-        else:
-            st.error("⚠️ يرجى إدخال الطول والعرض")
-
-# 4. عرض البيانات والجرد التفصيلي
-if st.session_state.project_storage:
-    st.divider()
-    st.header("📋 الوحدات المضافة للمشروع")
-    df = pd.DataFrame(st.session_state.project_storage)
-    st.dataframe(df[['الوحدة', 'النوع', 'عرض', 'ارتفاع', 'عمق']], use_container_width=True)
-
-    col_btn1, col_btn2 = st.columns(2)
+# --- القائمة الجانبية لإدخال البيانات ---
+with st.sidebar:
+    st.header("⚙️ إضافة وحدة جديدة")
+    u_title = st.text_input("اسم الوحدة (مثال: علوية مطبخ)")
+    u_type = st.selectbox("نوع الوحدة", ["سفلية", "علوية", "دولاب خزين", "وحدة أخرى"])
     
-    with col_btn2:
-        if st.button("🗑️ مسح جميع البيانات", type="primary"):
+    col_dim1, col_dim2, col_dim3 = st.columns(3)
+    u_w = col_dim1.number_input("العرض", min_value=0.0)
+    u_h = col_dim2.number_input("الارتفاع", min_value=0.0)
+    u_d = col_dim3.number_input("العمق", min_value=0.0)
+    
+    st.divider()
+    st.subheader("🧱 الرفوف")
+    s_n = st.number_input("عدد الرفوف", min_value=0, step=1)
+    s_w = st.number_input("عرض الرف", min_value=0.0)
+    s_d = st.number_input("عمق الرف", min_value=0.0)
+    
+    st.subheader("🗄️ الأدراج")
+    dr_n = st.number_input("عدد الأدراج", min_value=0, step=1)
+    dr_w = st.number_input("عرض الدرج", min_value=0.0)
+    dr_d = st.number_input("عمق الدرج", min_value=0.0)
+
+    if st.button("💾 حفظ الوحدة للمشروع"):
+        if u_w > 0 and u_h > 0:
+            st.session_state.project_storage.append({
+                'title': u_title or f"وحدة {len(st.session_state.project_storage)+1}",
+                'type': u_type, 'w': u_w, 'h': u_h, 'd': u_d,
+                'sh_n': s_n, 'sh_w': s_w, 'sh_d': s_d,
+                'dr_n': dr_n, 'dr_w': dr_w, 'dr_d': dr_d
+            })
+            st.success("تم الحفظ بنجاح")
+        else:
+            st.error("يرجى إدخال المقاسات الأساسية")
+
+# --- عرض النتائج والجرد ---
+if st.session_state.project_storage:
+    tab1, tab2 = st.tabs(["📋 قائمة الوحدات", "📊 بيان التقطيع والجرد"])
+    
+    with tab1:
+        df = pd.DataFrame(st.session_state.project_storage)
+        st.table(df[['title', 'type', 'w', 'h', 'd']])
+        if st.button("🗑️ مسح المشروع بالكامل"):
             st.session_state.project_storage = []
             st.rerun()
 
-    with col_btn1:
-        if st.button("📊 جرد الخامات وبيان التقطيع التفصيلي"):
-            st.header("📄 تقرير تقطيع الخامات")
+    with tab2:
+        m_total, t_total, f_total = 0, 0, 0
+        
+        for u in st.session_state.project_storage:
+            # تخصيمات الهيكل
+            h_b = u['h'] - 13 if u['type'] in ["سفلية", "دولاب خزين"] else u['h'] - 5
+            w_b, d_b = u['w'] - 5, u['d'] - 5
             
-            m_sum, t_sum, f_area = 0, 0, 0
+            # حساب الخامات الإجمالية
+            if u['type'] == "سفلية":
+                m_curr = (h_b*2)+(w_b*3)+(d_b*2)
+                t_curr = (h_b*2)+(w_b*1)+(d_b*2)
+                f_unit = (w_b*h_b) + (w_b*d_b) + (h_b*d_b*2)
+            else:
+                m_curr = (h_b*2)+(w_b*2)
+                t_curr = (h_b*2)+(w_b*2)+(d_b*4)
+                f_unit = (w_b*h_b) + (w_b*d_b*2) + (h_b*d_b*2)
             
-            for u in st.session_state.project_storage:
-                # منطق التخصيم الأصلي
-                h_b = u['ارتفاع'] - 13 if u['النوع'] in ["سفلية", "دولاب خزين"] else u['ارتفاع'] - 5
-                w_b, d_b = u['عرض'] - 5, u['عمق'] - 5
+            # إضافة الرفوف والأدراج للحسابات
+            m_curr += (u['sh_w']*2 + u['sh_d']*2) * u['sh_n']
+            m_curr += ((u['dr_w']-2.5)*2 + u['dr_d']*2) * u['dr_n']
+            f_unit += (u['sh_w']-5)*(u['sh_d']-5)*u['sh_n']
+            
+            m_total += m_curr
+            t_total += t_curr
+            f_total += f_unit
+
+            # عرض الوحدة في قسم منفصل
+            with st.container():
+                st.markdown(f'<div class="unit-card">', unsafe_allow_html=True)
+                st.subheader(f"📍 {u['title']} ({u['type']})")
                 
-                with st.container():
-                    st.markdown(f"""
-                    <div class="report-box">
-                        <strong>📦 الوحدة: {u['الوحدة']} ({u['النوع']})</strong><br>
-                        📐 المقاس الكلي: {u['عرض']} × {u['ارتفاع']} × {u['عمق']}<br>
-                        ---<br>
-                        🪚 <b>ألومنيوم الهيكل:</b><br>
-                        - الارتفاع: {h_b} سم (عدد 4 قطع)<br>
-                        - العرض: {w_b} سم (عدد 4 قطع)<br>
-                        - العمق: {d_b} سم (عدد 4 قطع)<br>
-                        🪵 <b>الفيبر (التقطيع):</b><br>
-                        - ضهرية: {w_b} × {h_b} (قطعة 1)<br>
-                        - أرضية/سقف: {w_b} × {d_b} ({"قطعة 1" if u['النوع']=='سفلية' else "قطعتين"})<br>
-                        - أجناب: {h_b} × {d_b} (قطعتين)
-                    </div>
-                    """, unsafe_allow_html=True)
-
-                # الحسابات الإجمالية للوحدة
-                if u['النوع'] == "سفلية":
-                    m_sum += (h_b*2)+(w_b*3)+(d_b*2)
-                    t_sum += (h_b*2)+(w_b*1)+(d_b*2)
-                    f_u = (w_b*h_b) + (w_b*d_b) + (h_b*d_b*2)
-                else:
-                    m_sum += (h_b*2)+(w_b*2)
-                    t_sum += (h_b*2)+(w_b*2)+(d_b*4)
-                    f_u = (w_b*h_b) + (w_b*d_b*2) + (h_b*d_b*2)
+                c1, c2, c3 = st.columns(3)
+                with c1:
+                    st.markdown('<p class="section-title">📏 بند الألومنيوم</p>', unsafe_allow_html=True)
+                    st.write(f"• ارتفاع: {h_b} سم (4 قطع)")
+                    st.write(f"• عرض: {w_b} سم (4 قطع)")
+                    st.write(f"• عمق: {d_b} سم (4 قطع)")
                 
-                f_area += f_u
+                with c2:
+                    st.markdown('<p class="section-title">🪵 بند الفيبر</p>', unsafe_allow_html=True)
+                    st.write(f"• ضهرية: {w_b} × {h_b}")
+                    st.write(f"• أرضية/سقف: {w_b} × {d_b}")
+                    st.write(f"• أجناب: {h_b} × {d_b}")
 
-                # حساب الإضافات (رفوف / فواصل / أدراج)
-                if u['sh_n'] > 0:
-                    m_sum += (u['sh_w']*2 + u['sh_d']*2) * u['sh_n']
-                    f_area += (u['sh_w']-5)*(u['sh_d']-5)*u['sh_n']
-                    st.write(f"🔹 رفوف ({u['sh_n']}): ألومنيوم {u['sh_w']} سم و {u['sh_d']} سم")
+                with c3:
+                    st.markdown('<p class="section-title">⚙️ بند الإضافات</p>', unsafe_allow_html=True)
+                    if u['sh_n'] > 0:
+                        st.write(f"• {u['sh_n']} رف: {u['sh_w']} × {u['sh_d']}")
+                    if u['dr_n'] > 0:
+                        st.write(f"• {u['dr_n']} درج: عرض {u['dr_w']-2.5} × عمق {u['dr_d']}")
+                    if u['sh_n'] == 0 and u['dr_n'] == 0:
+                        st.write("لا توجد إضافات")
+                
+                st.markdown('</div>', unsafe_allow_html=True)
 
-                if u['dv_n'] > 0:
-                    m_sum += (u['dv_h']*2 + u['dv_d']*2) * u['dv_n']
-                    f_area += (u['dv_h']-5)*(u['dv_d']-5)*u['dv_n']
-                    st.write(f"🔹 فواصل ({u['dv_n']}): ألومنيوم {u['dv_h']} سم و {u['dv_d']} سم")
+        # الجرد النهائي للمشروع
+        st.divider()
+        st.markdown('<div class="main-header"><h2>💰 إجمالي خامات المشروع بالكامل</h2></div>', unsafe_allow_html=True)
+        res1, res2, res3 = st.columns(3)
+        res1.metric("ألومنيوم مفرد (عود)", f"{m_total/600:.2f}")
+        res2.metric("ألومنيوم متقارب (عود)", f"{t_total/600:.2f}")
+        res3.metric("فيبر لوح (2.8*1.3)", f"{f_total/36400:.2f}")
 
-                if u['dr_n'] > 0:
-                    m_sum += ((u['dr_w']-2.5)*2 + u['dr_d']*2) * u['dr_n']
-                    st.write(f"🔹 أدراج ({u['dr_n']}): ألومنيوم عرض {u['dr_w']-2.5} سم وعمق {u['dr_d']} سم")
-
-            # عرض الخلاصة النهائية للمشروع
-            st.divider()
-            st.header("💰 إجمالي خامات المشروع بالكامل")
-            r1, r2, r3 = st.columns(3)
-            with r1:
-                st.metric("ألومنيوم مفرد (عود)", f"{m_sum/600:.2f}")
-            with r2:
-                st.metric("ألومنيوم متقارب (عود)", f"{t_sum/600:.2f}")
-            with r3:
-                st.metric("فيبر لوح (2.8*1.3)", f"{f_area/36400:.2f}")
+else:
+    st.info("👋 مرحباً بك! قم بإضافة الوحدات من القائمة الجانبية لعرض بيان التقطيع.")
