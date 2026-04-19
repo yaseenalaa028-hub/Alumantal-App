@@ -6,7 +6,7 @@ import math
 st.set_page_config(page_title="DOGGA SYSTEM - الإدارة الهندسية", layout="wide")
 
 st.markdown("""
-    <style>
+ <style>
     /* إخفاء علامة جيت هب والقائمة اليمنى تماماً */
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
