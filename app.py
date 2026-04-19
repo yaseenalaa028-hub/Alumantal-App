@@ -89,8 +89,8 @@ def add_to_project(unit_name, category, item_name, length, qty, unit_type="-"):
 # 🌌 الصفحة 0: الواجهة الرئيسية (3 زراير كبيرة)
 # ==========================================
 if st.session_state.page == 'main_menu':
-    st.markdown("<h1>⚡ DOGGA GALAXY SYSTEM</h1>")
-    st.markdown("<p style='text-align: center; color: #d9a066; font-size: 1.3rem;'>المهندس ياسين علاء | ورشة DED EL KASR</p>", unsafe_allow_html=True)
+    st.markdown("⚡ DOGGA GALAXY SYSTEM")
+    st.markdown("<p style='text-align: center; color: #d9a066; font-size: 1.3rem;'>برمجه المهندس ياسين علاء | مصنع </p>", unsafe_allow_html=True)
     st.write("##")
     
     st.markdown('<div class="main-btn-container">', unsafe_allow_html=True)
@@ -125,28 +125,28 @@ elif st.session_state.page == 'deduction':
         u_kind = st.selectbox("نوع الوحدة", ["سفلي", "علوي", "دولاب خزين", "مطبقيه"])
 
         st.divider()
-        W = st.number_input("العرض الكلي (W)", min_value=0.0)
-        H = st.number_input("الارتفاع الكلي (H)", min_value=0.0)
-        D = st.number_input("العمق الكلي (D)", min_value=0.0)
+        W = st.number_input("العرض الكلي (W)", min_value=0)
+        H = st.number_input("الارتفاع الكلي (H)", min_value=0)
+        D = st.number_input("العمق الكلي (D)", min_value=0)
 
         st.divider()
         st.subheader("📦 الأرفف والفواصل والأدراج")
         
         # مدخلات الأرفف
-        s_w = st.number_input("عرض الرف", value=0.0)
-        s_d = st.number_input("عمق الرف", value=0.0)
+        s_w = st.number_input("عرض الرف", value=0)
+        s_d = st.number_input("عمق الرف", value=0)
         s_q = st.number_input("عدد الأرفف", min_value=0)
 
         st.write("---")
         # مدخلات الفواصل
-        v_h = st.number_input("ارتفاع الفاصل", value=0.0)
-        v_d = st.number_input("عمق الفاصل", value=0.0)
+        v_h = st.number_input("ارتفاع الفاصل", value=0)
+        v_d = st.number_input("عمق الفاصل", value=0)
         v_q = st.number_input("عدد الفواصل", min_value=0)
 
         st.write("---")
         # مدخلات الأدراج
-        dr_w = st.number_input("عرض الدرج", value=0.0)
-        dr_d = st.number_input("عمق الدرج", value=0.0)
+        dr_w = st.number_input("عرض الدرج", value=0)
+        dr_d = st.number_input("عمق الدرج", value=0)
         dr_q = st.number_input("عدد الأدراج", min_value=0)
 
         submit = st.form_submit_button("✅ إضافة الوحدة للمشروع", use_container_width=True)
