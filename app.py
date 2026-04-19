@@ -196,9 +196,8 @@ elif st.session_state.page == 'deduction':
         if st.button("💰 حساب استهلاك الخامات والتسعير ⬅️", use_container_width=True):
             st.session_state.page = 'inventory'
             st.rerun()
-
 # ==========================================
-# الصفحة الثانية: الاستهلاك (كودك الأصلي بالكامل)
+# الصفحة الثانية: الاستهلاك والفاتورة
 # ==========================================
 elif st.session_state.page == 'inventory':
     st.markdown("<style>.stApp { background: white !important; }</style>", unsafe_allow_html=True)
@@ -209,6 +208,7 @@ elif st.session_state.page == 'inventory':
         alum = df[df["الخامة"] == "ألومنيوم"].copy()
         alum["المقاس (سم)"] = pd.to_numeric(alum["المقاس (سم)"], errors='coerce')
 
+        # 1. حساب الأعواد
         st.subheader("🥢 تقدير أعواد الألومنيوم (6 متر)")
         summary = alum.groupby("نوع التخصيم").apply(
             lambda x: (x["المقاس (سم)"] * x["العدد"]).sum()
@@ -216,6 +216,7 @@ elif st.session_state.page == 'inventory':
         summary["الأعواد"] = summary["إجمالي سم"].apply(lambda x: math.ceil(x / 600))
         st.table(summary)
 
+        # 2. حساب الفيبر
         total_area = 0
         for _, row in df[df["الخامة"] == "فيبر"].iterrows():
             dims = str(row["المقاس (سم)"]).split('×')
@@ -233,48 +234,27 @@ elif st.session_state.page == 'inventory':
         base_bill.append({"الصنف": "لوح فيبر كامل", "الكمية": sheets, "السعر": 0.0})
 
         final_bill = st.data_editor(pd.DataFrame(base_bill), num_rows="dynamic", use_container_width=True)
+        
         total = (final_bill["الكمية"] * final_bill["السعر"]).sum()
         st.header(f"💰 التكلفة الإجمالية: {total:,.2f} ج.م")
 
         st.divider()
+        
+        # 4. تفاصيل إضافية للمراجعة
+        with st.expander("🔍 مراجعة الأطوال الكلية قبل التقطيع"):
+            st.write("الأطوال التالية هي ناتج جمع كل القطع المضافة للمشروع:")
+            st.dataframe(summary, use_container_width=True)
+
+        # 5. منطقة أزرار الإجراءات
         st.write("### ⚙️ خيارات المشروع")
         c_inv1, c_inv2, c_inv3 = st.columns(3)
         
         with c_inv1:
             if st.button("⬅️ إضافة وحدات أخرى", use_container_width=True):
-                st.session_state.page = 'deduction'; st.rerun()
-                
-        with c_inv2:
-            csv_final = final_bill.to_csv(index=False).encode('utf-8-sig')
-            st.download_button(label="📥 تحميل الفاتورة (Excel)", data=csv_final, file_name=f"DOGGA_Invoice.csv", mime="text/csv", use_container_width=True)
-            
-        with c_inv3:
-            if st.button("🗑️ تفريغ المشروع بالكامل", use_container_width=True, type="secondary"):
-                st.session_state.project_data = []; st.session_state.page = 'main_menu'; st.rerun()
-    else:
-        st.error("⚠️ لا توجد بيانات مسجلة.")
-        if st.button("العودة للقائمة الرئيسية"):
-            st.session_state.page = 'main_menu'; st.rerun()
-            # --- تابع الصفحة الثانية (inventory) ---
-        
-        st.divider()
-        
-        # 4. تفاصيل إضافية للمراجعة (من كودك الأصلي)
-        with st.expander("🔍 مراجعة الأطوال الكلية قبل التقطيع"):
-            st.write("الأطوال التالية هي ناتج جمع كل القطع المضافة للمشروع:")
-            st.dataframe(summary, use_container_width=True)
-
-        # 5. منطقة أزرار الإجراءات النهائية
-        st.write("### ⚙️ خيارات المشروع")
-        c_inv1, c_inv2, c_inv3 = st.columns(3)
-        
-        with c_inv1:
-            if st.button("⬅️ إضافة وحدات أخرى", key="add_more", use_container_width=True):
                 st.session_state.page = 'deduction'
                 st.rerun()
                 
         with c_inv2:
-            # تصدير الفاتورة النهائية شاملة الأصناف المضافة يدوياً
             csv_final = final_bill.to_csv(index=False).encode('utf-8-sig')
             st.download_button(
                 label="📥 تحميل الفاتورة (Excel)",
@@ -285,19 +265,13 @@ elif st.session_state.page == 'inventory':
             )
             
         with c_inv3:
-            # زر المسح النهائي مع العودة للقائمة الرئيسية
-            if st.button("🗑️ تفريغ المشروع بالكامل", key="clear_all", use_container_width=True, type="secondary"):
+            if st.button("🗑️ تفريغ المشروع بالكامل", use_container_width=True, type="secondary"):
                 st.session_state.project_data = []
                 st.session_state.page = 'main_menu'
                 st.rerun()
 
     else:
-        # حماية في حالة الدخول للصفحة مباشرة بدون بيانات
         st.error("⚠️ لا توجد بيانات مسجلة في المشروع حالياً.")
         if st.button("العودة للقائمة الرئيسية لإضافة وحدات"):
             st.session_state.page = 'main_menu'
             st.rerun()
-
-# --- نهاية كود تطبيق DOGGA SYSTEM المتكامل ---
-# المهندس: ياسين علاء
-# ورشة: DED EL KASR
