@@ -112,7 +112,7 @@ if st.session_state.page == 'main_menu':
 # الصفحة الأولى: التخصيم التفصيلي (تحت بعضها)
 # ==========================================
 elif st.session_state.page == 'deduction':
-    st.markdown("<h1>🏗️ تخصيم مشروع متكامل</h1>")
+    st.markdown("🏗️ تخصيم مشروع متكامل")
     if st.button("🏠 العودة للرئيسية"):
         st.session_state.page = 'main_menu'
         st.rerun()
