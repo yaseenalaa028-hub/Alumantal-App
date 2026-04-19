@@ -1,155 +1,223 @@
 import streamlit as st
 import pandas as pd
+import math
 
-# 1. إعدادات الصفحة (DOGGA SYSTEM)
-st.set_page_config(page_title="DOGGA SYSTEM - التخصيم والتسعير", layout="wide")
+# 1. إعدادات الصفحة
+st.set_page_config(page_title="DOGGA SYSTEM - حساب الخامات", layout="wide")
 
-# 2. نظام التنقل بين الصفحات والحالة
 if 'page' not in st.session_state:
     st.session_state.page = 'deduction'
 if 'data_list' not in st.session_state:
     st.session_state.data_list = []
 
-# --- دالة إضافة البنود للقائمة ---
+# --- دالة إضافة البنود ---
 def add_to_bill(category, item_name, length, qty, unit_type="-"):
     st.session_state.data_list.append({
         "الخامة": category,
         "اسم القطعة": item_name,
-        "المقاس (سم)": round(length, 1) if isinstance(length, (int, float)) else length,
+        "المقاس (سم)": length,
         "العدد": qty,
         "نوع التخصيم": unit_type
     })
 
 # ==========================================
-# الصفحة الأولى: التخصيم (Deduction)
+# الصفحة الأولى: التخصيم والحسابات الفنية
 # ==========================================
 if st.session_state.page == 'deduction':
-    st.title("🏭 نظام DOGGA للتخصيم الهندسي")
-    st.info("تخصيم (مفرد/متقارب) لورشة DED EL KASR")
-
-    # مدخلات المقاسات
+    st.title("🏭 محرك التخصيم واستهلاك الخامات")
+    
     with st.container():
-        st.subheader("📏 أبعاد الوحدة")
         c1, c2, c3, c4 = st.columns(4)
-        unit_kind = c1.selectbox("نوع الوحدة", ["سفلي", "علوي", "دولاب خزين", "مطبقيه"])
-        W = c2.number_input("عرض القطعة الكلي (W)", min_value=0.0)
-        H = c3.number_input("ارتفاع القطعة الكلي (H)", min_value=0.0)
-        D = c4.number_input("عمق القطعة الكلي (D)", min_value=0.0)
+        unit_kind = c1.selectbox("نوع الوحدة", ["سفلي", "علوي", "دولاب خزين"])
+        W, H, D = c2.number_input("العرض (W)"), c3.number_input("الارتفاع (H)"), c4.number_input("العمق (D)")
 
-    st.divider()
-
-    # الرفوف والفواصل
-    col_s1, col_s2, col_s3, col_s4 = st.columns(4)
-    s_w = col_s1.number_input("عرض الرف", value=0.0)
-    s_d = col_s2.number_input("عمق الرف", value=0.0)
-    s_q = col_s3.number_input("عدد الرفوف", min_value=0)
-    
-    st.divider()
-    
-    col_v1, col_v2, col_v3 = st.columns(3)
-    v_h = col_v1.number_input("ارتفاع الفاصل", value=0.0)
-    v_d = col_v2.number_input("عمق الفاصل", value=0.0)
-    v_q = col_v3.number_input("عدد الفواصل", min_value=0)
-
-    # زر الحساب
-    if st.button("🚀 تشغيل التخصيم", use_container_width=True):
-        st.session_state.data_list = [] # تصوير قائمة جديدة
-        
+    if st.button("🚀 تشغيل التخصيم وحساب الهالك", use_container_width=True):
+        st.session_state.data_list = []
         if W > 0 and H > 0 and D > 0:
-            # معادلات التخصيم (قواعد ورشة DED EL KASR)
             h_ded = 13 if unit_kind in ["سفلي", "دولاب خزين"] else 5
             f_h, f_w, f_d = H - h_ded, W - 5, D - 5
 
-            # إضافة الألومنيوم
+            # ألومنيوم (مفرد ومتقارب)
             if unit_kind == "سفلي":
-                add_to_bill("ألومنيوم", "قائم ارتفاع", f_h, 2, "مفرد")
-                add_to_bill("ألومنيوم", "قائم ارتفاع", f_h, 2, "متقارب")
-                add_to_bill("ألومنيوم", "عارضة عرض", f_w, 3, "مفرد")
-                add_to_bill("ألومنيوم", "عارضة عرض", f_w, 1, "متقارب")
-                add_to_bill("ألومنيوم", "رباط عمق", f_d, 2, "مفرد")
-                add_to_bill("ألومنيوم", "رباط عمق", f_d, 2, "متقارب")
+                add_to_bill("ألومنيوم", "قائم (مفرد)", f_h, 2, "مفرد")
+                add_to_bill("ألومنيوم", "قائم (متقارب)", f_h, 2, "متقارب")
+                add_to_bill("ألومنيوم", "عارضة (مفرد)", f_w, 3, "مفرد")
+                add_to_bill("ألومنيوم", "عارضة (متقارب)", f_w, 1, "متقارب")
+                add_to_bill("ألومنيوم", "رباط (مفرد)", f_d, 2, "مفرد")
+                add_to_bill("ألومنيوم", "رباط (متقارب)", f_d, 2, "متقارب")
             else:
-                add_to_bill("ألومنيوم", "قائم ارتفاع", f_h, 2, "مفرد")
-                add_to_bill("ألومنيوم", "قائم ارتفاع", f_h, 2, "متقارب")
-                add_to_bill("ألومنيوم", "عارضة عرض", f_w, 2, "مفرد")
-                add_to_bill("ألومنيوم", "عارضة عرض", f_w, 2, "متقارب")
-                add_to_bill("ألومنيوم", "رباط عمق", f_d, 4, "متقارب")
+                add_to_bill("ألومنيوم", "قائم (مفرد)", f_h, 2, "مفرد")
+                add_to_bill("ألومنيوم", "قائم (متقارب)", f_h, 2, "متقارب")
+                add_to_bill("ألومنيوم", "عارضة (مفرد)", f_w, 2, "مفرد")
+                add_to_bill("ألومنيوم", "عارضة (متقارب)", f_w, 2, "متقارب")
+                add_to_bill("ألومنيوم", "رباط (متقارب)", f_d, 4, "متقارب")
 
-            # إضافة الفيبر
-            add_to_bill("فيبر", "ضهرية", f"{f_w} × {f_h}", 1, "فيبر")
-            add_to_bill("فيبر", "أرضية", f"{f_w} × {f_d}", 1, "فيبر")
-            add_to_bill("فيبر", "أجناب", f"{f_h} × {f_d}", 2, "فيبر")
+            # فيبر (مساحات)
+            add_to_bill("فيبر", "ظهرية", f"{f_w}×{f_h}", 1)
+            add_to_bill("فيبر", "أرضية", f"{f_w}×{f_d}", 1)
+            add_to_bill("فيبر", "أجناب", f"{f_h}×{f_d}", 2)
 
-            # الرفوف والفواصل
-            if s_q > 0:
-                add_to_bill("ألومنيوم", "عرض الرف", s_w, s_q * 2, "مفرد")
-                add_to_bill("ألومنيوم", "عمق الرف", s_d, s_q * 2, "مفرد")
-                add_to_bill("فيبر", "حشو رف", f"{s_w-5} × {s_d-5}", s_q, "فيبر")
-            
-            if v_q > 0:
-                add_to_bill("ألومنيوم", "ارتفاع فاصل", v_h, v_q * 2, "مفرد")
-                add_to_bill("ألومنيوم", "عمق فاصل", v_d, v_q * 2, "مفرد")
-                add_to_bill("فيبر", "حشو فاصل", f"{v_h-5} × {v_d-5}", v_q, "فيبر")
-
-    # عرض النتائج وزر الانتقال
     if st.session_state.data_list:
-        df_full = pd.DataFrame(st.session_state.data_list)
-        st.subheader("🟦 جدول الألومنيوم")
-        st.table(df_full[df_full["الخامة"] == "ألومنيوم"])
-        st.subheader("⬜ جدول الفيبر")
-        st.table(df_full[df_full["الخامة"] == "فيبر"])
+        st.subheader("📋 نتائج التخصيم")
+        df = pd.DataFrame(st.session_state.data_list)
+        st.dataframe(df, use_container_width=True)
         
-        st.divider()
-        if st.button("💰 الانتقال لتسعير الفاتورة ⬅️", use_container_width=True):
-            st.session_state.page = 'billing'
+        if st.button("💰 الانتقال لحساب الأعواد والواح الفيبر ⬅️", use_container_width=True):
+            st.session_state.page = 'inventory'
             st.rerun()
 
 # ==========================================
-# الصفحة الثانية: فاتورة الأسعار (Billing)
+# الصفحة الثانية: حساب الاستهلاك الفعلي (الأعواد والواح الفيبر)
 # ==========================================
-elif st.session_state.page == 'billing':
-    st.title("🧾 فاتورة بيان الأسعار - Excel Mode")
-    st.info("قم بتعديل عمود 'سعر الوحدة' لحساب التكلفة الإجمالية")
+elif st.session_state.page == 'inventory':
+    st.title("📦 حساب استهلاك الأعواد والواح الفيبر")
+    
+    if st.session_state.data_list:
+        df = pd.DataFrame(st.session_state.data_list)
+        alum_df = df[df["الخامة"] == "ألومنيوم"].copy()
+        fiber_df = df[df["الخامة"] == "فيبر"].copy()
+
+        # --- 1. حساب أعواد الألومنيوم (6 متر) ---
+        st.subheader("🥢 استهلاك أعواد الألومنيوم (العود = 600 سم)")
+        
+        # تجميع الأطوال حسب نوع القطاع (مفرد / متقارب)
+        summary_alum = alum_df.groupby("نوع التخصيم").apply(
+            lambda x: (x["المقاس (سم)"] * x["العدد"]).sum()
+        ).reset_index(name="إجمالي الأطوال (سم)")
+        
+        summary_alum["عدد الأعواد (تقريبي)"] = summary_alum["إجمالي الأطوال (سم)"].apply(lambda x: math.ceil(x / 600))
+        
+        st.table(summary_alum)
+
+        # --- 2. حساب الواح الفيبر (280 × 130) ---
+        st.subheader("🖼️ استهلاك الواح الفيبر (اللوح = 280 × 130 سم)")
+        
+        total_fiber_area = 0
+        for idx, row in fiber_df.iterrows():
+            dims = str(row["المقاس (سم)"]).split('×')
+            area = float(dims[0]) * float(dims[1]) * row["العدد"]
+            total_fiber_area += area
+        
+        sheet_area = 280 * 130  # مساحة اللوح الواحد بالسم مربع
+        needed_sheets = math.ceil(total_fiber_area / sheet_area)
+        
+        col_f1, col_f2 = st.columns(2)
+        col_f1.metric("إجمالي مساحة الفيبر المطلوبة", f"{total_fiber_area:,.0f} سم²")
+        col_f2.metric("عدد ألواح الفيبر المطلوبة", f"{needed_sheets} لوح")
+
+        # --- 3. جدول الأسعار النهائي ---
+        st.divider()
+        st.subheader("💵 بيان أسعار الخامات")
+        
+        # تحضير جدول للفاتورة
+        invoice_data = []
+        for index, row in summary_alum.iterrows():
+            invoice_data.append({"الصنف": f"ألومنيوم {row['نوع التخصيم']}", "الكمية": row["عدد الأعواد (تقريبي)"], "وحدة القياس": "عود (6م)", "السعر": 0.0})
+        
+        invoice_data.append({"الصنف": "لوح فيبر (280×130)", "الكمية": needed_sheets, "وحدة القياس": "لوح", "السعر": 0.0})
+        
+        final_bill = st.data_editor(pd.DataFrame(invoice_data), use_container_width=True)
+        
+        total_cost = (final_bill["الكمية"] * final_bill["السعر"]).sum()
+        st.header(f"💰 إجمالي التكلفة: {total_cost:,.2f} ج.م")
+
+        if st.button("⬅️ العودة للتخصيم"):
+            st.session_state.page = 'deduction'
+            st.rerun()
+    else:
+        st.warning("لا توجد بيانات!") 
+# --- كود صفحة حساب الاستهلاك (توضع بعد كود صفحة التخصيم) ---
+
+elif st.session_state.page == 'inventory':
+    st.title("📦 حساب أمتار الأعواد وألواح الفيبر - DOGGA SYSTEM")
+    st.info("هذه الصفحة تحول المقاسات المقطوعة إلى خامات صحيحة (أعواد وألواح)")
 
     if st.session_state.data_list:
-        df_bill = pd.DataFrame(st.session_state.data_list)
-        if "سعر الوحدة" not in df_bill.columns:
-            df_bill["سعر الوحدة"] = 0.0
+        df = pd.DataFrame(st.session_state.data_list)
+        
+        # --- 1. حساب الألومنيوم (مفرد ومتقارب) ---
+        st.subheader("🥢 تقدير أعواد الألومنيوم (العود = 6 متر)")
+        
+        # تصفية الألومنيوم فقط
+        alum_df = df[df["الخامة"] == "ألومنيوم"].copy()
+        
+        # تجميع الأطوال الكلية لكل نوع
+        alum_summary = alum_df.groupby("نوع التخصيم").apply(
+            lambda x: (x["المقاس (سم)"] * x["العدد"]).sum()
+        ).reset_index(name="إجمالي السنتيمترات")
 
-        # الجدول التفاعلي (إكسيل داخل التطبيق)
-        edited_df = st.data_editor(
-            df_bill,
-            column_config={
-                "سعر الوحدة": st.column_config.NumberColumn("السعر (ج.م)", min_value=0),
-                "العدد": st.column_config.NumberColumn(disabled=True),
-                "اسم القطعة": st.column_config.TextColumn(disabled=True),
-                "الخامة": st.column_config.TextColumn(disabled=True)
-            },
-            use_container_width=True
+        # حساب عدد الأعواد (600 سم لكل عود) مع إضافة 5% هالك تقطيع
+        alum_summary["عدد الأعواد (6م)"] = alum_summary["إجمالي السنتيمترات"].apply(
+            lambda x: math.ceil((x * 1.05) / 600) 
         )
 
-        # حساب الإجمالي
-        def calc_total(row):
-            try:
-                # محاولة تحويل المقاس لرقم للضرب (للألومنيوم)، لو فيبر استخدم العدد فقط
-                val = float(row["المقاس (سم)"]) if isinstance(row["المقاس (سم)"], (int, float)) else 1
-                return val * row["العدد"] * row["سعر الوحدة"]
-            except:
-                return row["العدد"] * row["سعر الوحدة"]
+        st.table(alum_summary)
 
-        edited_df["الإجمالي"] = edited_df.apply(calc_total, axis=1)
-        st.header(f"💵 الإجمالي الكلي: {edited_df['الإجمالي'].sum():,.2f} ج.م")
+        # --- 2. حساب الفيبر (لوح 280 × 130) ---
+        st.subheader("🖼️ تقدير ألواح الفيبر (اللوح = 280 × 130)")
+        
+        fiber_df = df[df["الخامة"] == "فيبر"].copy()
+        total_fiber_area = 0
+
+        for _, row in fiber_df.iterrows():
+            # فك النص (مثلاً 195×77) لعمل عملية حسابية للمساحة
+            dims = str(row["المقاس (سم)"]).split('×')
+            if len(dims) == 2:
+                area = float(dims[0]) * float(dims[1]) * row["العدد"]
+                total_fiber_area += area
+        
+        # مساحة اللوح الواحد بالسم2 = 36,400
+        sheet_area = 280 * 130
+        needed_sheets = math.ceil(total_fiber_area / sheet_area)
 
         c1, c2 = st.columns(2)
-        with c1:
-            if st.button("⬅️ العودة للتخصيم"):
+        c1.metric("إجمالي مساحة الحشو المطلوبة", f"{total_fiber_area:,.0f} سم²")
+        c2.metric("عدد ألواح الفيبر المطلوبة", f"{needed_sheets} لوح")
+
+        st.divider()
+
+        # --- 3. فاتورة الأسعار النهائية (بناءً على الأعواد والألواح) ---
+        st.subheader("💰 بيان أسعار المشتريات")
+        
+        # تجهيز جدول الفاتورة للمستخدم
+        invoice_items = []
+        for _, row in alum_summary.iterrows():
+            invoice_items.append({
+                "الصنف": f"ألومنيوم - {row['نوع التخصيم']}",
+                "الكمية المطلوبة": row["عدد الأعواد (6م)"],
+                "وحدة القياس": "عود 6م",
+                "سعر الوحدة": 0.0
+            })
+        
+        invoice_items.append({
+            "الصنف": "لوح فيبر (280×130)",
+            "الكمية المطلوبة": needed_sheets,
+            "وحدة القياس": "لوح كامل",
+            "سعر الوحدة": 0.0
+        })
+
+        # جدول إيديتور لكتابة السعر
+        final_invoice = st.data_editor(
+            pd.DataFrame(invoice_items),
+            use_container_width=True,
+            column_config={"سعر الوحدة": st.column_config.NumberColumn("السعر (ج.م)", min_value=0)}
+        )
+
+        total_final = (final_invoice["الكمية المطلوبة"] * final_invoice["سعر الوحدة"]).sum()
+        st.subheader(f"💵 إجمالي مبلغ الشراء: {total_final:,.2f} ج.م")
+
+        # أزرار التنقل
+        col_btn1, col_btn2 = st.columns(2)
+        with col_btn1:
+            if st.button("⬅️ العودة لتعديل التخصيم"):
                 st.session_state.page = 'deduction'
                 st.rerun()
-        with c2:
-            csv = edited_df.to_csv(index=False).encode('utf-8-sig')
-            st.download_button("📥 تحميل الفاتورة (Excel)", csv, "DOGGA_Invoice.csv", "text/csv")
+        with col_btn2:
+            # تصدير فاتورة المشتريات
+            csv_inv = final_invoice.to_csv(index=False).encode('utf-8-sig')
+            st.download_button("📥 تحميل فاتورة المشتريات (Excel)", csv_inv, "DOGGA_Purchase_Order.csv", "text/csv")
     else:
-        st.warning("لا توجد بيانات، ارجع لصفحة التخصيم أولاً.")
-        if st.button("العودة للتخصيم"):
+        st.warning("برجاء إجراء التخصيم أولاً في الصفحة السابقة.")
+        if st.button("الذهاب للتخصيم"):
             st.session_state.page = 'deduction'
             st.rerun()
