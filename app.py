@@ -7,6 +7,17 @@ st.set_page_config(page_title="DOGGA SYSTEM - الإدارة الهندسية", 
 
 st.markdown("""
     <style>
+    /* إخفاء علامة جيت هب والقائمة اليمنى تماماً */
+    #MainMenu {visibility: hidden;}
+    footer {visibility: hidden;}
+    header {visibility: hidden;}
+    
+    /* إخفاء زر View Source اللي بيظهر في الاستضافة */
+    .viewerBadge_container__1QSob {display: none !important;}
+    .stAppDeployButton {display: none !important;}
+    </style>
+    """, unsafe_allow_html=True)
+    <style>
     /* الخلفية والكون */
     .stApp {
         background: radial-gradient(circle at top right, #0d1117, #050505, #020c1b);
