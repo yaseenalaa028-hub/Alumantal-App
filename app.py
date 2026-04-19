@@ -70,7 +70,7 @@ def add_to_project(unit_name, category, item_name, length, qty, unit_type="-"):
 # ==========================================
 if st.session_state.page == 'main_menu':
     st.markdown("<h1>🚀 DOGGA SMART KITCHEN SYSTEM</h1>", unsafe_allow_html=True)
-    st.markdown("<p style='text-align: center; color: #888;'>بواسطة المهندس ياسين علاء | ورشة DED EL KASR</p>", unsafe_allow_html=True)
+    st.markdown("<p style='text-align: center; color: #888;'>بواسطة المهندس ياسين علاء | مصنع DED EL KASR</p>", unsafe_allow_html=True)
     st.write("##")
     
     st.markdown('<div class="main-btn-container">', unsafe_allow_html=True)
