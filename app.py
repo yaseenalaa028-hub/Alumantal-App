@@ -23,7 +23,6 @@ st.markdown("""
         background: radial-gradient(circle at top right, #0d1117, #050505, #020c1b);
         color: #d9a066;
     }
-    
     /* تصميم الأزرار الرئيسية الثلاثة */
     .main-btn-container div.stButton > button {
         background: rgba(0, 150, 255, 0.05) !important;
