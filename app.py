@@ -30,7 +30,43 @@ if st.session_state.page == 'deduction':
         c1, c2, c3, c4 = st.columns(4)
         unit_kind = c1.selectbox("نوع الوحدة", ["سفلي", "علوي", "دولاب خزين"])
         W, H, D = c2.number_input("العرض (W)"), c3.number_input("الارتفاع (H)"), c4.number_input("العمق (D)")
+# --- قسم مدخلات الأرفف والفواصل والأدراج (DOGGA SYSTEM) ---
 
+st.divider()
+
+# 1. قسم الأرفف
+st.subheader("📚 حسابات الأرفف")
+col_s1, col_s2, col_s3 = st.columns(3)
+with col_s1:
+    s_w = st.number_input("عرض الرف الصافي", value=0.0, key="shelf_w")
+with col_s2:
+    s_d = st.number_input("عمق الرف الصافي", value=0.0, key="shelf_d")
+with col_s3:
+    s_q = st.number_input("عدد الأرفف", min_value=0, step=1, key="shelf_q")
+
+st.divider()
+
+# 2. قسم الفواصل
+st.subheader("🧱 حسابات الفواصل")
+col_v1, col_v2, col_v3 = st.columns(3)
+with col_v1:
+    v_h = st.number_input("ارتفاع الفاصل الصافي", value=0.0, key="div_h")
+with col_v2:
+    v_d = st.number_input("عمق الفاصل الصافي", value=0.0, key="div_d")
+with col_v3:
+    v_q = st.number_input("عدد الفواصل", min_value=0, step=1, key="div_q")
+
+st.divider()
+
+# 3. قسم الأدراج
+st.subheader("🗄️ حسابات الأدراج")
+col_dr1, col_dr2, col_dr3 = st.columns(3)
+with col_dr1:
+    dr_w = st.number_input("عرض الدرج (قبل الخصم)", value=0.0, key="dr_w")
+with col_dr2:
+    dr_d = st.number_input("عمق الدرج (ثابت)", value=0.0, key="dr_d")
+with col_dr3:
+    dr_q = st.number_input("عدد الأدراج", min_value=0, step=1, key="dr_q")
     if st.button("🚀 تشغيل التخصيم وحساب الهالك", use_container_width=True):
         st.session_state.data_list = []
         if W > 0 and H > 0 and D > 0:
