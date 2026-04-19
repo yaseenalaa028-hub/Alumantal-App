@@ -176,7 +176,7 @@ elif st.session_state.page == 'deduction':
         if dr_q > 0:
             add_to_project(name, "ألومنيوم", "وش/ضهر درج", dr_w - 2.5, dr_q*2, "علبة درج")
             add_to_project(name, "ألومنيوم", "جنب درج", dr_d, dr_q*2, "علبة درج")
-            add_to_project(name, "فيبر", "أرضية درج", f"{dr_w-0}×{dr_d-0}", dr_q, "حشو")
+            add_to_project(name, "فيبر", "أرضية درج", f"{dr_alum_w}×{dr_d}", dr_q, "حشو")
 
         st.toast(f"✅ تمت إضافة {name} بنجاح!")
 
