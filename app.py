@@ -1,71 +1,92 @@
 import streamlit as st
 
-st.title("تطبيق تخصيم الألوميتال")
+st.title("📊 تطبيق تخصيم الألوميتال")
 
 # =========================
 # بيانات الوحدة
 # =========================
-width = st.number_input("عرض الوحدة", value=200.0)
-height = st.number_input("ارتفاع الوحدة", value=90.0)
-depth = st.number_input("عمق الوحدة", value=50.0)
+st.header("بيانات الوحدة")
+
+width = st.number_input("عرض الوحدة (سم)", value=None, placeholder="اكتب العرض")
+height = st.number_input("ارتفاع الوحدة (سم)", value=None, placeholder="اكتب الارتفاع")
+depth = st.number_input("عمق الوحدة (سم)", value=None, placeholder="اكتب العمق")
 
 # =========================
-# أرفف / فواصل / أدراج
+# الأرفف
 # =========================
-shelves = st.number_input("عدد الأرفف", value=0, step=1)
-dividers = st.number_input("عدد الفواصل", value=0, step=1)
-drawers = st.number_input("عدد الأدراج", value=0, step=1)
+st.header("الأرفف")
+
+shelf_width = st.number_input("عرض الرف (سم)", value=None, placeholder="عرض الرف")
+shelf_depth = st.number_input("عمق الرف (سم)", value=None, placeholder="عمق الرف")
+shelves_count = st.number_input("عدد الأرفف", value=0, step=1)
+
+# =========================
+# الفواصل
+# =========================
+st.header("الفواصل")
+
+divider_height = st.number_input("ارتفاع الفاصل (سم)", value=None, placeholder="ارتفاع الفاصل")
+divider_depth = st.number_input("عمق الفاصل (سم)", value=None, placeholder="عمق الفاصل")
+dividers_count = st.number_input("عدد الفواصل", value=0, step=1)
+
+# =========================
+# الأدراج
+# =========================
+st.header("الأدراج")
+
+drawer_width = st.number_input("عرض الدرج (سم)", value=None, placeholder="عرض الدرج")
+drawer_depth = st.number_input("عمق الدرج (سم)", value=None, placeholder="عمق الدرج")
+drawers_count = st.number_input("عدد الأدراج", value=0, step=1)
 
 # =========================
 # زر الحساب
 # =========================
 if st.button("احسب التخصيم"):
 
-    # التخصيم الأساسي
-    cut_w = width - 5
-    cut_h = height - 13
-    cut_d = depth - 5
+    if width and height and depth:
 
-    st.subheader("📌 الألوميتال")
+        cut_w = width - 5
+        cut_h = height - 13
+        cut_d = depth - 5
 
-    st.write(f"ارتفاع مفرد/متقارب: {cut_h}")
-    st.write(f"عرض مفرد/متقارب: {cut_w}")
-    st.write(f"عمق مفرد/متقارب: {cut_d}")
+        st.subheader("📌 التخصيم الأساسي")
 
-    st.subheader("📌 الفيبر")
+        st.write("عرض:", cut_w)
+        st.write("ارتفاع:", cut_h)
+        st.write("عمق:", cut_d)
 
-    st.write(f"الضهرية: {cut_w} × {cut_h}")
-    st.write(f"الأرضية: {cut_w} × {cut_d}")
-    st.write(f"الأجناب: {cut_h} × {cut_d}")
+        # =========================
+        # الأرفف
+        # =========================
+        if shelf_width and shelf_depth:
+            st.subheader("📌 الأرفف")
 
-    # =========================
-    # الأرفف
-    # =========================
-    if shelves > 0:
-        shelf_w = cut_w - 5
-        shelf_d = cut_d - 5
+            fiber_w = shelf_width - 5
+            fiber_d = shelf_depth - 5
 
-        st.subheader("📌 الأرفف")
-        st.write(f"فيبر رف: {shelf_w} × {shelf_d} × {shelves}")
-        st.write(f"ألوميتال رف: {cut_h} × {shelves * 2}")
+            st.write(f"فيبر رف: {fiber_w} × {fiber_d} × {shelves_count}")
+            st.write(f"ألوميتال رف: {cut_h} × {shelves_count * 2}")
 
-    # =========================
-    # الفواصل
-    # =========================
-    if dividers > 0:
-        divider_h = cut_h
-        divider_d = cut_d - 5
+        # =========================
+        # الفواصل
+        # =========================
+        if divider_height and divider_depth:
+            st.subheader("📌 الفواصل")
 
-        st.subheader("📌 الفواصل")
-        st.write(f"فيبر فاصل: {divider_h} × {divider_d} × {dividers}")
-        st.write(f"ألوميتال فاصل: {cut_h} × {dividers * 2}")
+            fiber_d = divider_depth - 5
 
-    # =========================
-    # الأدراج
-    # =========================
-    if drawers > 0:
-        drawer_w = width - 2.5
-        drawer_d = depth
+            st.write(f"فيبر فاصل: {divider_height} × {fiber_d} × {dividers_count}")
+            st.write(f"ألوميتال فاصل: {cut_h} × {dividers_count * 2}")
 
-        st.subheader("📌 الأدراج")
-        st.write(f"درج: {drawer_w} × {drawer_d} × {drawers}")
+        # =========================
+        # الأدراج
+        # =========================
+        if drawer_width and drawer_depth:
+            st.subheader("📌 الأدراج")
+
+            cut_dw = drawer_width - 2.5
+
+            st.write(f"درج: {cut_dw} × {drawer_depth} × {drawers_count}")
+
+    else:
+        st.error("من فضلك ادخل بيانات الوحدة الأساسية")
