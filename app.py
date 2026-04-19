@@ -104,16 +104,16 @@ elif st.session_state.page == 'deduction':
 
         st.subheader("📏 أبعاد الوحدة الأساسية")
         c1, c2, c3 = st.columns(3)
-        W = c1.number_input("العرض الكلي (W)", min_value=0.0)
-        H = c2.number_input("الارتفاع الكلي (H)", min_value=0.0)
-        D = c3.number_input("العمق الكلي (D)", min_value=0.0)
+        W = c1.number_input("العرض الكلي (W)", min_value=0)
+        H = c2.number_input("الارتفاع الكلي (H)", min_value=0)
+        D = c3.number_input("العمق الكلي (D)", min_value=0)
 
         st.divider()
         st.subheader("📦 الأرفف والفواصل والأدراج")
         # الأرفف
         cs1, cs2, cs3 = st.columns(3)
-        s_w = cs1.number_input("عرض الرف الصافي", value=0.0)
-        s_d = cs2.number_input("عمق الرف الصافي", value=0.0)
+        s_w = cs1.number_input("عرض الرف الصافي", value=0)
+        s_d = cs2.number_input("عمق الرف الصافي", value=0)
         s_q = cs3.number_input("عدد الأرفف", min_value=0, step=1)
         # الفواصل
         cv1, cv2, cv3 = st.columns(3)
