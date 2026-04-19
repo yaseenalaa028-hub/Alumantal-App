@@ -14,8 +14,8 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-st.title("🏭 نظام DOGGA للهندسة والتخصيم (إصدار الفواصل والأرفف المنفصلة)")
-st.info("تخصيم احترافي: (مفرد / متقارب) + فيبر + فواصل وأرفف منفصلة تماماً")
+st.title("🏭 نظام DOGGA للهندسة والتخصيم (الإصدار الشامل والجداول المنفصلة)")
+st.info("تخصيم دقيق (مفرد/متقارب) + جداول منفصلة للألومنيوم والفيبر + تحميل ملف إكسيل")
 
 # --- إدارة حالة البيانات ---
 if 'data_list' not in st.session_state:
@@ -26,7 +26,7 @@ def add_to_bill(category, item_name, length, qty, unit_type="-"):
         "الخامة": category,
         "اسم القطعة": item_name,
         "المقاس (سم)": round(length, 1) if isinstance(length, (int, float)) else length,
-        "العدد (Qty)": qty,
+        "العدد": qty,
         "نوع التخصيم": unit_type
     })
 
@@ -41,7 +41,6 @@ with st.container():
 
     st.divider()
     
-    # قسم الأرفف المنفصل
     st.subheader("📚 2. الأرفف (منفصلة)")
     col_s1, col_s2, col_s3 = st.columns(3)
     s_w_input = col_s1.number_input("عرض الرف الصافي", value=0.0, key="shelf_w")
@@ -50,7 +49,6 @@ with st.container():
 
     st.divider()
 
-    # قسم الفواصل المنفصل
     st.subheader("🧱 3. الفواصل (منفصلة)")
     col_v1, col_v2, col_v3 = st.columns(3)
     v_h_input = col_v1.number_input("ارتفاع الفاصل الصافي", value=0.0, key="divider_h")
@@ -66,7 +64,7 @@ with st.container():
     dr_q_input = dr_col3.number_input("عدد الأدراج", min_value=0, step=1, key="drawer_q")
 
 # --- محرك الحسابات الهندسي ---
-if st.button("🚀 إصدار بيان التقطيع وفاتورة الخامات النهائية", use_container_width=True):
+if st.button("🚀 إصدار بيان التقطيع وتحميل الإكسيل", use_container_width=True):
     st.session_state.data_list = []
     
     if W > 0 and H > 0 and D > 0:
@@ -95,13 +93,13 @@ if st.button("🚀 إصدار بيان التقطيع وفاتورة الخام�
         add_to_bill("فيبر", "أرضية الوحدة", f"{final_w} × {final_d}", 1, "حشو")
         add_to_bill("فيبر", "أجناب الوحدة", f"{final_h} × {final_d}", 2, "حشو")
 
-        # --- [ ج ] تخصيم الأرفف (منفصل) ---
+        # --- [ ج ] تخصيم الأرفف ---
         if s_q_input > 0:
             add_to_bill("ألومنيوم", "عرض الرف", s_w_input, s_q_input * 2, "مفرد")
             add_to_bill("ألومنيوم", "عمق الرف", s_d_input, s_q_input * 2, "مفرد")
             add_to_bill("فيبر", "حشو رف", f"{s_w_input-5} × {s_d_input-5}", s_q_input, "خصم 5 سم")
 
-        # --- [ د ] تخصيم الفواصل (منفصل) ---
+        # --- [ د ] تخصيم الفواصل ---
         if v_q_input > 0:
             add_to_bill("ألومنيوم", "ارتفاع فاصل", v_h_input, v_q_input * 2, "مفرد")
             add_to_bill("ألومنيوم", "عمق فاصل", v_d_input, v_q_input * 2, "مفرد")
@@ -112,14 +110,29 @@ if st.button("🚀 إصدار بيان التقطيع وفاتورة الخام�
             add_to_bill("ألومنيوم", "وش/ضهر درج", dr_w_input - 2.5, dr_q_input * 2, "مفرد")
             add_to_bill("ألومنيوم", "جنب درج عمق", dr_d_input, dr_q_input * 2, "مفرد")
 
-    # --- عرض النتائج في جداول احترافية ---
+    # --- عرض النتائج في جداول منفصلة ---
     if st.session_state.data_list:
-        df = pd.DataFrame(st.session_state.data_list)
+        df_full = pd.DataFrame(st.session_state.data_list)
         
-        st.subheader("📋 شيت التخصيم الكامل لورشة DED EL KASR")
-        st.table(df)
+        # جدول الألومنيوم
+        st.subheader("🟦 أولاً: جدول تقطيع الألومنيوم (مفرد ومتقارب)")
+        df_alum = df_full[df_full["الخامة"] == "ألومنيوم"].drop(columns=["الخامة"])
+        st.table(df_alum)
         
-        csv = df.to_csv(index=False).encode('utf-8-sig')
-        st.download_button("📥 تحميل شيت التخصيم (Excel/CSV)", csv, "DOGGA_SHEET_FULL.csv", "text/csv")
+        # جدول الفيبر
+        st.subheader("⬜ ثانياً: جدول تقطيع الفيبر")
+        df_fiber = df_full[df_full["الخامة"] == "فيبر"].drop(columns=["الخامة", "نوع التخصيم"])
+        st.table(df_fiber)
+        
+        # زر تحميل الإكسيل للبيانات كاملة
+        st.divider()
+        csv = df_full.to_csv(index=False).encode('utf-8-sig')
+        st.download_button(
+            label="📥 تحميل شيت التخصيم الكامل (Excel/CSV)",
+            data=csv,
+            file_name="DOGGA_Final_Deduction.csv",
+            mime="text/csv",
+            use_container_width=True
+        )
     else:
-        st.error("الرجاء إدخال البيانات الأساسية.")
+        st.error("الرجاء إدخال البيانات الأساسية أولاً.")
