@@ -123,7 +123,7 @@ elif st.session_state.page == 'deduction':
         u_kind = st.selectbox("نوع الوحدة", ["سفلي", "علوي", "دولاب خزين", "مطبقيه"])
 
         st.divider()
-        W = st.number_input("العرض الكلي (W)", min_value=0)
+        W = st.number_input("العرض الكلي (W)", min_value=)
         H = st.number_input("الارتفاع الكلي (H)", min_value=0)
         D = st.number_input("العمق الكلي (D)", min_value=0)
 
