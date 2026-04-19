@@ -1,90 +1,80 @@
 import streamlit as st
 import pandas as pd
 
-st.set_page_config(page_title="نظام تخصيم الألوميتال", layout="centered")
+st.set_page_config(page_title="تخصيم المصنع", layout="wide")
 
-st.title("🏭 نظام تخصيم مصنع الألوميتال")
-st.markdown("---")
+st.title("🏭 نظام تخصيم تقطيع الألوميتال")
+st.write("أدخل المقاسات الكلية للحصول على مقاسات كل قطعة منفردة")
 
 # =========================
-# 📐 الوحدة الأساسية
+# 📐 المدخلات الأساسية
 # =========================
-st.header("📐 بيانات الوحدة الأساسية")
+with st.sidebar:
+    st.header("⚙️ إعدادات الخصم")
+    # خليت الخصومات هنا عشان لو حبيت تغيرها حسب القطاع
+    off_w = st.number_input("خصم العرض (سم)", value=5.0)
+    off_h = st.number_input("خصم الارتفاع (سم)", value=13.0)
+    off_d = st.number_input("خصم العمق (سم)", value=5.0)
+
 col1, col2, col3 = st.columns(3)
-with col1:
-    W = st.number_input("عرض الوحدة (W)", min_value=0.0, step=0.1)
-with col2:
-    H = st.number_input("ارتفاع الوحدة (H)", min_value=0.0, step=0.1)
-with col3:
-    D = st.number_input("عمق الوحدة (D)", min_value=0.0, step=0.1)
+with col1: W = st.number_input("عرض الوحدة الكلي", min_value=0.0)
+with col2: H = st.number_input("ارتفاع الوحدة الكلي", min_value=0.0)
+with col3: D = st.number_input("عمق الوحدة الكلي", min_value=0.0)
 
 st.divider()
 
-# =========================
-# 📚 الرفوف والفواصل والأدراج
-# =========================
-tab1, tab2, tab3 = st.tabs(["📚 الرفوف", "🧱 الفواصل", "🗄️ الأدراج"])
-
-with tab1:
-    c1, c2, c3 = st.columns(3)
-    shelf_w = c1.number_input("عرض الرف", value=W-5 if W > 5 else 0.0)
-    shelf_d = c2.number_input("عمق الرف", value=D-5 if D > 5 else 0.0)
-    shelf_q = c3.number_input("عدد الرفوف", min_value=0, step=1)
-
-with tab2:
-    c1, c2, c3 = st.columns(3)
-    div_h = c1.number_input("ارتفاع الفاصل", value=H-13 if H > 13 else 0.0)
-    div_d = c2.number_input("عمق الفاصل", value=D-5 if D > 5 else 0.0)
-    div_q = c3.number_input("عدد الفواصل", min_value=0, step=1)
-
-with tab3:
-    c1, c2, c3 = st.columns(3)
-    draw_w = c1.number_input("عرض الدرج", value=0.0)
-    draw_d = c2.number_input("عمق الدرج", value=0.0)
-    draw_q = c3.number_input("عدد الأدراج", min_value=0, step=1)
-
-st.divider()
+# رفوف وأدراج
+c1, c2 = st.columns(2)
+with c1: shelf_q = st.number_input("عدد الرفوف", min_value=0, step=1)
+with c2: draw_q = st.number_input("عدد الأدراج", min_value=0, step=1)
 
 # =========================
-# تشغيل الحسابات
+# 🛠️ منطق الحساب (تخصيم يدوي دقيق)
 # =========================
-if st.button("🚀 تشغيل التخصيم واستخراج النتائج", use_container_width=True):
-    if W == 0 or H == 0:
-        st.error("⚠️ يرجى إدخال أبعاد الوحدة الأساسية أولاً")
-    else:
-        data = []
+if st.button("إصدار بيان التقطيع النهائي", use_container_width=True):
+    if W > 0 and H > 0:
+        cutting_data = []
 
-        def add(category, desc, size, qty):
-            data.append({"النوع": category, "الوصف": desc, "المقاس (سم)": size, "العدد": qty})
+        # وظيفة لإضافة القطع للجدول
+        def add_piece(cat, name, length, qty, material="ألوميتال"):
+            cutting_data.append({
+                "التصنيف": cat,
+                "اسم القطعة": name,
+                "طول القطعة (سم)": length,
+                "العدد (حتة)": qty,
+                "الخامة": material
+            })
 
-        # --- الجسم الأساسي ---
-        body_w = W - 5
-        body_h = H - 13
-        body_d = D - 5
+        # 1. تخصيم الألوميتال (الأعواد)
+        # القوايم (ارتفاع)
+        add_piece("الهيكل", "قائم ارتفاع", H, 4)
+        # العوارض (عرض)
+        add_piece("الهيكل", "عارضة عرض", W - off_w, 4)
+        # الروابط (عمق)
+        add_piece("الهيكل", "رباط عمق", D - off_d, 4)
 
-        add("فيبر", "ضهرية (W-5 x H-13)", f"{body_w} × {body_h}", 1)
-        add("فيبر", "أرضية (W-5 x D-5)", f"{body_w} × {body_d}", 1)
-        add("فيبر", "أجناب (H-13 x D-5)", f"{body_h} × {body_d}", 2)
-
-        # --- الرفوف ---
+        # 2. الرفوف (ألوميتال)
         if shelf_q > 0:
-            add("فيبر", "رف داخلي", f"{shelf_w - 0.5} × {shelf_d - 0.5}", shelf_q)
-            add("ألوميتال", "مقاس عرض الرف", f"{shelf_w}", shelf_q * 2)
-            add("ألوميتال", "مقاس عمق الرف", f"{shelf_d}", shelf_q * 2)
+            add_piece("الرفوف", "برواز رف عرض", W - off_w, shelf_q * 2)
+            add_piece("الرفوف", "برواز رف عمق", D - off_d, shelf_q * 2)
 
-        # --- الفواصل ---
-        if div_q > 0:
-            add("فيبر", "فاصل رأسي", f"{div_h - 0.5} × {div_d - 0.5}", div_q)
-            add("ألوميتال", "مقاس ارتفاع الفاصل", f"{div_h}", div_q * 2)
-            add("ألوميتال", "مقاس عمق الفاصل", f"{div_d}", div_q * 2)
+        # 3. الفيبر (مقاسات قص الألواح)
+        # الفيبر بيتحسب كأبعاد (طول في عرض) - هنضيفهم كقطع منفصلة للوضوح
+        add_piece("الفيبر", "ضهرية (عرض × ارتفاع)", f"{W-off_w} × {H-off_h}", 1, "لوح فيبر")
+        add_piece("الفيبر", "أرضية وسقف (عرض × عمق)", f"{W-off_w} × {D-off_d}", 2, "لوح فيبر")
+        add_piece("الفيبر", "أجناب (ارتفاع × عمق)", f"{H-off_h} × {D-off_d}", 2, "لوح فيبر")
 
-        # --- الأدراج ---
-        if draw_q > 0:
-            add("فيبر", "قاع الدرج", f"{draw_w} × {draw_d}", draw_q)
-            add("ألوميتال", "عرض الدرج (خارجي)", f"{draw_w + 2}", draw_q * 2)
-            add("ألوميتال", "جوانب الدرج", f"{draw_d}", draw_q * 2)
+        if shelf_q > 0:
+            add_piece("الفيبر", "حشو رف (عرض × عمق)", f"{W-off_w-0.5} × {D-off_d-0.5}", shelf_q, "لوح فيبر")
 
-        # عرض النتائج
-        df = pd.DataFrame(data)
-        st.success("✅ تم حساب المقاسات بنجاح")
-        st.table(df) # استخدام table لعرض أوضح في الجداول الصغيرة
+        # عرض الجدول
+        df = pd.DataFrame(cutting_data)
+        
+        # تنسيق العرض
+        st.subheader("📋 كشف التقطيع")
+        st.dataframe(df, use_container_width=True)
+        
+        # ملخص سريع للمخزن
+        st.success(f"تم حساب {len(df)} بند تقطيع بنجاح")
+    else:
+        st.error("يا هندسة لازم تدخل العرض والارتفاع على الأقل!")
