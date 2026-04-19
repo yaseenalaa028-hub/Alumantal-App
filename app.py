@@ -5,24 +5,24 @@ import math
 # 1. إعدادات الصفحة والواجهة الفضائية (نحاسي + أزرق كهربائي)
 st.set_page_config(page_title="DOGGA SYSTEM - الإدارة الهندسية", layout="wide")
 
+# كود التنسيق وإخفاء أدوات Streamlit و GitHub
 st.markdown("""
- <style>
+<style>
     /* إخفاء علامة جيت هب والقائمة اليمنى تماماً */
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
     header {visibility: hidden;}
     
-    /* إخفاء زر View Source اللي بيظهر في الاستضافة */
-    .viewerBadge_container__1QSob {display: none !important;}
+    /* إخفاء أزرار المشاركة وعرض الكود في الاستضافة */
     .stAppDeployButton {display: none !important;}
-    </style>
-    """, unsafe_allow_html=True)
-    <style>
+    .viewerBadge_container__1QSob {display: none !important;}
+    
     /* الخلفية والكون */
     .stApp {
         background: radial-gradient(circle at top right, #0d1117, #050505, #020c1b);
         color: #d9a066;
     }
+    
     /* تصميم الأزرار الرئيسية الثلاثة */
     .main-btn-container div.stButton > button {
         background: rgba(0, 150, 255, 0.05) !important;
@@ -76,8 +76,8 @@ st.markdown("""
         font-weight: bold !important; 
         font-size: 1.1rem !important;
     }
-    </style>
-    """, unsafe_allow_html=True)
+</style>
+""", unsafe_allow_html=True)
 
 # 2. تهيئة مخزن البيانات
 if 'project_data' not in st.session_state:
@@ -133,24 +133,24 @@ elif st.session_state.page == 'deduction':
         u_kind = st.selectbox("نوع الوحدة", ["سفلي", "علوي", "دولاب خزين", "مطبقيه"])
 
         st.divider()
-        W = st.number_input("العرض الكلي (W)", min_value=0)
-        H = st.number_input("الارتفاع الكلي (H)", min_value=0)
-        D = st.number_input("العمق الكلي (D)", min_value=0)
+        W = st.number_input("العرض الكلي (W)", min_value=0.0)
+        H = st.number_input("الارتفاع الكلي (H)", min_value=0.0)
+        D = st.number_input("العمق الكلي (D)", min_value=0.0)
 
         st.divider()
         st.subheader("📦 الأرفف والفواصل والأدراج")
-        s_w = st.number_input("عرض الرف", value=0)
-        s_d = st.number_input("عمق الرف", value=0)
+        s_w = st.number_input("عرض الرف", value=0.0)
+        s_d = st.number_input("عمق الرف", value=0.0)
         s_q = st.number_input("عدد الأرفف", min_value=0)
 
         st.write("---")
-        v_h = st.number_input("ارتفاع الفاصل", value=0)
-        v_d = st.number_input("عمق الفاصل", value=0)
+        v_h = st.number_input("ارتفاع الفاصل", value=0.0)
+        v_d = st.number_input("عمق الفاصل", value=0.0)
         v_q = st.number_input("عدد الفواصل", min_value=0)
 
         st.write("---")
-        dr_w = st.number_input("عرض الدرج", value=0)
-        dr_d = st.number_input("عمق الدرج", value=0)
+        dr_w = st.number_input("عرض الدرج", value=0.0)
+        dr_d = st.number_input("عمق الدرج", value=0.0)
         dr_q = st.number_input("عدد الأدراج", min_value=0)
 
         submit = st.form_submit_button("✅ إضافة الوحدة للمشروع", use_container_width=True)
@@ -172,11 +172,10 @@ elif st.session_state.page == 'deduction':
                          ("رباط عمق", f_d, 4, "متقارب")]
             for itm in items: add_to_project(name, "ألومنيوم", itm[0], itm[1], itm[2], itm[3])
 
-            # --- فيبر الهيكل (تطبيق التعديل المطلوب) ---
+            # --- فيبر الهيكل ---
             add_to_project(name, "فيبر", "ضهرية", f"{f_w}×{f_h}", 1, "لوح")
             add_to_project(name, "فيبر", "أرضية", f"{f_w}×{f_d}", 1, "لوح")
             
-            # الوحدات غير السفلية تأخذ سقفية أيضاً
             if u_kind != "سفلي":
                 add_to_project(name, "فيبر", "سقفية", f"{f_w}×{f_d}", 1, "لوح")
                 
@@ -223,7 +222,6 @@ elif st.session_state.page == 'inventory':
         alum = df[df["الخامة"] == "ألومنيوم"].copy()
         alum["المقاس (سم)"] = pd.to_numeric(alum["المقاس (سم)"], errors='coerce')
 
-        # 1. حساب الأعواد
         st.subheader("🥢 تقدير أعواد الألومنيوم (6 متر)")
         summary = alum.groupby("نوع التخصيم").apply(
             lambda x: (x["المقاس (سم)"] * x["العدد"]).sum()
@@ -231,13 +229,12 @@ elif st.session_state.page == 'inventory':
         summary["الأعواد"] = summary["إجمالي سم"].apply(lambda x: math.ceil(x / 600))
         st.table(summary)
 
-        # 2. حساب الفيبر
         total_area = 0
         for _, row in df[df["الخامة"] == "فيبر"].iterrows():
             dims = str(row["المقاس (سم)"]).split('×')
             if len(dims) == 2:
                 total_area += float(dims[0]) * float(dims[1]) * row["العدد"]
-        sheets = math.ceil(total_area / (280 * 122)) # مقاس اللوح
+        sheets = math.ceil(total_area / (280 * 122)) 
         st.metric("عدد ألواح الفيبر المطلوبة", f"{sheets} لوح")
 
         st.divider()
