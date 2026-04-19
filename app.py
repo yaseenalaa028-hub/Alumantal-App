@@ -105,7 +105,7 @@ with col_dr3:
 # ==========================================
 # الصفحة الثانية: حساب الاستهلاك الفعلي (الأعواد والواح الفيبر)
 # ==========================================
-elif st.session_state.page == 'inventory':
+    elif st.session_state.page == 'inventory':
     st.title("📦 حساب استهلاك الأعواد والواح الفيبر")
     
     if st.session_state.data_list:
