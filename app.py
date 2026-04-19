@@ -90,7 +90,7 @@ def add_to_project(unit_name, category, item_name, length, qty, unit_type="-"):
 # ==========================================
 if st.session_state.page == 'main_menu':
     st.markdown("<h1>⚡ DOGGA GALAXY SYSTEM</h1>")
-    st.markdown("<p style='text-align: center; color: #d9a066; font-size: 1.3rem;'>المهندس ياسين علاء | ورشة DED EL KASR</p>", unsafe_allow_html=True)
+    st.markdown("<p style='text-align: center; color: #d9a066; font-size: 1.3rem;'>المهندس ياسين علاء | مصنع DED EL KASR</p>", unsafe_allow_html=True)
     st.write("##")
     
     st.markdown('<div class="main-btn-container">', unsafe_allow_html=True)
@@ -100,7 +100,7 @@ if st.session_state.page == 'main_menu':
             st.session_state.page = 'deduction'
             st.rerun()
         
-        if st.button("📏 تخصيم الدف"):
+        if st.button("📏 تخصيم الدرف"):
             st.toast("🚀 جاري تجهيز معادلات الدف...")
             
         if st.button("📁 المشاريع"):
