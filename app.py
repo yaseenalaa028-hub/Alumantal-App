@@ -4,121 +4,94 @@ import pandas as pd
 st.title("🏭 نظام تخصيم مصنع الألوميتال")
 
 # =========================
-# 📐 بيانات الوحدة الأساسية
+# 📐 الوحدة الأساسية
 # =========================
 st.header("📐 بيانات الوحدة")
 
-col1, col2, col3 = st.columns(3)
-
-with col1:
-    W = st.number_input("العرض الكلي (سم)", value=0.0)
-
-with col2:
-    H = st.number_input("الارتفاع الكلي (سم)", value=0.0)
-
-with col3:
-    D = st.number_input("العمق الكلي (سم)", value=0.0)
+W = st.number_input("عرض الوحدة", value=0.0)
+H = st.number_input("ارتفاع الوحدة", value=0.0)
+D = st.number_input("عمق الوحدة", value=0.0)
 
 st.divider()
 
 # =========================
-# 📚 الرفوف
+# 📚 الرفوف (عرض / عمق / عدد)
 # =========================
 st.header("📚 الرفوف")
 
-col1, col2 = st.columns(2)
-
-with col1:
-    shelves_count = st.number_input("عدد الرفوف", value=0)
-
-with col2:
-    st.write("فيبر الرف = 67 × 42 (بعد خصم 5 سم)")
+shelf_w = st.number_input("عرض الرف", value=0.0)
+shelf_d = st.number_input("عمق الرف", value=0.0)
+shelf_q = st.number_input("عدد الرفوف", value=0)
 
 st.divider()
 
 # =========================
-# 🧱 الفواصل
+# 🧱 الفواصل (ارتفاع / عمق / عدد)
 # =========================
 st.header("🧱 الفواصل")
 
-col1, col2 = st.columns(2)
-
-with col1:
-    dividers_count = st.number_input("عدد الفواصل", value=0)
-
-with col2:
-    st.write("فيبر الفاصل = 72 × 42 (بعد خصم 5 سم)")
+div_h = st.number_input("ارتفاع الفاصل", value=0.0)
+div_d = st.number_input("عمق الفاصل", value=0.0)
+div_q = st.number_input("عدد الفواصل", value=0)
 
 st.divider()
 
 # =========================
-# 🗄️ الأدراج
+# 🗄️ الأدراج (عرض / عمق / عدد)
 # =========================
 st.header("🗄️ الأدراج")
 
-col1, col2 = st.columns(2)
-
-with col1:
-    drawers_count = st.number_input("عدد الأدراج", value=0)
-
-with col2:
-    st.write("فيبر الدرج = 34.5 × 45")
-
-st.divider()
+draw_w = st.number_input("عرض الدرج", value=0.0)
+draw_d = st.number_input("عمق الدرج", value=0.0)
+draw_q = st.number_input("عدد الأدراج", value=0)
 
 # =========================
-# 🚀 التشغيل
+# تشغيل
 # =========================
 if st.button("تشغيل التخصيم"):
 
-    if W > 0 and H > 0 and D > 0:
+    data = []
 
-        body_W = W - 5
-        body_H = H - 13
-        body_D = D - 5
+    def add(t, d, s, q):
+        data.append([t, d, s, q])
 
-        data = []
+    # =========================
+    # 🪵 الجسم الأساسي
+    # =========================
+    body_w = W - 5
+    body_h = H - 13
+    body_d = D - 5
 
-        def add(type_, desc, size, qty):
-            data.append([type_, desc, size, qty])
+    add("فيبر", "ضهرية", f"{body_w} × {body_h}", 1)
+    add("فيبر", "أرضية", f"{body_w} × {body_d}", 1)
+    add("فيبر", "أجناب", f"{body_h} × {body_d}", 2)
 
-        # =========================
-        # 🪵 جسم الوحدة
-        # =========================
-        add("فيبر", "ضهرية", f"{body_W} × {body_H}", 1)
-        add("فيبر", "أرضية", f"{body_W} × {body_D}", 1)
-        add("فيبر", "أجناب", f"{body_H} × {body_D}", 2)
+    # =========================
+    # 📚 الرفوف
+    # =========================
+    if shelf_q > 0:
+        add("فيبر", "رف", f"{shelf_w - 5} × {shelf_d - 5}", shelf_q)
+        add("ألوميتال", "رف عرض", 77 * 2, shelf_q * 2)
+        add("ألوميتال", "رف عمق", 47 * 2, shelf_q * 2)
 
-        # =========================
-        # 📚 الرفوف
-        # =========================
-        if shelves_count > 0:
-            add("فيبر", "رف", "67 × 42", shelves_count)
-            add("ألوميتال", "رف عرض", 77 * 2, shelves_count * 2)
-            add("ألوميتال", "رف عمق", 47 * 2, shelves_count * 2)
+    # =========================
+    # 🧱 الفواصل
+    # =========================
+    if div_q > 0:
+        add("فيبر", "فاصل", f"{div_h - 5} × {div_d - 5}", div_q)
+        add("ألوميتال", "فاصل ارتفاع", 77 * 2, div_q * 2)
+        add("ألوميتال", "فاصل عمق", 47 * 2, div_q * 2)
 
-        # =========================
-        # 🧱 الفواصل
-        # =========================
-        if dividers_count > 0:
-            add("فيبر", "فاصل", "72 × 42", dividers_count)
-            add("ألوميتال", "فاصل ارتفاع", 77 * 2, dividers_count * 2)
-            add("ألوميتال", "فاصل عمق", 47 * 2, dividers_count * 2)
+    # =========================
+    # 🗄️ الأدراج
+    # =========================
+    if draw_q > 0:
+        add("فيبر", "درج", f"{draw_w} × {draw_d}", draw_q)
+        add("ألوميتال", "درج عرض", 34.5 * 5, draw_q)
+        add("ألوميتال", "درج عمق", 45 * 6, draw_q)
 
-        # =========================
-        # 🗄️ الأدراج
-        # =========================
-        if drawers_count > 0:
-            add("فيبر", "درج", "34.5 × 45", drawers_count)
-            add("ألوميتال", "درج عرض", 34.5 * 5, drawers_count)
-            add("ألوميتال", "درج عمق", 45 * 6, drawers_count)
-
-        # =========================
-        # 📊 عرض الجدول
-        # =========================
-        df = pd.DataFrame(data, columns=["النوع", "الوصف", "المقاس", "العدد"])
-        st.subheader("📊 جدول التخصيم")
-        st.dataframe(df)
-
-    else:
-        st.error("من فضلك أدخل بيانات الوحدة الأساسية")
+    # =========================
+    # 📊 جدول واحد تحت بعضه
+    # =========================
+    df = pd.DataFrame(data, columns=["النوع", "الوصف", "المقاس", "العدد"])
+    st.dataframe(df)
