@@ -3,7 +3,7 @@ import pandas as pd
 import math
 
 # 1. إعدادات الصفحة
-st.set_page_config(page_title="DOGGA SYSTEM - الإدارة الهندسية", layout="wide")
+st.set_page_config(page_title="DOGGA SMART KITCHEN - الإدارة الهندسية", layout="wide")
 
 # 2. تهيئة مخزن البيانات
 if 'project_data' not in st.session_state:
@@ -11,52 +11,64 @@ if 'project_data' not in st.session_state:
 if 'page' not in st.session_state:
     st.session_state.page = 'main_menu'
 
-# --- كود التصميم الجمالي (CSS) ---
+# --- كود التصميم الجمالي المحدث (Gold & Black Stars) ---
 st.markdown("""
     <style>
-    /* القائمة الرئيسية بالخلفية الأبيض والأسود */
+    /* القائمة الرئيسية: نصف ذهبي ونصف أسود بنجوم ذهبية */
     .stApp {
-        background: linear-gradient(to right, #ffffff 50%, #1e1e1e 50%);
+        background: linear-gradient(to right, 
+            #D4AF37 50%, 
+            #121212 50%);
+        background-image: 
+            linear-gradient(to right, #D4AF37 50%, transparent 50%),
+            radial-gradient(circle at 75% 20%, #D4AF37 1.5px, transparent 1.5px),
+            radial-gradient(circle at 85% 50%, #D4AF37 2px, transparent 2px),
+            radial-gradient(circle at 70% 80%, #D4AF37 1.5px, transparent 1.5px),
+            radial-gradient(circle at 92% 30%, #D4AF37 1.2px, transparent 1.2px);
+        background-size: 100% 100%, 120px 120px, 180px 180px, 250px 250px, 150px 150px;
     }
     
-    /* تنسيق النصوص والزراير */
+    /* تنسيق اسم البرنامج بالإنجليزية */
     .main-title-text {
         text-align: center;
-        color: #007bff;
-        font-family: 'Arial Black', sans-serif;
-        font-size: 28px;
-        margin-top: 50px;
+        color: #ffffff;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        font-size: 45px;
+        font-weight: 900;
+        margin-top: 60px;
+        letter-spacing: 2px;
+        text-shadow: 3px 3px 6px rgba(0,0,0,0.6);
     }
     
+    /* اسم المهندس بالأسود على الخلفية الذهبية */
     .dev-tag {
-        color: #ffa500;
+        color: #000000;
         text-align: center;
         font-weight: bold;
-        font-size: 18px;
-        margin-bottom: 50px;
+        font-size: 22px;
+        margin-bottom: 60px;
+        font-family: 'Arial';
     }
 
+    /* أزرار القائمة */
     div.stButton > button {
         width: 100%;
         border-radius: 50px !important;
-        height: 60px;
+        height: 70px;
         font-weight: bold;
-        font-size: 18px;
-        border: 2px solid #007bff;
-        background-color: #2d2d2d;
-        color: white;
-        transition: 0.3s ease;
+        font-size: 20px;
+        border: 3px solid #D4AF37;
+        background-color: #1e1e1e;
+        color: #D4AF37;
+        transition: 0.4s ease;
+        box-shadow: 0px 6px 20px rgba(0,0,0,0.4);
     }
     
     div.stButton > button:hover {
-        border-color: #ff8c00;
-        color: #ff8c00;
-        transform: scale(1.02);
-    }
-    
-    /* تعديل الصفحات الداخلية لتكون بيضاء بالكامل للوضوح */
-    .internal-style {
-        background-color: white !important;
+        border-color: #ffffff;
+        color: #ffffff;
+        background-color: #D4AF37;
+        transform: scale(1.05);
     }
     </style>
     """, unsafe_allow_html=True)
@@ -72,10 +84,10 @@ def add_to_project(unit_name, category, item_name, length, qty, unit_type="-"):
     })
 
 # ==========================================
-# الصفحة (0): القائمة الرئيسية
+# الصفحة (0): القائمة الرئيسية (Main Menu)
 # ==========================================
 if st.session_state.page == 'main_menu':
-    st.markdown('<div class="main-title-text">🏗️ تخصيم مشروع متكامل - مصنع</div>', unsafe_allow_html=True)
+    st.markdown('<div class="main-title-text">DOGGA SMART KITCHEN</div>', unsafe_allow_html=True)
     st.markdown('<div class="dev-tag">برمجة المهندس ياسين علاء</div>', unsafe_allow_html=True)
     
     c1, c2, c3 = st.columns([1, 2, 1])
@@ -93,7 +105,7 @@ if st.session_state.page == 'main_menu':
             st.rerun()
 
 # ==========================================
-# صفحة الدرف الفارغة (للعودة)
+# صفحة تخصيم الدرف (فارغة)
 # ==========================================
 elif st.session_state.page == 'doors_empty':
     st.markdown("<style>.stApp { background: white !important; }</style>", unsafe_allow_html=True)
@@ -104,10 +116,10 @@ elif st.session_state.page == 'doors_empty':
         st.rerun()
 
 # ==========================================
-# الصفحة الأولى: التخصيم التفصيلي (كودك الأصلي بالكامل)
+# الصفحة الأولى: التخصيم التفصيلي (كودك الأصلي)
 # ==========================================
 elif st.session_state.page == 'deduction':
-    st.markdown("<style>.stApp { background: white !important; }</style>", unsafe_allow_html=True)
+    st.markdown("<style>.stApp { background: white !important; color: black !important; }</style>", unsafe_allow_html=True)
     st.title("🏗️ تخصيم مشروع متكامل - ورشة DED EL KASR")
     
     if st.button("⬅️ العودة للقائمة الرئيسية"):
@@ -196,19 +208,19 @@ elif st.session_state.page == 'deduction':
         if st.button("💰 حساب استهلاك الخامات والتسعير ⬅️", use_container_width=True):
             st.session_state.page = 'inventory'
             st.rerun()
+
 # ==========================================
-# الصفحة الثانية: الاستهلاك والفاتورة
+# الصفحة الثانية: الاستهلاك (كودك الأصلي)
 # ==========================================
 elif st.session_state.page == 'inventory':
     st.markdown("<style>.stApp { background: white !important; }</style>", unsafe_allow_html=True)
-    st.title("📊 استهلاك خامات المشروع - DOGGA SYSTEM")
+    st.title("📊 استهلاك خامات المشروع - DOGGA SMART KITCHEN")
     
     if st.session_state.project_data:
         df = pd.DataFrame(st.session_state.project_data)
         alum = df[df["الخامة"] == "ألومنيوم"].copy()
         alum["المقاس (سم)"] = pd.to_numeric(alum["المقاس (سم)"], errors='coerce')
 
-        # 1. حساب الأعواد
         st.subheader("🥢 تقدير أعواد الألومنيوم (6 متر)")
         summary = alum.groupby("نوع التخصيم").apply(
             lambda x: (x["المقاس (سم)"] * x["العدد"]).sum()
@@ -216,7 +228,6 @@ elif st.session_state.page == 'inventory':
         summary["الأعواد"] = summary["إجمالي سم"].apply(lambda x: math.ceil(x / 600))
         st.table(summary)
 
-        # 2. حساب الفيبر
         total_area = 0
         for _, row in df[df["الخامة"] == "فيبر"].iterrows():
             dims = str(row["المقاس (سم)"]).split('×')
@@ -234,44 +245,70 @@ elif st.session_state.page == 'inventory':
         base_bill.append({"الصنف": "لوح فيبر كامل", "الكمية": sheets, "السعر": 0.0})
 
         final_bill = st.data_editor(pd.DataFrame(base_bill), num_rows="dynamic", use_container_width=True)
-        
         total = (final_bill["الكمية"] * final_bill["السعر"]).sum()
         st.header(f"💰 التكلفة الإجمالية: {total:,.2f} ج.م")
 
         st.divider()
-        
-        # 4. تفاصيل إضافية للمراجعة
-        with st.expander("🔍 مراجعة الأطوال الكلية قبل التقطيع"):
-            st.write("الأطوال التالية هي ناتج جمع كل القطع المضافة للمشروع:")
+        with st.expander("🔍 مراجعة الأطوال الكلية"):
             st.dataframe(summary, use_container_width=True)
 
-        # 5. منطقة أزرار الإجراءات
         st.write("### ⚙️ خيارات المشروع")
         c_inv1, c_inv2, c_inv3 = st.columns(3)
         
         with c_inv1:
             if st.button("⬅️ إضافة وحدات أخرى", use_container_width=True):
+                st.session_state.page = 'deduction'; st.rerun()
+                
+        with c_inv2:
+            csv_final = final_bill.to_csv(index=False).encode('utf-8-sig')
+            st.download_button(label="📥 تحميل الفاتورة", data=csv_final, file_name="DOGGA_Invoice.csv", mime="text/csv", use_container_width=True)
+            
+        with c_inv3:
+            if st.button("🗑️ تفريغ المشروع", use_container_width=True, type="secondary"):
+                st.session_state.project_data = []; st.session_state.page = 'main_menu'; st.rerun()
+    else:
+        st.error("⚠️ لا توجد بيانات.")
+        if st.button("العودة للرئيسية"):
+            st.session_state.page = 'main_menu'; st.rerun()
+            # 4. تفاصيل إضافية للمراجعة (من كودك الأصلي)
+        with st.expander("🔍 مراجعة الأطوال الكلية قبل التقطيع"):
+            st.write("الأطوال التالية هي ناتج جمع كل القطع المضافة للمشروع:")
+            st.dataframe(summary, use_container_width=True)
+
+        # 5. منطقة أزرار الإجراءات النهائية (تكملة الـ inventory)
+        st.write("### ⚙️ خيارات المشروع")
+        c_inv1, c_inv2, c_inv3 = st.columns(3)
+        
+        with c_inv1:
+            if st.button("⬅️ إضافة وحدات أخرى", key="add_more_final", use_container_width=True):
                 st.session_state.page = 'deduction'
                 st.rerun()
                 
         with c_inv2:
+            # تصدير الفاتورة النهائية
             csv_final = final_bill.to_csv(index=False).encode('utf-8-sig')
             st.download_button(
                 label="📥 تحميل الفاتورة (Excel)",
                 data=csv_final,
-                file_name=f"DOGGA_Project_Invoice.csv",
+                file_name=f"DOGGA_Smart_Invoice.csv",
                 mime="text/csv",
                 use_container_width=True
             )
             
         with c_inv3:
-            if st.button("🗑️ تفريغ المشروع بالكامل", use_container_width=True, type="secondary"):
+            # زر المسح النهائي مع العودة للقائمة الرئيسية (Gold/Black)
+            if st.button("🗑️ تفريغ المشروع بالكامل", key="clear_all_final", use_container_width=True, type="secondary"):
                 st.session_state.project_data = []
                 st.session_state.page = 'main_menu'
                 st.rerun()
 
     else:
+        # حماية في حالة الدخول للصفحة مباشرة بدون بيانات
         st.error("⚠️ لا توجد بيانات مسجلة في المشروع حالياً.")
-        if st.button("العودة للقائمة الرئيسية لإضافة وحدات"):
+        if st.button("العودة للقائمة الرئيسية لإضافة وحدات", key="back_to_main_err"):
             st.session_state.page = 'main_menu'
             st.rerun()
+
+# --- نهاية كود تطبيق DOGGA SMART KITCHEN المتكامل ---
+# فخر الصناعة المصرية بلمسة هندسية
+# المبرمج: المهندس ياسين علاء
