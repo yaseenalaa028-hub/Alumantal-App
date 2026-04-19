@@ -117,13 +117,13 @@ elif st.session_state.page == 'deduction':
         s_q = cs3.number_input("عدد الأرفف", min_value=0, step=1)
         # الفواصل
         cv1, cv2, cv3 = st.columns(3)
-        v_h = cv1.number_input("ارتفاع الفاصل الصافي", value=0.0)
-        v_d = cv2.number_input("عمق الفاصل الصافي", value=0.0)
+        v_h = cv1.number_input("ارتفاع الفاصل الصافي", value=0)
+        v_d = cv2.number_input("عمق الفاصل الصافي", value=0)
         v_q = cv3.number_input("عدد الفواصل", min_value=0, step=1)
         # الأدراج
         cd1, cd2, cd3 = st.columns(3)
-        dr_w = cd1.number_input("عرض الدرج", value=0.0)
-        dr_d = cd2.number_input("عمق الدرج ثابت", value=0.0)
+        dr_w = cd1.number_input("عرض الدرج", value=0)
+        dr_d = cd2.number_input("عمق الدرج ثابت", value=0)
         dr_q = cd3.number_input("عدد الأدراج", min_value=0, step=1)
 
         submit = st.form_submit_button("🚀 إضافة الوحدة ومكوناتها")
@@ -176,7 +176,7 @@ elif st.session_state.page == 'deduction':
         if dr_q > 0:
             add_to_project(name, "ألومنيوم", "وش/ضهر درج", dr_w - 2.5, dr_q*2, "علبة درج")
             add_to_project(name, "ألومنيوم", "جنب درج", dr_d, dr_q*2, "علبة درج")
-            add_to_project(name, "فيبر", "أرضية درج", f"{dr_w-7.5}×{dr_d-5}", dr_q, "حشو")
+            add_to_project(name, "فيبر", "أرضية درج", f"{dr_w-0}×{dr_d-0}", dr_q, "حشو")
 
         st.toast(f"✅ تمت إضافة {name} بنجاح!")
 
