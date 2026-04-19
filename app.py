@@ -9,7 +9,57 @@ st.set_page_config(page_title="DOGGA SYSTEM - الإدارة الهندسية", 
 if 'project_data' not in st.session_state:
     st.session_state.project_data = [] 
 if 'page' not in st.session_state:
-    st.session_state.page = 'deduction'
+    st.session_state.page = 'main_menu'
+
+# --- كود التصميم الجمالي (CSS) ---
+st.markdown("""
+    <style>
+    /* القائمة الرئيسية بالخلفية الأبيض والأسود */
+    .stApp {
+        background: linear-gradient(to right, #ffffff 50%, #1e1e1e 50%);
+    }
+    
+    /* تنسيق النصوص والزراير */
+    .main-title-text {
+        text-align: center;
+        color: #007bff;
+        font-family: 'Arial Black', sans-serif;
+        font-size: 28px;
+        margin-top: 50px;
+    }
+    
+    .dev-tag {
+        color: #ffa500;
+        text-align: center;
+        font-weight: bold;
+        font-size: 18px;
+        margin-bottom: 50px;
+    }
+
+    div.stButton > button {
+        width: 100%;
+        border-radius: 50px !important;
+        height: 60px;
+        font-weight: bold;
+        font-size: 18px;
+        border: 2px solid #007bff;
+        background-color: #2d2d2d;
+        color: white;
+        transition: 0.3s ease;
+    }
+    
+    div.stButton > button:hover {
+        border-color: #ff8c00;
+        color: #ff8c00;
+        transform: scale(1.02);
+    }
+    
+    /* تعديل الصفحات الداخلية لتكون بيضاء بالكامل للوضوح */
+    .internal-style {
+        background-color: white !important;
+    }
+    </style>
+    """, unsafe_allow_html=True)
 
 def add_to_project(unit_name, category, item_name, length, qty, unit_type="-"):
     st.session_state.project_data.append({
@@ -22,11 +72,48 @@ def add_to_project(unit_name, category, item_name, length, qty, unit_type="-"):
     })
 
 # ==========================================
-# الصفحة الأولى: التخصيم التفصيلي
+# الصفحة (0): القائمة الرئيسية
 # ==========================================
-if st.session_state.page == 'deduction':
+if st.session_state.page == 'main_menu':
+    st.markdown('<div class="main-title-text">🏗️ تخصيم مشروع متكامل - مصنع</div>', unsafe_allow_html=True)
+    st.markdown('<div class="dev-tag">برمجة المهندس ياسين علاء</div>', unsafe_allow_html=True)
+    
+    c1, c2, c3 = st.columns([1, 2, 1])
+    with c2:
+        if st.button("🚀 ابدأ التخصيم"):
+            st.session_state.page = 'deduction'
+            st.rerun()
+            
+        if st.button("🖼️ تخصيم الدرف"):
+            st.session_state.page = 'doors_empty'
+            st.rerun()
+            
+        if st.button("📁 المشاريع"):
+            st.session_state.page = 'inventory'
+            st.rerun()
+
+# ==========================================
+# صفحة الدرف الفارغة (للعودة)
+# ==========================================
+elif st.session_state.page == 'doors_empty':
+    st.markdown("<style>.stApp { background: white !important; }</style>", unsafe_allow_html=True)
+    st.title("🖼️ تخصيم الدرف")
+    st.info("هذه القائمة فارغة حالياً.")
+    if st.button("⬅️ عودة للقائمة الرئيسية"):
+        st.session_state.page = 'main_menu'
+        st.rerun()
+
+# ==========================================
+# الصفحة الأولى: التخصيم التفصيلي (كودك الأصلي بالكامل)
+# ==========================================
+elif st.session_state.page == 'deduction':
+    st.markdown("<style>.stApp { background: white !important; }</style>", unsafe_allow_html=True)
     st.title("🏗️ تخصيم مشروع متكامل - ورشة DED EL KASR")
     
+    if st.button("⬅️ العودة للقائمة الرئيسية"):
+        st.session_state.page = 'main_menu'
+        st.rerun()
+
     with st.form("main_form", clear_on_submit=True):
         st.subheader("📏 إدخال بيانات الوحدة")
         c_name, c_kind = st.columns(2)
@@ -41,19 +128,16 @@ if st.session_state.page == 'deduction':
         st.divider()
         st.subheader("📦 الأرفف والفواصل والأدراج")
         
-        # مدخلات الأرفف
         cs1, cs2, cs3 = st.columns(3)
         s_w = cs1.number_input("عرض الرف", value=0.0)
         s_d = cs2.number_input("عمق الرف", value=0.0)
         s_q = cs3.number_input("عدد الأرفف", min_value=0)
 
-        # مدخلات الفواصل
         cv1, cv2, cv3 = st.columns(3)
         v_h = cv1.number_input("ارتفاع الفاصل", value=0.0)
         v_d = cv2.number_input("عمق الفاصل", value=0.0)
         v_q = cv3.number_input("عدد الفواصل", min_value=0)
 
-        # مدخلات الأدراج
         cd1, cd2, cd3 = st.columns(3)
         dr_w = cd1.number_input("عرض الدرج", value=0.0)
         dr_d = cd2.number_input("عمق الدرج", value=0.0)
@@ -64,11 +148,9 @@ if st.session_state.page == 'deduction':
     if submit:
         if W > 0 and H > 0:
             name = u_label if u_label else f"وحدة {u_kind}"
-            # --- أساسيات التخصيم ---
             h_ded = 13 if u_kind in ["سفلي", "دولاب خزين"] else 5
             f_h, f_w, f_d = H - h_ded, W - 5, D - 5
 
-            # ألومنيوم الهيكل
             if u_kind == "سفلي":
                 add_to_project(name, "ألومنيوم", "قائم ارتفاع", f_h, 2, "مفرد")
                 add_to_project(name, "ألومنيوم", "قائم ارتفاع", f_h, 2, "متقارب")
@@ -76,31 +158,27 @@ if st.session_state.page == 'deduction':
                 add_to_project(name, "ألومنيوم", "عارضة عرض", f_w, 1, "متقارب")
                 add_to_project(name, "ألومنيوم", "رباط عمق", f_d, 2, "مفرد")
                 add_to_project(name, "ألومنيوم", "رباط عمق", f_d, 2, "متقارب")
-            else: # علوي ومطبقيه
+            else:
                 add_to_project(name, "ألومنيوم", "قائم ارتفاع", f_h, 2, "مفرد")
                 add_to_project(name, "ألومنيوم", "قائم ارتفاع", f_h, 2, "متقارب")
                 add_to_project(name, "ألومنيوم", "عارضة عرض", f_w, 2, "مفرد")
                 add_to_project(name, "ألومنيوم", "عارضة عرض", f_w, 2, "متقارب")
                 add_to_project(name, "ألومنيوم", "رباط عمق", f_d, 4, "متقارب")
 
-            # فيبر الهيكل
             add_to_project(name, "فيبر", "ضهرية", f"{f_w}×{f_h}", 1, "لوح")
             add_to_project(name, "فيبر", "أرضية", f"{f_w}×{f_d}", 1, "لوح")
             add_to_project(name, "فيبر", "أجناب", f"{f_h}×{f_d}", 2, "لوح")
 
-            # حسابات الأرفف
             if s_q > 0:
                 add_to_project(name, "ألومنيوم", "عرض رف", s_w, s_q*2, "مفرد")
                 add_to_project(name, "ألومنيوم", "عمق رف", s_d, s_q*2, "مفرد")
                 add_to_project(name, "فيبر", "حشو رف", f"{s_w-5}×{s_d-5}", s_q, "لوح")
 
-            # حسابات الفواصل
             if v_q > 0:
                 add_to_project(name, "ألومنيوم", "ارتفاع فاصل", v_h, v_q*2, "مفرد")
                 add_to_project(name, "ألومنيوم", "عمق فاصل", v_d, v_q*2, "مفرد")
                 add_to_project(name, "فيبر", "حشو فاصل", f"{v_h-5}×{v_d-5}", v_q, "لوح")
 
-            # حسابات الأدراج (علبه درج)
             if dr_q > 0:
                 add_to_project(name, "ألومنيوم", "وش/ضهر درج", dr_w - 2.5, dr_q*2, "علبه درج")
                 add_to_project(name, "ألومنيوم", "جنب درج", dr_d, dr_q*2, "علبه درج")
@@ -120,9 +198,10 @@ if st.session_state.page == 'deduction':
             st.rerun()
 
 # ==========================================
-# الصفحة الثانية: الاستهلاك والفاتورة المفتوحة
+# الصفحة الثانية: الاستهلاك (كودك الأصلي بالكامل)
 # ==========================================
 elif st.session_state.page == 'inventory':
+    st.markdown("<style>.stApp { background: white !important; }</style>", unsafe_allow_html=True)
     st.title("📊 استهلاك خامات المشروع - DOGGA SYSTEM")
     
     if st.session_state.project_data:
@@ -130,7 +209,6 @@ elif st.session_state.page == 'inventory':
         alum = df[df["الخامة"] == "ألومنيوم"].copy()
         alum["المقاس (سم)"] = pd.to_numeric(alum["المقاس (سم)"], errors='coerce')
 
-        # 1. حساب الأعواد
         st.subheader("🥢 تقدير أعواد الألومنيوم (6 متر)")
         summary = alum.groupby("نوع التخصيم").apply(
             lambda x: (x["المقاس (سم)"] * x["العدد"]).sum()
@@ -138,7 +216,6 @@ elif st.session_state.page == 'inventory':
         summary["الأعواد"] = summary["إجمالي سم"].apply(lambda x: math.ceil(x / 600))
         st.table(summary)
 
-        # 2. حساب الفيبر
         total_area = 0
         for _, row in df[df["الخامة"] == "فيبر"].iterrows():
             dims = str(row["المقاس (سم)"]).split('×')
@@ -156,30 +233,43 @@ elif st.session_state.page == 'inventory':
         base_bill.append({"الصنف": "لوح فيبر كامل", "الكمية": sheets, "السعر": 0.0})
 
         final_bill = st.data_editor(pd.DataFrame(base_bill), num_rows="dynamic", use_container_width=True)
-        
         total = (final_bill["الكمية"] * final_bill["السعر"]).sum()
         st.header(f"💰 التكلفة الإجمالية: {total:,.2f} ج.م")
 
-        col1, col2 = st.columns(2)
-        if col1.button("⬅️ العودة للتخصيم"):
-            st.session_state.page = 'deduction'; st.rerun()
-        if col2.button("🗑️ مسح المشروع"):
-            st.session_state.project_data = []; st.session_state.page = 'deduction'; st.rerun()
-            # --- تابع الصفحة الثانية (inventory) ---
-        
         st.divider()
-        
-        # 4. تفاصيل إضافية للمراجعة
-        with st.expander("🔍 مراجعة الأطوال الكلية قبل التقطيع"):
-            st.write("الأطوال التالية هي ناتج جمع كل القطع المضافة للمشروع:")
-            st.dataframe(summary, use_container_width=True)
-
-        # 5. منطقة أزرار الإجراءات
         st.write("### ⚙️ خيارات المشروع")
         c_inv1, c_inv2, c_inv3 = st.columns(3)
         
         with c_inv1:
             if st.button("⬅️ إضافة وحدات أخرى", use_container_width=True):
+                st.session_state.page = 'deduction'; st.rerun()
+                
+        with c_inv2:
+            csv_final = final_bill.to_csv(index=False).encode('utf-8-sig')
+            st.download_button(label="📥 تحميل الفاتورة (Excel)", data=csv_final, file_name=f"DOGGA_Invoice.csv", mime="text/csv", use_container_width=True)
+            
+        with c_inv3:
+            if st.button("🗑️ تفريغ المشروع بالكامل", use_container_width=True, type="secondary"):
+                st.session_state.project_data = []; st.session_state.page = 'main_menu'; st.rerun()
+    else:
+        st.error("⚠️ لا توجد بيانات مسجلة.")
+        if st.button("العودة للقائمة الرئيسية"):
+            st.session_state.page = 'main_menu'; st.rerun()
+            # --- تابع الصفحة الثانية (inventory) ---
+        
+        st.divider()
+        
+        # 4. تفاصيل إضافية للمراجعة (من كودك الأصلي)
+        with st.expander("🔍 مراجعة الأطوال الكلية قبل التقطيع"):
+            st.write("الأطوال التالية هي ناتج جمع كل القطع المضافة للمشروع:")
+            st.dataframe(summary, use_container_width=True)
+
+        # 5. منطقة أزرار الإجراءات النهائية
+        st.write("### ⚙️ خيارات المشروع")
+        c_inv1, c_inv2, c_inv3 = st.columns(3)
+        
+        with c_inv1:
+            if st.button("⬅️ إضافة وحدات أخرى", key="add_more", use_container_width=True):
                 st.session_state.page = 'deduction'
                 st.rerun()
                 
@@ -195,19 +285,19 @@ elif st.session_state.page == 'inventory':
             )
             
         with c_inv3:
-            # زر المسح النهائي مع تأكيد
-            if st.button("🗑️ تفريغ المشروع بالكامل", use_container_width=True, type="secondary"):
+            # زر المسح النهائي مع العودة للقائمة الرئيسية
+            if st.button("🗑️ تفريغ المشروع بالكامل", key="clear_all", use_container_width=True, type="secondary"):
                 st.session_state.project_data = []
-                st.session_state.page = 'deduction'
+                st.session_state.page = 'main_menu'
                 st.rerun()
 
     else:
         # حماية في حالة الدخول للصفحة مباشرة بدون بيانات
         st.error("⚠️ لا توجد بيانات مسجلة في المشروع حالياً.")
-        if st.button("الذهاب لصفحة التخصيم لإضافة وحدات"):
-            st.session_state.page = 'deduction'
+        if st.button("العودة للقائمة الرئيسية لإضافة وحدات"):
+            st.session_state.page = 'main_menu'
             st.rerun()
 
-# --- نهاية كود تطبيق DOGGA SYSTEM الأصلي ---
+# --- نهاية كود تطبيق DOGGA SYSTEM المتكامل ---
 # المهندس: ياسين علاء
 # ورشة: DED EL KASR
