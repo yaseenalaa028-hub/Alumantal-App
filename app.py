@@ -1,80 +1,101 @@
 import streamlit as st
 import pandas as pd
 
-st.set_page_config(page_title="تخصيم المصنع", layout="wide")
+st.set_page_config(page_title="تخصيم مصنع الألوميتال", layout="wide")
 
-st.title("🏭 نظام تخصيم تقطيع الألوميتال")
-st.write("أدخل المقاسات الكلية للحصول على مقاسات كل قطعة منفردة")
+st.title("🏭 نظام تخصيم تقطيع الألوميتال (البيان الأساسي)")
+st.markdown("---")
+
+# وظيفة لإضافة البيانات للجدول لضمان عدم التكرار والوضوح
+if 'cutting_list' not in st.session_state:
+    st.session_state.cutting_list = []
+
+def add_to_list(cat, name, length, qty, material="ألوميتال"):
+    st.session_state.cutting_list.append({
+        "الخامة": material,
+        "القسم": cat,
+        "اسم القطعة": name,
+        "المقاس (L)": length,
+        "العدد (Qty)": qty
+    })
 
 # =========================
-# 📐 المدخلات الأساسية
+# 📐 1. الوحدة الأساسية (العلبة)
 # =========================
-with st.sidebar:
-    st.header("⚙️ إعدادات الخصم")
-    # خليت الخصومات هنا عشان لو حبيت تغيرها حسب القطاع
-    off_w = st.number_input("خصم العرض (سم)", value=5.0)
-    off_h = st.number_input("خصم الارتفاع (سم)", value=13.0)
-    off_d = st.number_input("خصم العمق (سم)", value=5.0)
-
-col1, col2, col3 = st.columns(3)
-with col1: W = st.number_input("عرض الوحدة الكلي", min_value=0.0)
-with col2: H = st.number_input("ارتفاع الوحدة الكلي", min_value=0.0)
-with col3: D = st.number_input("عمق الوحدة الكلي", min_value=0.0)
+st.header("📐 الهيكل الأساسي للعلبة")
+col_w, col_h, col_d = st.columns(3)
+W = col_w.number_input("عرض العلبة الكلي", value=0.0, key="main_w")
+H = col_h.number_input("ارتفاع العلبة الكلي", value=0.0, key="main_h")
+D = col_d.number_input("عمق العلبة الكلي", value=0.0, key="main_d")
 
 st.divider()
 
-# رفوف وأدراج
-c1, c2 = st.columns(2)
-with c1: shelf_q = st.number_input("عدد الرفوف", min_value=0, step=1)
-with c2: draw_q = st.number_input("عدد الأدراج", min_value=0, step=1)
+# =========================
+# 📚 2. الرفوف (بمقاسات منفصلة)
+# =========================
+st.header("📚 الرفوف")
+c1, c2, c3 = st.columns(3)
+s_w = c1.number_input("عرض الرف المُراد", value=0.0)
+s_d = c2.number_input("عمق الرف المُراد", value=0.0)
+s_q = c3.number_input("عدد الرفوف", min_value=0, step=1)
+
+st.divider()
 
 # =========================
-# 🛠️ منطق الحساب (تخصيم يدوي دقيق)
+# 🧱 3. الفواصل (بمقاسات منفصلة)
 # =========================
-if st.button("إصدار بيان التقطيع النهائي", use_container_width=True):
+st.header("🧱 الفواصل")
+f1, f2, f3 = st.columns(3)
+v_h = f1.number_input("ارتفاع الفاصل", value=0.0)
+v_d = f2.number_input("عمق الفاصل", value=0.0)
+v_q = f3.number_input("عدد الفواصل", min_value=0, step=1)
+
+st.divider()
+
+# =========================
+# 🗄️ 4. الأدراج (بمقاسات منفصلة)
+# =========================
+st.header("🗄️ الأدراج")
+d1, d2, d3 = st.columns(3)
+dr_w = d1.number_input("عرض الدرج", value=0.0)
+dr_d = d2.number_input("عمق الدرج", value=0.0)
+dr_q = d3.number_input("عدد الأدراج", min_value=0, step=1)
+
+# =========================
+# 🚀 زر التشغيل والحسابات
+# =========================
+if st.button("إصدار كشف التقطيع التفصيلي", use_container_width=True):
+    st.session_state.cutting_list = [] # تصفير القائمة عند كل ضغطة
+    
+    # --- حسابات العلبة ---
     if W > 0 and H > 0:
-        cutting_data = []
+        add_to_list("العلبة", "قائم ارتفاع", H, 4)
+        add_to_list("العلبة", "عارضة عرض", W - 5, 4)
+        add_to_list("العلبة", "رباط عمق", D - 5, 4)
+        add_to_list("فيبر", "ضهرية", f"{W-5} × {H-13}", 1, "فيبر")
 
-        # وظيفة لإضافة القطع للجدول
-        def add_piece(cat, name, length, qty, material="ألوميتال"):
-            cutting_data.append({
-                "التصنيف": cat,
-                "اسم القطعة": name,
-                "طول القطعة (سم)": length,
-                "العدد (حتة)": qty,
-                "الخامة": material
-            })
+    # --- حسابات الرفوف ---
+    if s_q > 0:
+        add_to_list("الرفوف", "برواز رف عرض", s_w, s_q * 2)
+        add_to_list("الرفوف", "برواز رف عمق", s_d, s_q * 2)
+        add_to_list("فيبر", "حشو رف", f"{s_w-0.5} × {s_d-0.5}", s_q, "فيبر")
 
-        # 1. تخصيم الألوميتال (الأعواد)
-        # القوايم (ارتفاع)
-        add_piece("الهيكل", "قائم ارتفاع", H, 4)
-        # العوارض (عرض)
-        add_piece("الهيكل", "عارضة عرض", W - off_w, 4)
-        # الروابط (عمق)
-        add_piece("الهيكل", "رباط عمق", D - off_d, 4)
+    # --- حسابات الفواصل ---
+    if v_q > 0:
+        add_to_list("الفواصل", "قائم فاصل", v_h, v_q * 2)
+        add_to_list("الفواصل", "رباط فاصل عمق", v_d, v_q * 2)
+        add_to_list("فيبر", "حشو فاصل", f"{v_h-0.5} × {v_d-0.5}", v_q, "فيبر")
 
-        # 2. الرفوف (ألوميتال)
-        if shelf_q > 0:
-            add_piece("الرفوف", "برواز رف عرض", W - off_w, shelf_q * 2)
-            add_piece("الرفوف", "برواز رف عمق", D - off_d, shelf_q * 2)
+    # --- حسابات الأدراج ---
+    if dr_q > 0:
+        add_to_list("الأدراج", "وش/ضهر درج", dr_w, dr_q * 2)
+        add_to_list("الأدراج", "جنب درج عمق", dr_d, dr_q * 2)
+        add_to_list("فيبر", "قاع درج", f"{dr_w-0.5} × {dr_d-0.5}", dr_q, "فيبر")
 
-        # 3. الفيبر (مقاسات قص الألواح)
-        # الفيبر بيتحسب كأبعاد (طول في عرض) - هنضيفهم كقطع منفصلة للوضوح
-        add_piece("الفيبر", "ضهرية (عرض × ارتفاع)", f"{W-off_w} × {H-off_h}", 1, "لوح فيبر")
-        add_piece("الفيبر", "أرضية وسقف (عرض × عمق)", f"{W-off_w} × {D-off_d}", 2, "لوح فيبر")
-        add_piece("الفيبر", "أجناب (ارتفاع × عمق)", f"{H-off_h} × {D-off_d}", 2, "لوح فيبر")
-
-        if shelf_q > 0:
-            add_piece("الفيبر", "حشو رف (عرض × عمق)", f"{W-off_w-0.5} × {D-off_d-0.5}", shelf_q, "لوح فيبر")
-
-        # عرض الجدول
-        df = pd.DataFrame(cutting_data)
-        
-        # تنسيق العرض
-        st.subheader("📋 كشف التقطيع")
-        st.dataframe(df, use_container_width=True)
-        
-        # ملخص سريع للمخزن
-        st.success(f"تم حساب {len(df)} بند تقطيع بنجاح")
+    # عرض النتائج
+    if st.session_state.cutting_list:
+        df = pd.DataFrame(st.session_state.cutting_list)
+        st.subheader("📋 بيان التقطيع النهائي")
+        st.table(df)
     else:
-        st.error("يا هندسة لازم تدخل العرض والارتفاع على الأقل!")
+        st.error("برجاء إدخال بيانات صحيحة")
