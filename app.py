@@ -85,7 +85,7 @@ if 'project_data' not in st.session_state:
 if 'page' not in st.session_state:
     st.session_state.page = 'main_menu'
 
-# دالة الجرد الذكية (منطق الورشة الحقيقي للكسور وتوزيع التقطيع)
+# دالة الجرد الذكية (منطق الورشة لدعم الكسور 25.5 وتوفير الأعواد)
 def calculate_real_bars(pieces_list, bar_length=600.0, kerf=0.5):
     if not pieces_list: return 0
     sorted_pieces = sorted([float(p) for p in pieces_list], reverse=True)
@@ -107,7 +107,7 @@ def add_to_project(unit_name, category, item_name, length, qty, unit_type="-"):
         "اسم الوحدة": unit_name,
         "الخامة": category,
         "اسم القطعة": item_name,
-        "المقاس (سم)": float(length),
+        "المقاس (سم)": float(length), # تعديل لدعم الكسور
         "العدد": int(qty),
         "نوع التخصيم": unit_type
     })
@@ -128,7 +128,7 @@ if st.session_state.page == 'main_menu':
             st.rerun()
         
         if st.button("📏 تخصيم الدرف"):
-            st.toast("🛸 جاري تجهيز محرك الدرف...")
+            st.toast("🛸 جاري تجهيز محرك الدف...")
             
         if st.button("📁 المشاريع"):
             st.session_state.page = 'inventory'
@@ -150,24 +150,25 @@ elif st.session_state.page == 'deduction':
         u_kind = st.selectbox("نوع الوحدة", ["سفلي", "علوي", "دولاب خزين", "مطبقيه"])
 
         st.divider()
+        # تعديل لدعم الكسور 25.5
         W = st.number_input("العرض الكلي (W)", min_value=0.0, step=0.1, format="%.1f")
         H = st.number_input("الارتفاع الكلي (H)", min_value=0.0, step=0.1, format="%.1f")
         D = st.number_input("العمق الكلي (D)", min_value=0.0, step=0.1, format="%.1f")
 
         st.divider()
         st.subheader("📦 الأرفف والفواصل والأدراج")
-        s_w = st.number_input("عرض الرف", value=0, step=0.1)
-        s_d = st.number_input("عمق الرف", value=0, step=0.1)
+        s_w = st.number_input("عرض الرف", value=0.0, step=0.1)
+        s_d = st.number_input("عمق الرف", value=0.0, step=0.1)
         s_q = st.number_input("عدد الأرفف", min_value=0)
 
         st.write("---")
-        v_h = st.number_input("ارتفاع الفاصل", value=0, step=0.1)
-        v_d = st.number_input("عمق الفاصل", value=0, step=0.1)
+        v_h = st.number_input("ارتفاع الفاصل", value=0.0, step=0.1)
+        v_d = st.number_input("عمق الفاصل", value=0.0, step=0.1)
         v_q = st.number_input("عدد الفواصل", min_value=0)
 
         st.write("---")
-        dr_w = st.number_input("عرض الدرج", value=0, step=0.1)
-        dr_d = st.number_input("عمق الدرج", value=0, step=0.1)
+        dr_w = st.number_input("عرض الدرج", value=0.0, step=0.1)
+        dr_d = st.number_input("عمق الدرج", value=0.0, step=0.1)
         dr_q = st.number_input("عدد الأدراج", min_value=0)
 
         submit = st.form_submit_button("✅ إضافة الوحدة للمشروع", use_container_width=True)
@@ -208,8 +209,8 @@ elif st.session_state.page == 'deduction':
                 add_to_project(name, "ألومنيوم", "عمق فاصل", v_d, v_q*2, "مفرد")
                 add_to_project(name, "فيبر", "حشو فاصل", f"{v_h-5}×{v_d-5}", v_q, "لوح")
             if dr_q > 0:
-                add_to_project(name, "ألومنيوم", "وش/ضهر درج", dr_w - 2.5, dr_q*2, "مفرد")
-                add_to_project(name, "ألومنيوم", "جنب درج", dr_d, dr_q*2, "مفرد")
+                add_to_project(name, "ألومنيوم", "وش/ضهر درج", dr_w - 2.5, dr_q*2, "علبه درج")
+                add_to_project(name, "ألومنيوم", "جنب درج", dr_d, dr_q*2, "علبه درج")
                 add_to_project(name, "فيبر", "أرضية درج", f"{dr_w-7.5}×{dr_d-5}", dr_q, "لوح")
 
             st.success(f"🚀 تم إرسال {name} إلى قاعدة البيانات")
@@ -241,7 +242,7 @@ elif st.session_state.page == 'inventory':
 
         st.subheader("🥢 تقدير أعواد الألومنيوم (6 متر) - حسبة الورشة")
         
-        # تصحيح الحسبة لمنع الزيادة (استخدام دالة الجرد الذكية)
+        # استخدام دالة الجرد الذكية لإصلاح مشكلة الـ 9 أعواد ودعم الكسور
         inv_results = []
         for unit_type, group in alum.groupby("نوع التخصيم"):
             all_pieces = []
@@ -275,6 +276,7 @@ elif st.session_state.page == 'inventory':
         base_bill.append({"الصنف": "لوح فيبر كامل", "الكمية": sheets, "السعر": 0.0})
         
         final_bill = st.data_editor(pd.DataFrame(base_bill), num_rows="dynamic", use_container_width=True)
+        
         if not final_bill.empty:
             total = (final_bill["الكمية"] * final_bill["السعر"]).sum()
             st.header(f"💰 التكلفة الإجمالية: {total:,.2f} ج.م")
@@ -282,10 +284,13 @@ elif st.session_state.page == 'inventory':
         c_inv1, c_inv2, c_inv3 = st.columns(3)
         with c_inv1:
             if st.button("⬅️ إضافة وحدات أخرى", use_container_width=True):
-                st.session_state.page = 'deduction'; st.rerun()
+                st.session_state.page = 'deduction'
+                st.rerun()
         with c_inv2:
             csv_final = final_bill.to_csv(index=False).encode('utf-8-sig')
             st.download_button(label="📥 تحميل الفاتورة", data=csv_final, file_name="DOGGA_Invoice.csv", use_container_width=True)
         with c_inv3:
             if st.button("🗑️ تفريغ المشروع", use_container_width=True):
-                st.session_state.project_data = []; st.session_state.page = 'main_menu'; st.rerun()
+                st.session_state.project_data = []
+                st.session_state.page = 'main_menu'
+                st.rerun()
