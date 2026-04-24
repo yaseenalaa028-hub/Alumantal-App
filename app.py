@@ -85,13 +85,30 @@ if 'project_data' not in st.session_state:
 if 'page' not in st.session_state:
     st.session_state.page = 'main_menu'
 
+# دالة الجرد الذكية (منطق الورشة الحقيقي للكسور وتوزيع التقطيع)
+def calculate_real_bars(pieces_list, bar_length=600.0, kerf=0.5):
+    if not pieces_list: return 0
+    sorted_pieces = sorted([float(p) for p in pieces_list], reverse=True)
+    bars = []
+    for piece in sorted_pieces:
+        added = False
+        piece_with_kerf = piece + kerf
+        for i in range(len(bars)):
+            if bars[i] >= piece_with_kerf:
+                bars[i] -= piece_with_kerf
+                added = True
+                break
+        if not added:
+            bars.append(bar_length - piece_with_kerf)
+    return len(bars)
+
 def add_to_project(unit_name, category, item_name, length, qty, unit_type="-"):
     st.session_state.project_data.append({
         "اسم الوحدة": unit_name,
         "الخامة": category,
         "اسم القطعة": item_name,
-        "المقاس (سم)": length,
-        "العدد": qty,
+        "المقاس (سم)": float(length),
+        "العدد": int(qty),
         "نوع التخصيم": unit_type
     })
 
@@ -133,24 +150,24 @@ elif st.session_state.page == 'deduction':
         u_kind = st.selectbox("نوع الوحدة", ["سفلي", "علوي", "دولاب خزين", "مطبقيه"])
 
         st.divider()
-        W = st.number_input("العرض الكلي (W)", min_value=0)
-        H = st.number_input("الارتفاع الكلي (H)", min_value=0)
-        D = st.number_input("العمق الكلي (D)", min_value=0)
+        W = st.number_input("العرض الكلي (W)", min_value=0.0, step=0.1, format="%.1f")
+        H = st.number_input("الارتفاع الكلي (H)", min_value=0.0, step=0.1, format="%.1f")
+        D = st.number_input("العمق الكلي (D)", min_value=0.0, step=0.1, format="%.1f")
 
         st.divider()
         st.subheader("📦 الأرفف والفواصل والأدراج")
-        s_w = st.number_input("عرض الرف", value=0)
-        s_d = st.number_input("عمق الرف", value=0)
+        s_w = st.number_input("عرض الرف", value=0.0, step=0.1)
+        s_d = st.number_input("عمق الرف", value=0.0, step=0.1)
         s_q = st.number_input("عدد الأرفف", min_value=0)
 
         st.write("---")
-        v_h = st.number_input("ارتفاع الفاصل", value=0)
-        v_d = st.number_input("عمق الفاصل", value=0)
+        v_h = st.number_input("ارتفاع الفاصل", value=0.0, step=0.1)
+        v_d = st.number_input("عمق الفاصل", value=0.0, step=0.1)
         v_q = st.number_input("عدد الفواصل", min_value=0)
 
         st.write("---")
-        dr_w = st.number_input("عرض الدرج", value=0)
-        dr_d = st.number_input("عمق الدرج", value=0)
+        dr_w = st.number_input("عرض الدرج", value=0.0, step=0.1)
+        dr_d = st.number_input("عمق الدرج", value=0.0, step=0.1)
         dr_q = st.number_input("عدد الأدراج", min_value=0)
 
         submit = st.form_submit_button("✅ إضافة الوحدة للمشروع", use_container_width=True)
@@ -158,8 +175,8 @@ elif st.session_state.page == 'deduction':
     if submit:
         if W > 0 and H > 0:
             name = u_label if u_label else f"وحدة {u_kind}"
-            h_ded = 13 if u_kind in ["سفلي", "دولاب خزين"] else 5
-            f_h, f_w, f_d = H - h_ded, W - 5, D - 5
+            h_ded = 13.0 if u_kind in ["سفلي", "دولاب خزين"] else 5.0
+            f_h, f_w, f_d = H - h_ded, W - 5.0, D - 5.0
 
             # ألومنيوم الهيكل
             if u_kind == "سفلي":
@@ -191,8 +208,8 @@ elif st.session_state.page == 'deduction':
                 add_to_project(name, "ألومنيوم", "عمق فاصل", v_d, v_q*2, "مفرد")
                 add_to_project(name, "فيبر", "حشو فاصل", f"{v_h-5}×{v_d-5}", v_q, "لوح")
             if dr_q > 0:
-                add_to_project(name, "ألومنيوم", "وش/ضهر درج", dr_w - 2.5, dr_q*2, "علبه درج")
-                add_to_project(name, "ألومنيوم", "جنب درج", dr_d, dr_q*2, "علبه درج")
+                add_to_project(name, "ألومنيوم", "وش/ضهر درج", dr_w - 2.5, dr_q*2, "مفرد")
+                add_to_project(name, "ألومنيوم", "جنب درج", dr_d, dr_q*2, "مفرد")
                 add_to_project(name, "فيبر", "أرضية درج", f"{dr_w-7.5}×{dr_d-5}", dr_q, "لوح")
 
             st.success(f"🚀 تم إرسال {name} إلى قاعدة البيانات")
@@ -222,18 +239,33 @@ elif st.session_state.page == 'inventory':
         alum = df[df["الخامة"] == "ألومنيوم"].copy()
         alum["المقاس (سم)"] = pd.to_numeric(alum["المقاس (سم)"], errors='coerce')
 
-        st.subheader("🥢 تقدير أعواد الألومنيوم (6 متر)")
-        summary = alum.groupby("نوع التخصيم").apply(
-            lambda x: (x["المقاس (سم)"] * x["العدد"]).sum()
-        ).reset_index(name="إجمالي سم")
-        summary["الأعواد"] = summary["إجمالي سم"].apply(lambda x: math.ceil(x / 600))
+        st.subheader("🥢 تقدير أعواد الألومنيوم (6 متر) - حسبة الورشة")
+        
+        # تصحيح الحسبة لمنع الزيادة (استخدام دالة الجرد الذكية)
+        inv_results = []
+        for unit_type, group in alum.groupby("نوع التخصيم"):
+            all_pieces = []
+            for _, row in group.iterrows():
+                all_pieces.extend([row["المقاس (سم)"]] * int(row["العدد"]))
+            
+            real_bars = calculate_real_bars(all_pieces)
+            total_cm = sum(all_pieces)
+            inv_results.append({
+                "نوع التخصيم": unit_type,
+                "إجمالي سم": round(total_cm, 2),
+                "الأعواد": real_bars
+            })
+            
+        summary = pd.DataFrame(inv_results)
         st.table(summary)
 
         total_area = 0
         for _, row in df[df["الخامة"] == "فيبر"].iterrows():
             dims = str(row["المقاس (سم)"]).split('×')
             if len(dims) == 2:
-                total_area += float(dims[0]) * float(dims[1]) * row["العدد"]
+                try:
+                    total_area += float(dims[0]) * float(dims[1]) * row["العدد"]
+                except: pass
         sheets = math.ceil(total_area / (280 * 122)) 
         st.metric("عدد ألواح الفيبر المطلوبة", f"{sheets} لوح")
 
@@ -243,8 +275,9 @@ elif st.session_state.page == 'inventory':
         base_bill.append({"الصنف": "لوح فيبر كامل", "الكمية": sheets, "السعر": 0.0})
         
         final_bill = st.data_editor(pd.DataFrame(base_bill), num_rows="dynamic", use_container_width=True)
-        total = (final_bill["الكمية"] * final_bill["السعر"]).sum()
-        st.header(f"💰 التكلفة الإجمالية: {total:,.2f} ج.م")
+        if not final_bill.empty:
+            total = (final_bill["الكمية"] * final_bill["السعر"]).sum()
+            st.header(f"💰 التكلفة الإجمالية: {total:,.2f} ج.م")
 
         c_inv1, c_inv2, c_inv3 = st.columns(3)
         with c_inv1:
