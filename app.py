@@ -128,7 +128,7 @@ if st.session_state.page == 'main_menu':
             st.rerun()
         
         if st.button("📏 تخصيم الدرف"):
-            st.toast("🛸 جاري تجهيز محرك الدف...")
+            st.toast("🛸 جاري تجهيز محرك الدرف...")
             
         if st.button("📁 المشاريع"):
             st.session_state.page = 'inventory'
@@ -156,18 +156,18 @@ elif st.session_state.page == 'deduction':
 
         st.divider()
         st.subheader("📦 الأرفف والفواصل والأدراج")
-        s_w = st.number_input("عرض الرف", value=0.0, step=0.1)
-        s_d = st.number_input("عمق الرف", value=0.0, step=0.1)
+        s_w = st.number_input("عرض الرف", value=0, step=0.1)
+        s_d = st.number_input("عمق الرف", value=0, step=0.1)
         s_q = st.number_input("عدد الأرفف", min_value=0)
 
         st.write("---")
-        v_h = st.number_input("ارتفاع الفاصل", value=0.0, step=0.1)
-        v_d = st.number_input("عمق الفاصل", value=0.0, step=0.1)
+        v_h = st.number_input("ارتفاع الفاصل", value=0, step=0.1)
+        v_d = st.number_input("عمق الفاصل", value=0, step=0.1)
         v_q = st.number_input("عدد الفواصل", min_value=0)
 
         st.write("---")
-        dr_w = st.number_input("عرض الدرج", value=0.0, step=0.1)
-        dr_d = st.number_input("عمق الدرج", value=0.0, step=0.1)
+        dr_w = st.number_input("عرض الدرج", value=0, step=0.1)
+        dr_d = st.number_input("عمق الدرج", value=0, step=0.1)
         dr_q = st.number_input("عدد الأدراج", min_value=0)
 
         submit = st.form_submit_button("✅ إضافة الوحدة للمشروع", use_container_width=True)
