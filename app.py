@@ -8,22 +8,15 @@ st.set_page_config(page_title="DOGGA SYSTEM - الإدارة الهندسية", 
 # كود التنسيق وإخفاء أدوات Streamlit و GitHub
 st.markdown("""
 <style>
-    /* إخفاء علامة جيت هب والقائمة اليمنى تماماً */
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
     header {visibility: hidden;}
-    
-    /* إخفاء أزرار المشاركة وعرض الكود في الاستضافة */
     .stAppDeployButton {display: none !important;}
     .viewerBadge_container__1QSob {display: none !important;}
-    
-    /* الخلفية والكون */
     .stApp {
         background: radial-gradient(circle at top right, #0d1117, #050505, #020c1b);
         color: #d9a066;
     }
-    
-    /* تصميم الأزرار الرئيسية الثلاثة */
     .main-btn-container div.stButton > button {
         background: rgba(0, 150, 255, 0.05) !important;
         border: 2px solid #0096ff !important;
@@ -45,16 +38,12 @@ st.markdown("""
         box-shadow: 0 0 40px #d9a066 !important;
         transform: scale(1.02) !important;
     }
-
-    /* تنسيق الحاويات والجداول */
     div[data-testid="stForm"], .stTable, .stDataFrame, div[data-testid="stExpander"] {
         background: rgba(255, 255, 255, 0.03) !important;
         border-radius: 20px !important;
         border: 1px solid rgba(217, 160, 102, 0.4) !important;
         backdrop-filter: blur(5px);
     }
-
-    /* العناوين والخطوط */
     h1 { 
         color: #0096ff !important; 
         text-shadow: 0 0 30px #0096ff; 
@@ -62,8 +51,6 @@ st.markdown("""
         font-size: 3.5rem !important;
     }
     h2, h3 { color: #d9a066 !important; text-align: center; }
-
-    /* تحسين شكل المدخلات */
     .stNumberInput input, .stTextInput input, .stSelectbox div {
         background-color: #0d1117 !important;
         color: #0096ff !important;
@@ -85,7 +72,7 @@ if 'project_data' not in st.session_state:
 if 'page' not in st.session_state:
     st.session_state.page = 'main_menu'
 
-# دالة الجرد الذكية (منطق الورشة لدعم الكسور 25.5 وتوفير الأعواد)
+# دالة الجرد الذكية (منطق الورشة لمنع الهالك ودعم الكسور)
 def calculate_real_bars(pieces_list, bar_length=600.0, kerf=0.5):
     if not pieces_list: return 0
     sorted_pieces = sorted([float(p) for p in pieces_list], reverse=True)
@@ -102,12 +89,18 @@ def calculate_real_bars(pieces_list, bar_length=600.0, kerf=0.5):
             bars.append(bar_length - piece_with_kerf)
     return len(bars)
 
+# تعديل دالة الإضافة لمنع الـ ValueError في مقاسات الفيبر
 def add_to_project(unit_name, category, item_name, length, qty, unit_type="-"):
+    try:
+        final_length = float(length)
+    except:
+        final_length = length # لو فيبر (نص) سيبه زي ما هو
+        
     st.session_state.project_data.append({
         "اسم الوحدة": unit_name,
         "الخامة": category,
         "اسم القطعة": item_name,
-        "المقاس (سم)": float(length), # تعديل لدعم الكسور
+        "المقاس (سم)": final_length,
         "العدد": int(qty),
         "نوع التخصيم": unit_type
     })
@@ -126,10 +119,8 @@ if st.session_state.page == 'main_menu':
         if st.button("✨ ابدأ التخصيم"):
             st.session_state.page = 'deduction'
             st.rerun()
-        
         if st.button("📏 تخصيم الدرف"):
-            st.toast("🛸 جاري تجهيز محرك الدف...")
-            
+            st.toast("🛸 جاري تجهيز محرك الدرف...")
         if st.button("📁 المشاريع"):
             st.session_state.page = 'inventory'
             st.rerun()
@@ -146,40 +137,40 @@ elif st.session_state.page == 'deduction':
     
     with st.form("main_form", clear_on_submit=True):
         st.subheader("📏 إدخال بيانات الوحدة")
-        u_label = st.text_input("اسم الوحدة (مثلاً: سفلي 80 سم)", placeholder="وحدة 1")
+        u_label = st.text_input("اسم الوحدة", placeholder="مثلاً: وحدة سفلي 80")
         u_kind = st.selectbox("نوع الوحدة", ["سفلي", "علوي", "دولاب خزين", "مطبقيه"])
 
         st.divider()
-        # تعديل لدعم الكسور 25.5
         W = st.number_input("العرض الكلي (W)", min_value=0.0, step=0.1, format="%.1f")
         H = st.number_input("الارتفاع الكلي (H)", min_value=0.0, step=0.1, format="%.1f")
         D = st.number_input("العمق الكلي (D)", min_value=0.0, step=0.1, format="%.1f")
 
         st.divider()
-        st.subheader("📦 الأرفف والفواصل والأدراج")
-        s_w = st.number_input("عرض الرف", value=0.0, step=0.1)
-        s_d = st.number_input("عمق الرف", value=0.0, step=0.1)
-        s_q = st.number_input("عدد الأرفف", min_value=0)
-
-        st.write("---")
-        v_h = st.number_input("ارتفاع الفاصل", value=0.0, step=0.1)
-        v_d = st.number_input("عمق الفاصل", value=0.0, step=0.1)
-        v_q = st.number_input("عدد الفواصل", min_value=0)
-
-        st.write("---")
-        dr_w = st.number_input("عرض الدرج", value=0.0, step=0.1)
-        dr_d = st.number_input("عمق الدرج", value=0.0, step=0.1)
-        dr_q = st.number_input("عدد الأدراج", min_value=0)
+        st.subheader("📦 الإضافات (أرفف - فواصل - أدراج)")
+        col_s1, col_s2, col_s3 = st.columns(3)
+        with col_s1:
+            s_w = st.number_input("عرض الرف", value=0.0, step=0.1)
+            s_d = st.number_input("عمق الرف", value=0.0, step=0.1)
+            s_q = st.number_input("عدد الأرفف", min_value=0)
+        with col_s2:
+            v_h = st.number_input("ارتفاع الفاصل", value=0.0, step=0.1)
+            v_d = st.number_input("عمق الفاصل", value=0.0, step=0.1)
+            v_q = st.number_input("عدد الفواصل", min_value=0)
+        with col_s3:
+            dr_w = st.number_input("عرض الدرج", value=0.0, step=0.1)
+            dr_d = st.number_input("عمق الدرج", value=0.0, step=0.1)
+            dr_q = st.number_input("عدد الأدراج", min_value=0)
 
         submit = st.form_submit_button("✅ إضافة الوحدة للمشروع", use_container_width=True)
 
     if submit:
         if W > 0 and H > 0:
             name = u_label if u_label else f"وحدة {u_kind}"
+            # تخصيم الارتفاع: 13 سم للسفلي و 5 سم للعلوي
             h_ded = 13.0 if u_kind in ["سفلي", "دولاب خزين"] else 5.0
             f_h, f_w, f_d = H - h_ded, W - 5.0, D - 5.0
 
-            # ألومنيوم الهيكل
+            # تخصيمات الألومنيوم
             if u_kind == "سفلي":
                 items = [("قائم ارتفاع", f_h, 2, "مفرد"), ("قائم ارتفاع", f_h, 2, "متقارب"),
                          ("عارضة عرض", f_w, 3, "مفرد"), ("عارضة عرض", f_w, 1, "متقارب"),
@@ -188,41 +179,39 @@ elif st.session_state.page == 'deduction':
                 items = [("قائم ارتفاع", f_h, 2, "مفرد"), ("قائم ارتفاع", f_h, 2, "متقارب"),
                          ("عارضة عرض", f_w, 2, "مفرد"), ("عارضة عرض", f_w, 2, "متقارب"),
                          ("رباط عمق", f_d, 4, "متقارب")]
-            for itm in items: add_to_project(name, "ألومنيوم", itm[0], itm[1], itm[2], itm[3])
+            
+            for itm in items: 
+                add_to_project(name, "ألومنيوم", itm[0], itm[1], itm[2], itm[3])
 
-            # --- فيبر الهيكل ---
+            # تخصيمات الفيبر
             add_to_project(name, "فيبر", "ضهرية", f"{f_w}×{f_h}", 1, "لوح")
             add_to_project(name, "فيبر", "أرضية", f"{f_w}×{f_d}", 1, "لوح")
-            
             if u_kind != "سفلي":
                 add_to_project(name, "فيبر", "سقفية", f"{f_w}×{f_d}", 1, "لوح")
-                
             add_to_project(name, "فيبر", "أجناب", f"{f_h}×{f_d}", 2, "لوح")
 
-            # حسابات الأرفف والفواصل والأدراج
+            # الإضافات
             if s_q > 0:
                 add_to_project(name, "ألومنيوم", "عرض رف", s_w, s_q*2, "مفرد")
                 add_to_project(name, "ألومنيوم", "عمق رف", s_d, s_q*2, "مفرد")
-                add_to_project(name, "فيبر", "حشو رف", f"{s_w-5}×{s_d-5}", s_q, "لوح")
             if v_q > 0:
                 add_to_project(name, "ألومنيوم", "ارتفاع فاصل", v_h, v_q*2, "مفرد")
                 add_to_project(name, "ألومنيوم", "عمق فاصل", v_d, v_q*2, "مفرد")
-                add_to_project(name, "فيبر", "حشو فاصل", f"{v_h-5}×{v_d-5}", v_q, "لوح")
             if dr_q > 0:
-                add_to_project(name, "ألومنيوم", "وش/ضهر درج", dr_w - 2.5, dr_q*2, "علبه درج")
-                add_to_project(name, "ألومنيوم", "جنب درج", dr_d, dr_q*2, "علبه درج")
-                add_to_project(name, "فيبر", "أرضية درج", f"{dr_w-7.5}×{dr_d-5}", dr_q, "لوح")
+                add_to_project(name, "ألومنيوم", "وش درج", dr_w - 2.5, dr_q*2, "مفرد")
+                add_to_project(name, "ألومنيوم", "جنب درج", dr_d, dr_q*2, "مفرد")
 
-            st.success(f"🚀 تم إرسال {name} إلى قاعدة البيانات")
+            st.success(f"🚀 تم حفظ {name} بنجاح")
+            st.rerun()
 
     if st.session_state.project_data:
         st.divider()
         df = pd.DataFrame(st.session_state.project_data)
         for n, g in df.groupby("اسم الوحدة"):
-            with st.expander(f"📍 مراجعة تخصيم: {n}"):
+            with st.expander(f"📍 مراجعة {n}"):
                 st.table(g.drop(columns=["اسم الوحدة"]))
         
-        if st.button("💰 حساب استهلاك الخامات والتسعير ⬅️", use_container_width=True):
+        if st.button("💰 جرد الخامات وتسعير الفاتورة ⬅️", use_container_width=True):
             st.session_state.page = 'inventory'
             st.rerun()
 
@@ -240,57 +229,45 @@ elif st.session_state.page == 'inventory':
         alum = df[df["الخامة"] == "ألومنيوم"].copy()
         alum["المقاس (سم)"] = pd.to_numeric(alum["المقاس (سم)"], errors='coerce')
 
-        st.subheader("🥢 تقدير أعواد الألومنيوم (6 متر) - حسبة الورشة")
-        
-        # استخدام دالة الجرد الذكية لإصلاح مشكلة الـ 9 أعواد ودعم الكسور
+        st.subheader("🥢 تقدير الأعواد (منطق الورشة الحقيقي)")
         inv_results = []
-        for unit_type, group in alum.groupby("نوع التخصيم"):
-            all_pieces = []
+        for u_type, group in alum.groupby("نوع التخصيم"):
+            all_pcs = []
             for _, row in group.iterrows():
-                all_pieces.extend([row["المقاس (سم)"]] * int(row["العدد"]))
+                all_pcs.extend([row["المقاس (سم)"]] * int(row["العدد"]))
             
-            real_bars = calculate_real_bars(all_pieces)
-            total_cm = sum(all_pieces)
+            bars = calculate_real_bars(all_pcs)
             inv_results.append({
-                "نوع التخصيم": unit_type,
-                "إجمالي سم": round(total_cm, 2),
-                "الأعواد": real_bars
+                "نوع التخصيم": u_type,
+                "إجمالي سم": round(sum(all_pcs), 1),
+                "عدد الأعواد": bars
             })
-            
-        summary = pd.DataFrame(inv_results)
-        st.table(summary)
+        
+        st.table(pd.DataFrame(inv_results))
 
+        # حساب الفيبر تقريبي
         total_area = 0
         for _, row in df[df["الخامة"] == "فيبر"].iterrows():
-            dims = str(row["المقاس (سم)"]).split('×')
-            if len(dims) == 2:
-                try:
-                    total_area += float(dims[0]) * float(dims[1]) * row["العدد"]
-                except: pass
-        sheets = math.ceil(total_area / (280 * 122)) 
-        st.metric("عدد ألواح الفيبر المطلوبة", f"{sheets} لوح")
+            try:
+                d = str(row["المقاس (سم)"]).split('×')
+                total_area += float(d[0]) * float(d[1]) * row["العدد"]
+            except: pass
+        sheets = math.ceil(total_area / (280 * 122)) if total_area > 0 else 0
+        st.metric("عدد ألواح الفيبر (تقريبي)", f"{sheets} لوح")
 
         st.divider()
-        st.subheader("💵 فاتورة المشتريات المفتوحة")
-        base_bill = [{"الصنف": f"ألومنيوم {r['نوع التخصيم']}", "الكمية": r["الأعواد"], "السعر": 0.0} for _, r in summary.iterrows()]
-        base_bill.append({"الصنف": "لوح فيبر كامل", "الكمية": sheets, "السعر": 0.0})
+        st.subheader("💵 الفاتورة النهائية")
+        base_bill = [{"الصنف": f"ألومنيوم {r['نوع التخصيم']}", "الكمية": r["عدد الأعواد"], "السعر": 0.0} for r in inv_results]
+        if sheets > 0: base_bill.append({"الصنف": "لوح فيبر", "الكمية": sheets, "السعر": 0.0})
         
         final_bill = st.data_editor(pd.DataFrame(base_bill), num_rows="dynamic", use_container_width=True)
-        
         if not final_bill.empty:
             total = (final_bill["الكمية"] * final_bill["السعر"]).sum()
-            st.header(f"💰 التكلفة الإجمالية: {total:,.2f} ج.م")
+            st.header(f"💰 التكلفة الكلية: {total:,.2f} ج.م")
 
-        c_inv1, c_inv2, c_inv3 = st.columns(3)
-        with c_inv1:
-            if st.button("⬅️ إضافة وحدات أخرى", use_container_width=True):
-                st.session_state.page = 'deduction'
-                st.rerun()
-        with c_inv2:
-            csv_final = final_bill.to_csv(index=False).encode('utf-8-sig')
-            st.download_button(label="📥 تحميل الفاتورة", data=csv_final, file_name="DOGGA_Invoice.csv", use_container_width=True)
-        with c_inv3:
-            if st.button("🗑️ تفريغ المشروع", use_container_width=True):
+        col1, col2 = st.columns(2)
+        with col1:
+            if st.button("🗑️ مسح كل البيانات", use_container_width=True):
                 st.session_state.project_data = []
                 st.session_state.page = 'main_menu'
                 st.rerun()
