@@ -2,21 +2,18 @@ import streamlit as st
 import pandas as pd
 import math
 
-# 1. إعدادات الصفحة والواجهة الفضائية
+# 1. إعدادات الصفحة والواجهة الفضائية (نحاسي + أزرق كهربائي)
 st.set_page_config(page_title="DOGGA SYSTEM - الإدارة الهندسية", layout="wide")
 
-# كود التنسيق وإخفاء أدوات Streamlit و GitHub
 st.markdown("""
-<style>
-    #MainMenu {visibility: hidden;}
-    footer {visibility: hidden;}
-    header {visibility: hidden;}
-    .stAppDeployButton {display: none !important;}
-    .viewerBadge_container__1QSob {display: none !important;}
+    <style>
+    /* الخلفية والكون */
     .stApp {
         background: radial-gradient(circle at top right, #0d1117, #050505, #020c1b);
         color: #d9a066;
     }
+    
+    /* تصميم الأزرار الرئيسية الثلاثة */
     .main-btn-container div.stButton > button {
         background: rgba(0, 150, 255, 0.05) !important;
         border: 2px solid #0096ff !important;
@@ -38,14 +35,25 @@ st.markdown("""
         box-shadow: 0 0 40px #d9a066 !important;
         transform: scale(1.02) !important;
     }
+
+    /* تنسيق الحاويات والجداول */
     div[data-testid="stForm"], .stTable, .stDataFrame, div[data-testid="stExpander"] {
         background: rgba(255, 255, 255, 0.03) !important;
         border-radius: 20px !important;
         border: 1px solid rgba(217, 160, 102, 0.4) !important;
         backdrop-filter: blur(5px);
     }
-    h1 { color: #0096ff !important; text-shadow: 0 0 30px #0096ff; text-align: center; font-size: 3.5rem !important; }
+
+    /* العناوين والخطوط */
+    h1 { 
+        color: #0096ff !important; 
+        text-shadow: 0 0 30px #0096ff; 
+        text-align: center;
+        font-size: 3.5rem !important;
+    }
     h2, h3 { color: #d9a066 !important; text-align: center; }
+
+    /* تحسين شكل المدخلات */
     .stNumberInput input, .stTextInput input, .stSelectbox div {
         background-color: #0d1117 !important;
         color: #0096ff !important;
@@ -53,42 +61,28 @@ st.markdown("""
         border-radius: 10px !important;
         height: 50px !important;
     }
-    label { color: #d9a066 !important; font-weight: bold !important; font-size: 1.1rem !important; }
-</style>
-""", unsafe_allow_html=True)
+    label { 
+        color: #d9a066 !important; 
+        font-weight: bold !important; 
+        font-size: 1.1rem !important;
+    }
+    </style>
+    """, unsafe_allow_html=True)
 
-# 2. تهيئة المخزن الدائم (عشان المشروع ميتحذفش)
+# 2. تهيئة مخزن البيانات
 if 'project_data' not in st.session_state:
     st.session_state.project_data = [] 
 if 'page' not in st.session_state:
     st.session_state.page = 'main_menu'
 
-# دالة الجرد الذكية (منطق الورشة)
-def calculate_real_bars(pieces_list, bar_length=600.0, kerf=0.5):
-    if not pieces_list: return 0
-    sorted_pieces = sorted([float(p) for p in pieces_list], reverse=True)
-    bars = []
-    for piece in sorted_pieces:
-        added = False
-        piece_with_kerf = piece + kerf
-        for i in range(len(bars)):
-            if bars[i] >= piece_with_kerf:
-                bars[i] -= piece_with_kerf
-                added = True
-                break
-        if not added:
-            bars.append(bar_length - piece_with_kerf)
-    return len(bars)
-
-# دالة الإضافة مع دعم الكسور لمنع الـ Error
 def add_to_project(unit_name, category, item_name, length, qty, unit_type="-"):
-    try:
-        final_length = float(length)
-    except:
-        final_length = length
     st.session_state.project_data.append({
-        "اسم الوحدة": unit_name, "الخامة": category, "اسم القطعة": item_name,
-        "المقاس (سم)": final_length, "العدد": int(qty), "نوع التخصيم": unit_type
+        "اسم الوحدة": unit_name,
+        "الخامة": category,
+        "اسم القطعة": item_name,
+        "المقاس (سم)": length,
+        "العدد": qty,
+        "نوع التخصيم": unit_type
     })
 
 # ==========================================
@@ -96,14 +90,22 @@ def add_to_project(unit_name, category, item_name, length, qty, unit_type="-"):
 # ==========================================
 if st.session_state.page == 'main_menu':
     st.markdown("<h1>⚡ DOGGA GALAXY SYSTEM</h1>", unsafe_allow_html=True)
-    st.markdown("<p style='text-align: center; color: #d9a066; font-size: 1.3rem;'>برمجه المهندس ياسين علاء | DOGGA SMART KITCHEN</p>", unsafe_allow_html=True)
+    st.markdown("<p style='text-align: center; color: #d9a066; font-size: 1.3rem;'>برمجة المهندس ياسين علاء | ضد الكسر </p>", unsafe_allow_html=True)
     st.write("##")
+    
     st.markdown('<div class="main-btn-container">', unsafe_allow_html=True)
     c1, c2, c3 = st.columns([1, 2, 1])
     with c2:
-        if st.button("✨ ابدأ التخصيم"): st.session_state.page = 'deduction'; st.rerun()
-        if st.button("📏 تخصيم الدرف"): st.toast("🛸 جاري تجهيز محرك الدرف...")
-        if st.button("📁 المشاريع المحفوظة"): st.session_state.page = 'inventory'; st.rerun()
+        if st.button("✨ ابدأ التخصيم"):
+            st.session_state.page = 'deduction'
+            st.rerun()
+        
+        if st.button("📏 تخصيم الدرف"):
+            st.toast("🛸 جاري تجهيز محرك الدرف...")
+            
+        if st.button("📁 المشاريع المحفوظة"):
+            st.session_state.page = 'inventory'
+            st.rerun()
     st.markdown('</div>', unsafe_allow_html=True)
 
 # ==========================================
@@ -111,114 +113,155 @@ if st.session_state.page == 'main_menu':
 # ==========================================
 elif st.session_state.page == 'deduction':
     st.markdown("<h1>🏗️ تخصيم مشروع متكامل</h1>", unsafe_allow_html=True)
-    if st.button("🏠 العودة للرئيسية"): st.session_state.page = 'main_menu'; st.rerun()
+    if st.button("🏠 العودة للرئيسية"):
+        st.session_state.page = 'main_menu'
+        st.rerun()
     
     with st.form("main_form", clear_on_submit=True):
         st.subheader("📏 إدخال بيانات الوحدة")
         u_label = st.text_input("اسم الوحدة (مثلاً: سفلي 80 سم)", placeholder="وحدة 1")
         u_kind = st.selectbox("نوع الوحدة", ["سفلي", "علوي", "دولاب خزين", "مطبقيه"])
-        W = st.number_input("العرض الكلي (W)", min_value=0.0, step=0.1, format="%.1f")
-        H = st.number_input("الارتفاع الكلي (H)", min_value=0.0, step=0.1, format="%.1f")
-        D = st.number_input("العمق الكلي (D)", min_value=0.0, step=0.1, format="%.1f")
+
+        st.divider()
+        W = st.number_input("العرض الكلي (W)", min_value=0.0, step=0.1)
+        H = st.number_input("الارتفاع الكلي (H)", min_value=0.0, step=0.1)
+        D = st.number_input("العمق الكلي (D)", min_value=0.0, step=0.1)
+
         st.divider()
         st.subheader("📦 الأرفف والفواصل والأدراج")
-        col_s1, col_s2, col_s3 = st.columns(3)
-        with col_s1:
-            s_w = st.number_input("عرض الرف", value=0.0, step=0.1)
-            s_d = st.number_input("عمق الرف", value=0.0, step=0.1)
-            s_q = st.number_input("عدد الأرفف", min_value=0)
-        with col_s2:
-            v_h = st.number_input("ارتفاع الفاصل", value=0.0, step=0.1)
-            v_d = st.number_input("عمق الفاصل", value=0.0, step=0.1)
-            v_q = st.number_input("عدد الفواصل", min_value=0)
-        with col_s3:
-            dr_w = st.number_input("عرض الدرج", value=0.0, step=0.1)
-            dr_d = st.number_input("عمق الدرج", value=0.0, step=0.1)
-            dr_q = st.number_input("عدد الأدراج", min_value=0)
-            
+        
+        col_s = st.columns(3)
+        s_w = col_s[0].number_input("عرض الرف", value=0.0)
+        s_d = col_s[1].number_input("عمق الرف", value=0.0)
+        s_q = col_s[2].number_input("عدد الأرفف", min_value=0)
+
+        st.write("---")
+        col_v = st.columns(3)
+        v_h = col_v[0].number_input("ارتفاع الفاصل", value=0.0)
+        v_d = col_v[1].number_input("عمق الفاصل", value=0.0)
+        v_q = col_v[2].number_input("عدد الفواصل", min_value=0)
+
+        st.write("---")
+        col_dr = st.columns(3)
+        dr_w = col_dr[0].number_input("عرض الدرج", value=0.0)
+        dr_d = col_dr[1].number_input("عمق الدرج", value=0.0)
+        dr_q = col_dr[2].number_input("عدد الأدراج", min_value=0)
+
         submit = st.form_submit_button("✅ حفظ الوحدة في المشروع", use_container_width=True)
 
-    if submit and W > 0 and H > 0:
-        name = u_label if u_label else f"وحدة {u_kind}"
-        h_ded = 13.0 if u_kind in ["سفلي", "دولاب خزين"] else 5.0
-        f_h, f_w, f_d = H - h_ded, W - 5.0, D - 5.0
+    if submit:
+        if W > 0 and H > 0:
+            name = u_label if u_label else f"وحدة {u_kind}"
+            # قاعدة الـ 13 سم للسفلي والـ 5 سم للعلوي
+            h_ded = 13.0 if u_kind in ["سفلي", "دولاب خزين"] else 5.0
+            f_h, f_w, f_d = H - h_ded, W - 5.0, D - 5.0
 
-        # ألومنيوم الهيكل
-        if u_kind == "سفلي":
-            items = [("قائم ارتفاع", f_h, 2, "مفرد"), ("قائم ارتفاع", f_h, 2, "متقارب"), ("عارضة عرض", f_w, 3, "مفرد"), ("عارضة عرض", f_w, 1, "متقارب"), ("رباط عمق", f_d, 2, "مفرد"), ("رباط عمق", f_d, 2, "متقارب")]
-        else:
-            items = [("قائم ارتفاع", f_h, 2, "مفرد"), ("قائم ارتفاع", f_h, 2, "متقارب"), ("عارضة عرض", f_w, 2, "مفرد"), ("عارضة عرض", f_w, 2, "متقارب"), ("رباط عمق", f_d, 4, "متقارب")]
-        for itm in items: add_to_project(name, "ألومنيوم", itm[0], itm[1], itm[2], itm[3])
+            # --- ألومنيوم الهيكل ---
+            if u_kind == "سفلي":
+                add_to_project(name, "ألومنيوم", "قائم ارتفاع", f_h, 2, "مفرد")
+                add_to_project(name, "ألومنيوم", "قائم ارتفاع", f_h, 2, "متقارب")
+                add_to_project(name, "ألومنيوم", "عارضة عرض", f_w, 3, "مفرد")
+                add_to_project(name, "ألومنيوم", "عارضة عرض", f_w, 1, "متقارب")
+                add_to_project(name, "ألومنيوم", "رباط عمق", f_d, 2, "مفرد")
+                add_to_project(name, "ألومنيوم", "رباط عمق", f_d, 2, "متقارب")
+            else:
+                add_to_project(name, "ألومنيوم", "قائم ارتفاع", f_h, 2, "مفرد")
+                add_to_project(name, "ألومنيوم", "قائم ارتفاع", f_h, 2, "متقارب")
+                add_to_project(name, "ألومنيوم", "عارضة عرض", f_w, 2, "مفرد")
+                add_to_project(name, "ألومنيوم", "عارضة عرض", f_w, 2, "متقارب")
+                add_to_project(name, "ألومنيوم", "رباط عمق", f_d, 4, "متقارب")
 
-        # فيبر الهيكل
-        add_to_project(name, "فيبر", "ضهرية", f"{f_w}×{f_h}", 1, "لوح")
-        add_to_project(name, "فيبر", "أرضية", f"{f_w}×{f_d}", 1, "لوح")
-        if u_kind != "سفلي": add_to_project(name, "فيبر", "سقفية", f"{f_w}×{f_d}", 1, "لوح")
-        add_to_project(name, "فيبر", "أجناب", f"{f_h}×{f_d}", 2, "لوح")
+            # --- فيبر الهيكل ---
+            add_to_project(name, "فيبر", "ضهرية", f"{f_w}×{f_h}", 1, "لوح")
+            add_to_project(name, "فيبر", "أرضية", f"{f_w}×{f_d}", 1, "لوح")
+            if u_kind != "سفلي":
+                add_to_project(name, "فيبر", "سقفية", f"{f_w}×{f_d}", 1, "لوح")
+            add_to_project(name, "فيبر", "أجناب", f"{f_h}×{f_d}", 2, "لوح")
 
-        # تخصيمات الإضافات (الفيبر والألومنيوم)
-        if s_q > 0:
-            add_to_project(name, "ألومنيوم", "عرض رف", s_w, s_q*2, "مفرد")
-            add_to_project(name, "ألومنيوم", "عمق رف", s_d, s_q*2, "مفرد")
-            add_to_project(name, "فيبر", "حشو رف", f"{s_w-5}×{s_d-5}", s_q, "لوح")
-        if v_q > 0:
-            add_to_project(name, "ألومنيوم", "ارتفاع فاصل", v_h, v_q*2, "مفرد")
-            add_to_project(name, "ألومنيوم", "عمق فاصل", v_d, v_q*2, "مفرد")
-            add_to_project(name, "فيبر", "حشو فاصل", f"{v_h-5}×{v_d-5}", v_q, "لوح")
-        if dr_q > 0:
-            add_to_project(name, "ألومنيوم", "وش درج", dr_w - 2.5, dr_q*2, "مفرد")
-            add_to_project(name, "ألومنيوم", "جنب درج", dr_d, dr_q*2, "مفرد")
-            add_to_project(name, "فيبر", "أرضية درج", f"{dr_w-7.5}×{dr_d-5}", dr_q, "لوح")
+            # --- حسابات الإضافات ---
+            if s_q > 0:
+                add_to_project(name, "ألومنيوم", "عرض رف", s_w, s_q*2, "مفرد")
+                add_to_project(name, "ألومنيوم", "عمق رف", s_d, s_q*2, "مفرد")
+                add_to_project(name, "فيبر", "حشو رف", f"{s_w-5}×{s_d-5}", s_q, "لوح")
 
-        st.success(f"🚀 تم حفظ {name} بنجاح"); st.rerun()
+            if v_q > 0:
+                add_to_project(name, "ألومنيوم", "ارتفاع فاصل", v_h, v_q*2, "مفرد")
+                add_to_project(name, "ألومنيوم", "عمق فاصل", v_d, v_q*2, "مفرد")
+                add_to_project(name, "فيبر", "حشو فاصل", f"{v_h-5}×{v_d-5}", v_q, "لوح")
+
+            if dr_q > 0:
+                add_to_project(name, "ألومنيوم", "وش/ضهر درج", dr_w - 2.5, dr_q*2, "علبه درج")
+                add_to_project(name, "ألومنيوم", "جنب درج", dr_d, dr_q*2, "علبه درج")
+                add_to_project(name, "فيبر", "أرضية درج", f"{dr_w-7.5}×{dr_d-5}", dr_q, "لوح")
+
+            st.success(f"تمت إضافة {name} للمشروع")
 
     if st.session_state.project_data:
         st.divider()
         df = pd.DataFrame(st.session_state.project_data)
         for n, g in df.groupby("اسم الوحدة"):
-            with st.expander(f"📍 مراجعة تخصيم: {n}"): st.table(g.drop(columns=["اسم الوحدة"]))
-        if st.button("💰 حساب الخامات والتسعير ⬅️", use_container_width=True): st.session_state.page = 'inventory'; st.rerun()
+            with st.expander(f"📍 مراجعة تخصيم: {n}"):
+                st.table(g.drop(columns=["اسم الوحدة"]))
+        
+        if st.button("💰 عرض المشاريع والجرد ⬅️", use_container_width=True):
+            st.session_state.page = 'inventory'
+            st.rerun()
 
 # ==========================================
-# الصفحة الثانية: المشاريع والجرد
+# الصفحة الثانية: الاستهلاك والفاتورة
 # ==========================================
 elif st.session_state.page == 'inventory':
-    st.markdown("<h1>📊 أرشيف المشاريع واستهلاك الخامات</h1>", unsafe_allow_html=True)
-    
-    # زر الرجوع (مهم جداً للرجوع للتخصيم)
-    col_back1, col_back2 = st.columns(2)
-    with col_back1:
-        if st.button("⬅️ الرجوع لإضافة وحدات"): st.session_state.page = 'deduction'; st.rerun()
-    with col_back2:
-        if st.button("🏠 العودة للرئيسية"): st.session_state.page = 'main_menu'; st.rerun()
+    st.markdown("<h1>📊 استهلاك خامات المشروع</h1>", unsafe_allow_html=True)
+    if st.button("🏠 العودة للرئيسية"):
+        st.session_state.page = 'main_menu'
+        st.rerun()
     
     if st.session_state.project_data:
         df = pd.DataFrame(st.session_state.project_data)
         alum = df[df["الخامة"] == "ألومنيوم"].copy()
         alum["المقاس (سم)"] = pd.to_numeric(alum["المقاس (سم)"], errors='coerce')
 
-        st.subheader("🥢 جرد أعواد الألومنيوم")
-        inv_results = []
-        for unit_type, group in alum.groupby("نوع التخصيم"):
-            all_pieces = []
-            for _, row in group.iterrows(): 
-                all_pieces.extend([row["المقاس (سم)"]] * int(row["العدد"]))
-            real_bars = calculate_real_bars(all_pieces)
-            inv_results.append({"نوع التخصيم": unit_type, "إجمالي سم": round(sum(all_pieces), 2), "الأعواد": real_bars})
-        st.table(pd.DataFrame(inv_results))
+        # 1. حساب الأعواد
+        st.subheader("🥢 تقدير أعواد الألومنيوم (6 متر)")
+        summary = alum.groupby("نوع التخصيم").apply(
+            lambda x: (x["المقاس (سم)"] * x["العدد"]).sum()
+        ).reset_index(name="إجمالي سم")
+        summary["الأعواد"] = summary["إجمالي سم"].apply(lambda x: math.ceil(x / 600))
+        st.table(summary)
+
+        # 2. حساب الفيبر
+        total_area = 0
+        for _, row in df[df["الخامة"] == "فيبر"].iterrows():
+            dims = str(row["المقاس (سم)"]).split('×')
+            if len(dims) == 2:
+                total_area += float(dims[0]) * float(dims[1]) * row["العدد"]
+        sheets = math.ceil(total_area / (280 * 130))
+        st.metric("عدد ألواح الفيبر المطلوبة", f"{sheets} لوح")
 
         st.divider()
         st.subheader("💵 فاتورة المشتريات المفتوحة")
-        base_bill = [{"الصنف": f"ألومنيوم {r['نوع التخصيم']}", "الكمية": r["الأعواد"], "السعر": 0.0} for _, r in pd.DataFrame(inv_results).iterrows()]
+        
+        base_bill = []
+        for _, r in summary.iterrows():
+            base_bill.append({"الصنف": f"ألومنيوم {r['نوع التخصيم']}", "الكمية": r["الأعواد"], "السعر": 0.0})
+        base_bill.append({"الصنف": "لوح فيبر كامل", "الكمية": sheets, "السعر": 0.0})
+
         final_bill = st.data_editor(pd.DataFrame(base_bill), num_rows="dynamic", use_container_width=True)
         
-        if not final_bill.empty:
-            total = (final_bill["الكمية"] * final_bill["السعر"]).sum()
-            st.header(f"💰 التكلفة الإجمالية: {total:,.2f} ج.م")
+        total = (final_bill["الكمية"] * final_bill["السعر"]).sum()
+        st.header(f"💰 التكلفة الإجمالية: {total:,.2f} ج.م")
 
-        # زر مسح البيانات في الجنب عشان المشروع ميتحذفش بالصدفة
-        st.sidebar.divider()
-        if st.sidebar.button("⚠️ مسح جميع المشاريع نهائياً"):
-            st.session_state.project_data = []; st.session_state.page = 'main_menu'; st.rerun()
-    else:
-        st.warning("📭 لا توجد بيانات محفوظة.")
+        # أزرار الإجراءات
+        c_inv1, c_inv2, c_inv3 = st.columns(3)
+        with c_inv1:
+            if st.button("⬅️ إضافة وحدات أخرى", use_container_width=True):
+                st.session_state.page = 'deduction'
+                st.rerun()
+        with c_inv2:
+            csv_final = final_bill.to_csv(index=False).encode('utf-8-sig')
+            st.download_button(label="📥 تحميل الفاتورة", data=csv_final, file_name="DOGGA_Invoice.csv", use_container_width=True)
+        with c_inv3:
+            if st.button("🗑️ تفريغ المشروع", use_container_width=True):
+                st.session_state.project_data = []
+                st.session_state.page = 'main_menu'
+                st.rerun()
