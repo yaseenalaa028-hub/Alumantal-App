@@ -1,608 +1,284 @@
-<!DOCTYPE html>
-<html dir="rtl" lang="ar">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>DOGGA SYSTEM - تخصيم الدرف والمقابض</title>
+import streamlit as st
+import pandas as pd
+import math
+
+# 1. إعدادات الصفحة والواجهة
+st.set_page_config(page_title="DOGGA SYSTEM - تخصيم مونتال وفيبر", layout="wide")
+
+st.markdown("""
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Tahoma', 'Segoe UI', 'Cairo', sans-serif;
-        }
-
-        body {
-            background: radial-gradient(circle at top right, #0d1117, #050505, #020c1b);
-            color: #d9a066;
-            padding: 20px;
-            min-height: 100vh;
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-
-        h1 {
-            color: #0096ff;
-            text-align: center;
-            text-shadow: 0 0 30px #0096ff;
-            font-size: 2rem;
-            margin-bottom: 10px;
-        }
-
-        h2, h3 {
-            color: #d9a066;
-            text-align: center;
-            margin: 20px 0 15px;
-        }
-
-        .card {
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 20px;
-            border: 1px solid rgba(217, 160, 102, 0.4);
-            padding: 20px;
-            margin-bottom: 20px;
-            backdrop-filter: blur(5px);
-        }
-
-        .grid-2, .grid-3 {
-            display: grid;
-            gap: 15px;
-        }
-
-        .grid-2 { grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); }
-        .grid-3 { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
-
-        input, select, textarea {
-            width: 100%;
-            padding: 12px;
-            background: #0d1117;
-            border: 1px solid #0096ff;
-            border-radius: 10px;
-            color: #0096ff;
-            font-size: 16px;
-            outline: none;
-        }
-
-        input:focus, select:focus, textarea:focus {
-            border-color: #d9a066;
-            box-shadow: 0 0 10px rgba(217, 160, 102, 0.3);
-        }
-
-        label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
-            color: #d9a066;
-        }
-
-        button {
-            background: rgba(0, 150, 255, 0.1);
-            border: 2px solid #0096ff;
-            color: #0096ff;
-            padding: 12px 24px;
-            border-radius: 30px;
-            font-size: 18px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            width: 100%;
-            margin-top: 10px;
-        }
-
-        button:hover {
-            background: #d9a066;
-            color: #1a1614;
-            border-color: #d9a066;
-            transform: scale(1.02);
-        }
-
-        .btn-small {
-            padding: 8px 16px;
-            font-size: 14px;
-            width: auto;
-        }
-
-        .success {
-            background: rgba(0, 255, 100, 0.2);
-            border: 1px solid #00ff64;
-            color: #00ff64;
-            padding: 10px;
-            border-radius: 10px;
-            margin: 10px 0;
-        }
-
-        .warning {
-            background: rgba(255, 100, 0, 0.2);
-            border: 1px solid #ff6400;
-            color: #ffa064;
-            padding: 10px;
-            border-radius: 10px;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 15px 0;
-        }
-
-        th, td {
-            padding: 10px;
-            text-align: center;
-            border-bottom: 1px solid rgba(217, 160, 102, 0.3);
-        }
-
-        th {
-            background: rgba(0, 150, 255, 0.2);
-            color: #0096ff;
-        }
-
-        .expander {
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: 15px;
-            margin: 10px 0;
-        }
-
-        .expander-header {
-            padding: 15px;
-            cursor: pointer;
-            background: rgba(0, 150, 255, 0.1);
-            border-radius: 15px;
-            font-weight: bold;
-        }
-
-        .expander-content {
-            padding: 15px;
-            display: none;
-        }
-
-        .expander.open .expander-content {
-            display: block;
-        }
-
-        .metric {
-            background: rgba(0, 150, 255, 0.15);
-            border-radius: 15px;
-            padding: 15px;
-            text-align: center;
-        }
-
-        .metric-value {
-            font-size: 28px;
-            font-weight: bold;
-            color: #0096ff;
-        }
-
-        hr {
-            border-color: rgba(217, 160, 102, 0.3);
-            margin: 20px 0;
-        }
-
-        .nav-buttons {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-        }
-
-        @media (max-width: 600px) {
-            body { padding: 10px; }
-            h1 { font-size: 1.5rem; }
-            button { font-size: 14px; }
-        }
+    .stApp {
+        background: radial-gradient(circle at top right, #0d1117, #050505, #020c1b);
+        color: #d9a066;
+    }
+    .main-btn-container div.stButton > button {
+        background: rgba(0, 150, 255, 0.05) !important;
+        border: 2px solid #0096ff !important;
+        color: #0096ff !important;
+        border-radius: 20px !important;
+        padding: 50px 20px !important;
+        font-size: 26px !important;
+        font-weight: bold !important;
+        width: 100% !important;
+        transition: 0.5s !important;
+        margin-bottom: 25px !important;
+    }
+    .main-btn-container div.stButton > button:hover {
+        background: #d9a066 !important;
+        color: #1a1614 !important;
+        border-color: #d9a066 !important;
+        transform: scale(1.02) !important;
+    }
+    div[data-testid="stForm"], .stTable, .stDataFrame, div[data-testid="stExpander"] {
+        background: rgba(255, 255, 255, 0.03) !important;
+        border-radius: 20px !important;
+        border: 1px solid rgba(217, 160, 102, 0.4) !important;
+        backdrop-filter: blur(5px);
+    }
+    h1 { 
+        color: #0096ff !important; 
+        text-shadow: 0 0 30px #0096ff; 
+        text-align: center;
+        font-size: 3.5rem !important;
+    }
+    h2, h3 { color: #d9a066 !important; text-align: center; }
+    .stNumberInput input, .stTextInput input, .stSelectbox div {
+        background-color: #0d1117 !important;
+        color: #0096ff !important;
+        border: 1px solid #0096ff !important;
+        border-radius: 10px !important;
+        height: 50px !important;
+    }
+    label { 
+        color: #d9a066 !important; 
+        font-weight: bold !important; 
+        font-size: 1.1rem !important;
+    }
     </style>
-</head>
-<body>
-<div class="container">
-    <h1>⚡ DOGGA SYSTEM - تخصيم الدرف والمقابض</h1>
-    <p style="text-align: center; color: #d9a066;">إدارة المشاريع | حفظ تلقائي | تخصيم دقيق</p>
+""", unsafe_allow_html=True)
 
-    <!-- شريط التنقل -->
-    <div class="nav-buttons">
-        <button onclick="showPage('main')" style="flex:1">🏠 الرئيسية</button>
-        <button onclick="showPage('deduction')" style="flex:1">📦 تخصيم المشروع</button>
-        <button onclick="showPage('handles')" style="flex:1">🔧 تخصيم الدرف والمقابض</button>
-        <button onclick="showPage('inventory')" style="flex:1">📊 المخزون والتقارير</button>
-    </div>
+# 2. تهيئة مخزن البيانات
+if 'project_data' not in st.session_state:
+    st.session_state.project_data = [] 
+if 'page' not in st.session_state:
+    st.session_state.page = 'main_menu'
 
-    <!-- الصفحة الرئيسية -->
-    <div id="page-main" class="page">
-        <div class="card">
-            <h3>📋 ملخص المشروع</h3>
-            <div id="project-summary"></div>
-            <hr>
-            <h3>📝 ملاحظات المشروع</h3>
-            <textarea id="project-notes" rows="4" placeholder="اكتب ملاحظاتك هنا... (تحفظ تلقائياً)"></textarea>
-            <div style="display: flex; gap: 10px; margin-top: 10px;">
-                <button onclick="clearAllData()" style="background: rgba(255,0,0,0.2); border-color:#ff4444; color:#ff8888;">🗑️ حذف كل البيانات</button>
-            </div>
-        </div>
-    </div>
+def add_to_project(unit_name, category, item_name, length, qty, unit_type="-"):
+    st.session_state.project_data.append({
+        "اسم الوحدة": unit_name,
+        "الخامة": category,
+        "اسم القطعة": item_name,
+        "المقاس (سم)": length,
+        "العدد": qty,
+        "نوع التخصيم": unit_type
+    })
 
-    <!-- صفحة تخصيم الدرف والمقابض -->
-    <div id="page-handles" class="page" style="display:none">
-        <div class="card">
-            <h3>🔧 تخصيم الدرف والمقابض</h3>
-            <div class="warning" style="margin-bottom:15px">
-                📏 الدرف: +7 سم هالك لكل قطعة<br>
-                🔩 البلتي إن: (العرض + 2) ÷ 2، بدون هالك<br>
-                🪵 الكلادينج: على مقاس الدرفة
-            </div>
-
-            <div class="grid-2">
-                <div>
-                    <label>📏 عرض الرف (سم)</label>
-                    <input type="number" id="handle-width" value="100" step="1">
-                </div>
-                <div>
-                    <label>📐 ارتفاع الرف (سم) - للكلادينج</label>
-                    <input type="number" id="handle-height" value="50" step="1">
-                </div>
-            </div>
-
-            <div class="grid-3">
-                <div>
-                    <label>🔩 عدد مقابض بلتي إن</label>
-                    <input type="number" id="balti-qty" value="0" min="0">
-                </div>
-                <div>
-                    <label>🥢 عدد مقابض درف (سوستة)</label>
-                    <input type="number" id="darf-qty" value="0" min="0">
-                </div>
-                <div>
-                    <label>🪵 عدد ألواح الكلادينج</label>
-                    <input type="number" id="cladding-qty" value="0" min="0">
-                </div>
-            </div>
-
-            <div>
-                <label>🏷️ اسم الوحدة</label>
-                <input type="text" id="handle-unit-name" placeholder="مثال: رف سفلي 120 سم">
-            </div>
-
-            <button onclick="addHandlesToProject()">✅ إضافة للمشروع</button>
-        </div>
-
-        <div class="card">
-            <h3>📋 آخر المقابض المضافة</h3>
-            <div id="handles-preview"></div>
-        </div>
-    </div>
-
-    <!-- صفحة التخصيم الرئيسي -->
-    <div id="page-deduction" class="page" style="display:none">
-        <div class="card">
-            <h3>🏗️ إضافة وحدة جديدة</h3>
-            <div class="grid-2">
-                <div><label>اسم الوحدة</label><input type="text" id="unit-name" placeholder="مثال: سفلي 80"></div>
-                <div><label>نوع الوحدة</label>
-                    <select id="unit-type">
-                        <option>سفلي</option><option>علوي</option><option>دولاب خزين</option><option>مطبقيه</option>
-                    </select>
-                </div>
-                <div><label>العرض الكلي (سم)</label><input type="number" id="unit-w" value="0" step="0.1"></div>
-                <div><label>الارتفاع الكلي (سم)</label><input type="number" id="unit-h" value="0" step="0.1"></div>
-                <div><label>العمق الكلي (سم)</label><input type="number" id="unit-d" value="0" step="0.1"></div>
-            </div>
-
-            <h3>📦 الأرفف (خانتين منفصلتين)</h3>
-            <div class="grid-2">
-                <div class="card">
-                    <h4 style="color:#00ff64">🟢 فيبر</h4>
-                    <label>عرض الرف</label><input type="number" id="shelf-fibre-w" value="0">
-                    <label>عمق الرف</label><input type="number" id="shelf-fibre-d" value="0">
-                    <label>العدد</label><input type="number" id="shelf-fibre-q" value="0">
-                </div>
-                <div class="card">
-                    <h4 style="color:#ffaa00">🟡 أمونيا</h4>
-                    <label>عرض الرف</label><input type="number" id="shelf-ammonia-w" value="0">
-                    <label>عمق الرف</label><input type="number" id="shelf-ammonia-d" value="0">
-                    <label>العدد</label><input type="number" id="shelf-ammonia-q" value="0">
-                </div>
-            </div>
-
-            <div class="grid-3">
-                <div><label>ارتفاع الفاصل</label><input type="number" id="v-h" value="0"></div>
-                <div><label>عمق الفاصل</label><input type="number" id="v-d" value="0"></div>
-                <div><label>عدد الفواصل</label><input type="number" id="v-q" value="0"></div>
-            </div>
-
-            <div class="grid-3">
-                <div><label>عرض الدرج</label><input type="number" id="dr-w" value="0"></div>
-                <div><label>عمق الدرج</label><input type="number" id="dr-d" value="0"></div>
-                <div><label>عدد الأدراج</label><input type="number" id="dr-q" value="0"></div>
-            </div>
-
-            <button onclick="addUnitToProject()">✅ إضافة الوحدة للمشروع</button>
-        </div>
-    </div>
-
-    <!-- صفحة المخزون والتقارير -->
-    <div id="page-inventory" class="page" style="display:none">
-        <div class="card">
-            <h3>📊 استهلاك الخامات</h3>
-            <div id="inventory-content"></div>
-            <button onclick="exportToCSV()">📥 تحميل تقرير CSV</button>
-        </div>
-    </div>
-</div>
-
-<script>
-    // ==================== البيانات والحفظ التلقائي ====================
-    let projectData = [];
-    let notes = "";
-
-    function loadData() {
-        const saved = localStorage.getItem("doga_project_data");
-        if (saved) projectData = JSON.parse(saved);
-        const savedNotes = localStorage.getItem("doga_project_notes");
-        if (savedNotes) notes = savedNotes;
-        document.getElementById("project-notes").value = notes;
-        updateUI();
-    }
-
-    function saveData() {
-        localStorage.setItem("doga_project_data", JSON.stringify(projectData));
-        localStorage.setItem("doga_project_notes", document.getElementById("project-notes").value);
-        notes = document.getElementById("project-notes").value;
-        updateUI();
-    }
-
-    // ==================== دوال مساعدة ====================
-    function addItem(unitName, category, itemName, length, qty, unitType, widthVal=null, heightVal=null) {
-        projectData.push({
-            unit: unitName,
-            material: category,
-            item: itemName,
-            length: length,
-            width: widthVal || length,
-            height: heightVal || "-",
-            qty: qty,
-            type: unitType
-        });
-        saveData();
-    }
-
-    // ==================== تخصيم الدرف والمقابض ====================
-    function addHandlesToProject() {
-        const width = parseFloat(document.getElementById("handle-width").value);
-        const height = parseFloat(document.getElementById("handle-height").value);
-        const darfQty = parseInt(document.getElementById("darf-qty").value) || 0;
-        const baltiQty = parseInt(document.getElementById("balti-qty").value) || 0;
-        const claddingQty = parseInt(document.getElementById("cladding-qty").value) || 0;
-        let unitName = document.getElementById("handle-unit-name").value.trim();
-        if (!unitName) unitName = "وحدة غير مسماة";
-
-        if (width <= 0) {
-            alert("يرجى إدخال عرض الرف");
-            return;
-        }
-
-        // الدرف +7 سم هالك
-        for (let i = 0; i < darfQty; i++) {
-            const darfSize = width + 7;
-            addItem(unitName, "درف", `مقبض درف ${i+1}`, darfSize, 2, "درف");
-        }
-
-        // البلتي إن: (العرض + 2) / 2
-        for (let i = 0; i < baltiQty; i++) {
-            const baltiSize = (width + 2) / 2;
-            addItem(unitName, "بلتي إن", `مقبض بلتي إن ${i+1}`, baltiSize, 2, "بلتي إن");
-        }
-
-        // الكلادينج: على مقاس الدرفة
-        for (let i = 0; i < claddingQty; i++) {
-            addItem(unitName, "كلادينج", `لوح كلادينج ${i+1}`, `${width}×${height}`, 1, "كلادينج", width, height);
-        }
-
-        alert(`✅ تمت الإضافة:\n- درف: ${darfQty*2} قطعة\n- بلتي إن: ${baltiQty*2} قطعة\n- كلادينج: ${claddingQty} لوح`);
+# ==========================================
+# الصفحة 0: الواجهة الرئيسية
+# ==========================================
+if st.session_state.page == 'main_menu':
+    st.markdown("<h1>⚡ DOGGA SYSTEM</h1>", unsafe_allow_html=True)
+    st.markdown("<p style='text-align: center; color: #d9a066; font-size: 1.3rem;'>تخصيم مونتال وفيبر وأمونيا</p>", unsafe_allow_html=True)
+    st.write("##")
+    
+    st.markdown('<div class="main-btn-container">', unsafe_allow_html=True)
+    c1, c2, c3 = st.columns([1, 2, 1])
+    with c2:
+        if st.button("✨ ابدأ التخصيم"):
+            st.session_state.page = 'deduction'
+            st.rerun()
         
-        // تفريغ الحقول
-        document.getElementById("darf-qty").value = "0";
-        document.getElementById("balti-qty").value = "0";
-        document.getElementById("cladding-qty").value = "0";
-    }
+        if st.button("📁 المشاريع المحفوظة"):
+            st.session_state.page = 'inventory'
+            st.rerun()
+    st.markdown('</div>', unsafe_allow_html=True)
 
-    // ==================== إضافة وحدة كاملة ====================
-    function addUnitToProject() {
-        const unitName = document.getElementById("unit-name").value || "وحدة جديدة";
-        const unitType = document.getElementById("unit-type").value;
-        const W = parseFloat(document.getElementById("unit-w").value);
-        const H = parseFloat(document.getElementById("unit-h").value);
-        const D = parseFloat(document.getElementById("unit-d").value);
+# ==========================================
+# الصفحة الأولى: التخصيم التفصيلي
+# ==========================================
+elif st.session_state.page == 'deduction':
+    st.markdown("<h1>🏗️ تخصيم مشروع متكامل</h1>", unsafe_allow_html=True)
+    if st.button("🏠 العودة للرئيسية"):
+        st.session_state.page = 'main_menu'
+        st.rerun()
+    
+    with st.form("main_form", clear_on_submit=True):
+        st.subheader("📏 إدخال بيانات الوحدة")
+        u_label = st.text_input("اسم الوحدة (مثلاً: سفلي 80 سم)", placeholder="وحدة 1")
+        u_kind = st.selectbox("نوع الوحدة", ["سفلي", "علوي", "دولاب خزين", "مطبقيه"])
 
-        if (W <= 0 || H <= 0) {
-            alert("يرجى إدخال العرض والارتفاع");
-            return;
-        }
+        st.divider()
+        W = st.number_input("العرض الكلي (W)", min_value=0.0, step=0.1)
+        H = st.number_input("الارتفاع الكلي (H)", min_value=0.0, step=0.1)
+        D = st.number_input("العمق الكلي (D)", min_value=0.0, step=0.1)
 
-        const hDed = (unitType === "سفلي" || unitType === "دولاب خزين") ? 13 : 5;
-        const fH = H - hDed;
-        const fW = W - 5;
-        const fD = D - 5;
-
-        // ألومنيوم الهيكل
-        if (unitType === "سفلي") {
-            addItem(unitName, "ألومنيوم", "قائم ارتفاع", fH, 2, "مفرد");
-            addItem(unitName, "ألومنيوم", "قائم ارتفاع", fH, 2, "متقارب");
-            addItem(unitName, "ألومنيوم", "عارضة عرض", fW, 3, "مفرد");
-            addItem(unitName, "ألومنيوم", "عارضة عرض", fW, 1, "متقارب");
-            addItem(unitName, "ألومنيوم", "رباط عمق", fD, 2, "مفرد");
-            addItem(unitName, "ألومنيوم", "رباط عمق", fD, 2, "متقارب");
-        } else {
-            addItem(unitName, "ألومنيوم", "قائم ارتفاع", fH, 2, "مفرد");
-            addItem(unitName, "ألومنيوم", "قائم ارتفاع", fH, 2, "متقارب");
-            addItem(unitName, "ألومنيوم", "عارضة عرض", fW, 2, "مفرد");
-            addItem(unitName, "ألومنيوم", "عارضة عرض", fW, 2, "متقارب");
-            addItem(unitName, "ألومنيوم", "رباط عمق", fD, 4, "متقارب");
-        }
-
-        // فيبر الهيكل
-        addItem(unitName, "فيبر", "ضهرية", `${fW}×${fH}`, 1, "لوح");
-        addItem(unitName, "فيبر", "أرضية", `${fW}×${fD}`, 1, "لوح");
-        if (unitType !== "سفلي") addItem(unitName, "فيبر", "سقفية", `${fW}×${fD}`, 1, "لوح");
-        addItem(unitName, "فيبر", "أجناب", `${fH}×${fD}`, 2, "لوح");
-
-        // أرفف فيبر
-        const sfw = parseFloat(document.getElementById("shelf-fibre-w").value);
-        const sfd = parseFloat(document.getElementById("shelf-fibre-d").value);
-        const sfq = parseInt(document.getElementById("shelf-fibre-q").value) || 0;
-        if (sfq > 0 && sfw > 0 && sfd > 0) {
-            addItem(unitName, "ألومنيوم", "عرض رف فيبر", sfw, sfq*2, "مفرد");
-            addItem(unitName, "ألومنيوم", "عمق رف فيبر", sfd, sfq*2, "مفرد");
-            addItem(unitName, "فيبر", "حشو رف فيبر", `${sfw-5}×${sfd-5}`, sfq, "لوح");
-        }
-
-        // أرفف أمونيا
-        const saw = parseFloat(document.getElementById("shelf-ammonia-w").value);
-        const sad = parseFloat(document.getElementById("shelf-ammonia-d").value);
-        const saq = parseInt(document.getElementById("shelf-ammonia-q").value) || 0;
-        if (saq > 0 && saw > 0 && sad > 0) {
-            addItem(unitName, "ألومنيوم", "عرض رف أمونيا", saw, saq*2, "مفرد");
-            addItem(unitName, "ألومنيوم", "عمق رف أمونيا", sad, saq*2, "مفرد");
-            addItem(unitName, "أمونيا", "حشو رف أمونيا", `${saw-5}×${sad-5}`, saq, "لوح");
-        }
-
-        // فواصل
-        const vh = parseFloat(document.getElementById("v-h").value);
-        const vd = parseFloat(document.getElementById("v-d").value);
-        const vq = parseInt(document.getElementById("v-q").value) || 0;
-        if (vq > 0 && vh > 0 && vd > 0) {
-            addItem(unitName, "ألومنيوم", "ارتفاع فاصل", vh, vq*2, "مفرد");
-            addItem(unitName, "ألومنيوم", "عمق فاصل", vd, vq*2, "مفرد");
-            addItem(unitName, "فيبر", "حشو فاصل", `${vh-5}×${vd-5}`, vq, "لوح");
-        }
-
-        // أدراج
-        const dw = parseFloat(document.getElementById("dr-w").value);
-        const dd = parseFloat(document.getElementById("dr-d").value);
-        const dq = parseInt(document.getElementById("dr-q").value) || 0;
-        if (dq > 0 && dw > 0 && dd > 0) {
-            addItem(unitName, "ألومنيوم", "وش/ضهر درج", dw-2.5, dq*2, "علبه درج");
-            addItem(unitName, "ألومنيوم", "جنب درج", dd, dq*2, "علبه درج");
-            addItem(unitName, "فيبر", "أرضية درج", `${dw-7.5}×${dd-5}`, dq, "لوح");
-        }
-
-        alert(`✅ تمت إضافة الوحدة: ${unitName}`);
+        st.divider()
+        st.subheader("📦 الأرفف (تدخل مرة واحدة → يخصم فيبر وأمونيا)")
         
-        // تفريغ الحقول
-        document.getElementById("unit-w").value = "0";
-        document.getElementById("unit-h").value = "0";
-        document.getElementById("unit-d").value = "0";
-    }
+        # ========== التعديل هنا ==========
+        # خانة واحدة للرفوف بدلاً من خانتين
+        col_s = st.columns(3)
+        s_w = col_s[0].number_input("عرض الرف (سم)", value=0.0)
+        s_d = col_s[1].number_input("عمق الرف (سم)", value=0.0)
+        s_q = col_s[2].number_input("عدد الأرفف", min_value=0)
+        # ================================
 
-    // ==================== تحديث الواجهة ====================
-    function updateUI() {
-        // تحديث ملخص المشروع
-        const summaryDiv = document.getElementById("project-summary");
-        if (summaryDiv) {
-            summaryDiv.innerHTML = `<div class="metric"><div class="metric-value">${projectData.length}</div><div>قطعة في المشروع</div></div>`;
-        }
+        st.write("---")
+        col_v = st.columns(3)
+        v_h = col_v[0].number_input("ارتفاع الفاصل", value=0.0)
+        v_d = col_v[1].number_input("عمق الفاصل", value=0.0)
+        v_q = col_v[2].number_input("عدد الفواصل", min_value=0)
 
-        // معاينة المقابض
-        const handlesPreview = document.getElementById("handles-preview");
-        if (handlesPreview) {
-            const handles = projectData.filter(item => ["درف", "بلتي إن", "كلادينج"].includes(item.material));
-            if (handles.length === 0) {
-                handlesPreview.innerHTML = "<p>لا توجد مقابض مضافة بعد</p>";
-            } else {
-                let html = "<table><tr><th>الخامة</th><th>المقاس</th><th>العدد</th></tr>";
-                handles.forEach(h => {
-                    html += `<tr><td>${h.material}</td><td>${h.length}</td><td>${h.qty}</td></tr>`;
-                });
-                html += "</table>";
-                handlesPreview.innerHTML = html;
-            }
-        }
-    }
+        st.write("---")
+        col_dr = st.columns(3)
+        dr_w = col_dr[0].number_input("عرض الدرج", value=0.0)
+        dr_d = col_dr[1].number_input("عمق الدرج", value=0.0)
+        dr_q = col_dr[2].number_input("عدد الأدراج", min_value=0)
 
-    // ==================== حساب المخزون ====================
-    function updateInventory() {
-        const inventoryDiv = document.getElementById("inventory-content");
-        if (!inventoryDiv) return;
+        submit = st.form_submit_button("✅ حفظ الوحدة في المشروع", use_container_width=True)
 
-        // ألومنيوم
-        let alumLengths = { مفرد: 0, متقارب: 0, "علبه درج": 0, درف: 0, "بلتي إن": 0 };
-        let fibreArea = 0, ammoniaArea = 0;
-        let claddingCount = 0;
+    if submit:
+        if W > 0 and H > 0:
+            name = u_label if u_label else f"وحدة {u_kind}"
+            # قاعدة الـ 13 سم للسفلي والـ 5 سم للعلوي
+            h_ded = 13.0 if u_kind in ["سفلي", "دولاب خزين"] else 5.0
+            f_h, f_w, f_d = H - h_ded, W - 5.0, D - 5.0
 
-        projectData.forEach(item => {
-            if (item.material === "ألومنيوم") {
-                let len = parseFloat(item.length);
-                if (!isNaN(len)) alumLengths[item.type] = (alumLengths[item.type] || 0) + (len * item.qty);
-            }
-            if (item.material === "فيبر" && typeof item.length === "string" && item.length.includes("×")) {
-                const parts = item.length.split("×");
-                const w = parseFloat(parts[0]), h = parseFloat(parts[1]);
-                if (!isNaN(w) && !isNaN(h)) fibreArea += w * h * item.qty;
-            }
-            if (item.material === "أمونيا" && typeof item.length === "string" && item.length.includes("×")) {
-                const parts = item.length.split("×");
-                const w = parseFloat(parts[0]), h = parseFloat(parts[1]);
-                if (!isNaN(w) && !isNaN(h)) ammoniaArea += w * h * item.qty;
-            }
-            if (item.material === "كلادينج") claddingCount += item.qty;
-            // درف وبلتي إن
-            if (item.material === "درف") alumLengths["درف"] = (alumLengths["درف"] || 0) + (parseFloat(item.length) || 0) * item.qty;
-            if (item.material === "بلتي إن") alumLengths["بلتي إن"] = (alumLengths["بلتي إن"] || 0) + (parseFloat(item.length) || 0) * item.qty;
-        });
+            # --- ألومنيوم الهيكل (مونتال) ---
+            if u_kind == "سفلي":
+                add_to_project(name, "مونتال", "قائم ارتفاع", f_h, 2, "مفرد")
+                add_to_project(name, "مونتال", "قائم ارتفاع", f_h, 2, "متقارب")
+                add_to_project(name, "مونتال", "عارضة عرض", f_w, 3, "مفرد")
+                add_to_project(name, "مونتال", "عارضة عرض", f_w, 1, "متقارب")
+                add_to_project(name, "مونتال", "رباط عمق", f_d, 2, "مفرد")
+                add_to_project(name, "مونتال", "رباط عمق", f_d, 2, "متقارب")
+            else:
+                add_to_project(name, "مونتال", "قائم ارتفاع", f_h, 2, "مفرد")
+                add_to_project(name, "مونتال", "قائم ارتفاع", f_h, 2, "متقارب")
+                add_to_project(name, "مونتال", "عارضة عرض", f_w, 2, "مفرد")
+                add_to_project(name, "مونتال", "عارضة عرض", f_w, 2, "متقارب")
+                add_to_project(name, "مونتال", "رباط عمق", f_d, 4, "متقارب")
 
-        let html = `<div class="grid-2">`;
-        for (let type in alumLengths) {
-            if (alumLengths[type] > 0) {
-                const sticks = Math.ceil(alumLengths[type] / 600);
-                html += `<div class="metric"><div class="metric-value">${sticks}</div><div>عود ${type}</div></div>`;
-            }
-        }
-        const fibreSheets = Math.ceil(fibreArea / (280 * 130));
-        const ammoniaSheets = Math.ceil(ammoniaArea / (280 * 130));
-        html += `<div class="metric"><div class="metric-value">${fibreSheets}</div><div>لوح فيبر</div></div>`;
-        html += `<div class="metric"><div class="metric-value">${ammoniaSheets}</div><div>لوح أمونيا</div></div>`;
-        html += `<div class="metric"><div class="metric-value">${claddingCount}</div><div>لوح كلادينج</div></div>`;
-        html += `</div><hr><div class="warning">📏 ملاحظة: الدرافيل طول 6 متر (600 سم)، البلتي إن بدون هالك، الكلادينج على مقاس الدرفة</div>`;
+            # --- فيبر الهيكل ---
+            add_to_project(name, "فيبر", "ضهرية", f"{f_w}×{f_h}", 1, "لوح")
+            add_to_project(name, "فيبر", "أرضية", f"{f_w}×{f_d}", 1, "لوح")
+            if u_kind != "سفلي":
+                add_to_project(name, "فيبر", "سقفية", f"{f_w}×{f_d}", 1, "لوح")
+            add_to_project(name, "فيبر", "أجناب", f"{f_h}×{f_d}", 2, "لوح")
 
-        inventoryDiv.innerHTML = html;
-    }
+            # ========== التعديل هنا ==========
+            # الأرفف: تخصم فيبر + أمونيا معاً
+            if s_q > 0:
+                # مونتال الرف
+                add_to_project(name, "مونتال", "عرض رف", s_w, s_q*2, "مفرد")
+                add_to_project(name, "مونتال", "عمق رف", s_d, s_q*2, "مفرد")
+                # فيبر
+                add_to_project(name, "فيبر", "حشو رف", f"{s_w-5}×{s_d-5}", s_q, "لوح")
+                # أمونيا
+                add_to_project(name, "أمونيا", "حشو رف", f"{s_w-5}×{s_d-5}", s_q, "لوح")
+            # ================================
 
-    function exportToCSV() {
-        if (projectData.length === 0) { alert("لا توجد بيانات للتصدير"); return; }
-        let csv = "اسم الوحدة,الخامة,اسم القطعة,المقاس,العدد,نوع التخصيم\n";
-        projectData.forEach(item => {
-            csv += `"${item.unit}","${item.material}","${item.item}","${item.length}",${item.qty},"${item.type}"\n`;
-        });
-        const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
-        const link = document.createElement("a");
-        link.href = URL.createObjectURL(blob);
-        link.download = "project_report.csv";
-        link.click();
-        URL.revokeObjectURL(link.href);
-    }
+            # فواصل
+            if v_q > 0:
+                add_to_project(name, "مونتال", "ارتفاع فاصل", v_h, v_q*2, "مفرد")
+                add_to_project(name, "مونتال", "عمق فاصل", v_d, v_q*2, "مفرد")
+                add_to_project(name, "فيبر", "حشو فاصل", f"{v_h-5}×{v_d-5}", v_q, "لوح")
 
-    function clearAllData() {
-        if (confirm("⚠️ هل أنت متأكد من حذف كل البيانات؟ لا يمكن التراجع!")) {
-            projectData = [];
-            notes = "";
-            document.getElementById("project-notes").value = "";
-            saveData();
-            updateUI();
-            alert("تم حذف جميع البيانات");
-        }
-    }
+            # أدراج
+            if dr_q > 0:
+                add_to_project(name, "مونتال", "وش/ضهر درج", dr_w - 2.5, dr_q*2, "علبه درج")
+                add_to_project(name, "مونتال", "جنب درج", dr_d, dr_q*2, "علبه درج")
+                add_to_project(name, "فيبر", "أرضية درج", f"{dr_w-7.5}×{dr_d-5}", dr_q, "لوح")
 
-    // ==================== التنقل بين الصفحات ====================
-    function showPage(page) {
-        document.querySelectorAll(".page").forEach(p => p.style.display = "none");
-        document.getElementById(`page-${page}`).style.display = "block";
-        if (page === "inventory") updateInventory();
-        if (page === "main") updateUI();
-    }
+            st.success(f"تمت إضافة {name} للمشروع")
 
-    // ==================== التشغيل الأول ====================
-    loadData();
-    showPage("main");
-    document.getElementById("project-notes").addEventListener("input", saveData);
-</script>
-</body>
-</html>
+    if st.session_state.project_data:
+        st.divider()
+        df = pd.DataFrame(st.session_state.project_data)
+        for n, g in df.groupby("اسم الوحدة"):
+            with st.expander(f"📍 مراجعة تخصيم: {n}"):
+                st.table(g.drop(columns=["اسم الوحدة"]))
+        
+        if st.button("💰 عرض المشاريع والجرد ⬅️", use_container_width=True):
+            st.session_state.page = 'inventory'
+            st.rerun()
+
+# ==========================================
+# الصفحة الثانية: الاستهلاك والفاتورة
+# ==========================================
+elif st.session_state.page == 'inventory':
+    st.markdown("<h1>📊 استهلاك خامات المشروع</h1>", unsafe_allow_html=True)
+    if st.button("🏠 العودة للرئيسية"):
+        st.session_state.page = 'main_menu'
+        st.rerun()
+    
+    if st.session_state.project_data:
+        df = pd.DataFrame(st.session_state.project_data)
+        
+        # 1. حساب المونتال (ألومنيوم)
+        alum = df[df["الخامة"] == "مونتال"].copy()
+        alum["المقاس (سم)"] = pd.to_numeric(alum["المقاس (سم)"], errors='coerce')
+
+        st.subheader("🥢 تقدير أعواد المونتال (6 متر)")
+        summary = alum.groupby("نوع التخصيم").apply(
+            lambda x: (x["المقاس (سم)"] * x["العدد"]).sum()
+        ).reset_index(name="إجمالي سم")
+        summary["الأعواد"] = summary["إجمالي سم"].apply(lambda x: math.ceil(x / 600))
+        st.table(summary)
+
+        # 2. حساب الفيبر
+        fibre_df = df[df["الخامة"] == "فيبر"]
+        total_fibre_area = 0
+        for _, row in fibre_df.iterrows():
+            dims = str(row["المقاس (سم)"]).split('×')
+            if len(dims) == 2:
+                try:
+                    total_fibre_area += float(dims[0]) * float(dims[1]) * row["العدد"]
+                except:
+                    pass
+        fibre_sheets = math.ceil(total_fibre_area / (280 * 130)) if total_fibre_area > 0 else 0
+        st.metric("🟢 عدد ألواح الفيبر المطلوبة", f"{fibre_sheets} لوح")
+        
+        # 3. حساب الأمونيا (جديد)
+        ammonia_df = df[df["الخامة"] == "أمونيا"]
+        total_ammonia_area = 0
+        for _, row in ammonia_df.iterrows():
+            dims = str(row["المقاس (سم)"]).split('×')
+            if len(dims) == 2:
+                try:
+                    total_ammonia_area += float(dims[0]) * float(dims[1]) * row["العدد"]
+                except:
+                    pass
+        ammonia_sheets = math.ceil(total_ammonia_area / (280 * 130)) if total_ammonia_area > 0 else 0
+        st.metric("🟡 عدد ألواح الأمونيا المطلوبة", f"{ammonia_sheets} لوح")
+
+        st.divider()
+        st.subheader("💵 فاتورة المشتريات")
+        
+        base_bill = []
+        for _, r in summary.iterrows():
+            base_bill.append({"الصنف": f"مونتال {r['نوع التخصيم']}", "الكمية": r["الأعواد"], "السعر": 0.0})
+        base_bill.append({"الصنف": "لوح فيبر", "الكمية": fibre_sheets, "السعر": 0.0})
+        base_bill.append({"الصنف": "لوح أمونيا", "الكمية": ammonia_sheets, "السعر": 0.0})
+
+        final_bill = st.data_editor(pd.DataFrame(base_bill), num_rows="dynamic", use_container_width=True)
+        
+        total = (final_bill["الكمية"] * final_bill["السعر"]).sum()
+        st.header(f"💰 التكلفة الإجمالية: {total:,.2f} ج.م")
+
+        # أزرار الإجراءات
+        c_inv1, c_inv2, c_inv3 = st.columns(3)
+        with c_inv1:
+            if st.button("⬅️ إضافة وحدات أخرى", use_container_width=True):
+                st.session_state.page = 'deduction'
+                st.rerun()
+        with c_inv2:
+            csv_final = final_bill.to_csv(index=False).encode('utf-8-sig')
+            st.download_button(label="📥 تحميل الفاتورة", data=csv_final, file_name="DOGGA_Invoice.csv", use_container_width=True)
+        with c_inv3:
+            if st.button("🗑️ تفريغ المشروع", use_container_width=True):
+                st.session_state.project_data = []
+                st.session_state.page = 'main_menu'
+                st.rerun()
+    else:
+        st.warning("لا توجد بيانات في المشروع")
