@@ -6,6 +6,9 @@
     <title>حسابات ألمونتال | نظام إدارة مالي</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#1a5276">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="ألمونتال">
     
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
@@ -56,6 +59,12 @@
             gap: 5px;
         }
         .header-actions button:hover { background: rgba(255,255,255,0.3); }
+        
+        #installBtn {
+            background: var(--gold) !important;
+            color: #1a5276 !important;
+            display: none;
+        }
         
         .tabs {
             margin-top: 68px;
@@ -313,6 +322,7 @@
     <div class="header-actions">
         <button onclick="toggleSecret()" id="secretBtn"><i class="fas fa-eye"></i> إظهار الأرقام</button>
         <button onclick="window.print()"><i class="fas fa-print"></i> طباعة</button>
+        <button id="installBtn" onclick="installApp()"><i class="fas fa-download"></i> تثبيت التطبيق</button>
     </div>
 </header>
 
@@ -590,13 +600,11 @@
 
     // ===== حساب نطاق الأسبوع (السبت - الخميس) بدقة =====
     function getWeekRange(startDateStr) {
-        // نبدأ من منتصف ليل السبت بالظبط
         const start = new Date(startDateStr + 'T00:00:00.000');
         const weekStart = start.getTime();
         
-        // نهاية الأسبوع = الخميس الساعة 23:59:59.999
         const end = new Date(startDateStr + 'T00:00:00.000');
-        end.setDate(end.getDate() + 5); // +5 أيام = الخميس
+        end.setDate(end.getDate() + 5);
         end.setHours(23, 59, 59, 999);
         const weekEnd = end.getTime();
         
@@ -608,24 +616,22 @@
         const title = prompt('اسم الأسبوع (مثال: الأسبوع الأول - يناير):');
         if(!title) return;
         
-        // حساب أول سبت في الأسبوع الحالي (تلقائي)
         const today = new Date();
         today.setHours(0, 0, 0, 0);
-        const dayOfWeek = today.getDay(); // 0=الأحد, 1=الاثنين, ..., 6=السبت
+        const dayOfWeek = today.getDay();
         
         let daysBack;
         if(dayOfWeek === 6) {
-            daysBack = 0; // النهارده سبت
+            daysBack = 0;
         } else if(dayOfWeek === 5) {
-            daysBack = 6; // النهارده جمعة → السبت اللي فات
+            daysBack = 6;
         } else {
-            daysBack = dayOfWeek + 1; // باقي الأيام
+            daysBack = dayOfWeek + 1;
         }
         
         const saturday = new Date(today);
         saturday.setDate(saturday.getDate() - daysBack);
         
-        // تنسيق التاريخ YYYY-MM-DD
         const year = saturday.getFullYear();
         const month = String(saturday.getMonth() + 1).padStart(2, '0');
         const day = String(saturday.getDate()).padStart(2, '0');
@@ -974,15 +980,65 @@
         selectedPaymentExpense = '';
     }
 
+    // ===== PWA: تسجيل Service Worker + زر التثبيت =====
+    let deferredPrompt = null;
+
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('sw.js').then(reg => {
+                console.log('✅ Service Worker مسجل');
+                
+                // فحص تحديثات
+                reg.onupdatefound = () => {
+                    const newWorker = reg.installing;
+                    newWorker.onstatechange = () => {
+                        if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                            if (confirm('🔄 فيه تحديث جديد للتطبيق. تحديث دلوقتي؟')) {
+                                newWorker.postMessage('SKIP_WAITING');
+                                window.location.reload();
+                            }
+                        }
+                    };
+                };
+            }).catch(err => console.warn('⚠️ فشل تسجيل SW:', err));
+        });
+    }
+
+    // زر التثبيت
+    window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+        const btn = document.getElementById('installBtn');
+        if (btn) btn.style.display = 'flex';
+    });
+
+    function installApp() {
+        if (!deferredPrompt) {
+            alert('التطبيق مثبت بالفعل أو المتصفح لا يدعم التثبيت');
+            return;
+        }
+        deferredPrompt.prompt();
+        deferredPrompt.userChoice.then((choice) => {
+            if (choice.outcome === 'accepted') {
+                console.log('✅ المستخدم وافق على التثبيت');
+            }
+            deferredPrompt = null;
+            const btn = document.getElementById('installBtn');
+            if (btn) btn.style.display = 'none';
+        });
+    }
+
+    window.addEventListener('appinstalled', () => {
+        const btn = document.getElementById('installBtn');
+        if (btn) btn.style.display = 'none';
+        console.log('✅ تم تثبيت التطبيق');
+    });
+
     // ===== التهيئة =====
     loadDashboard();
     loadIncome();
     loadExpense();
     loadWeeks();
-
-    if('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('sw.js').catch(() => {});
-    }
 </script>
 </body>
 </html>
