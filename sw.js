@@ -1,7 +1,7 @@
 // ============================================
-// Service Worker - حسابات ألمونتال
+// Service Worker - حسابات مصنع ضجة للمطابخ الألمونتال
 // ============================================
-const CACHE_NAME = 'almontal-v2';
+const CACHE_NAME = 'almontal-v3';
 const urlsToCache = [
   './',
   './index.html',
