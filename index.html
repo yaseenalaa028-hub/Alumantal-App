@@ -1,0 +1,988 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>حسابات ألمونتال | نظام إدارة مالي</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#1a5276">
+    
+    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+    
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Cairo', sans-serif; }
+        :root {
+            --primary: #1a5276;
+            --success: #27ae60;
+            --danger: #e74c3c;
+            --warning: #f39c12;
+            --gold: #D4AF37;
+            --light: #f4f6f9;
+            --purple: #8e44ad;
+        }
+        body { background: var(--light); }
+        
+        header {
+            background: var(--primary);
+            color: white;
+            padding: 10px 5%;
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 100;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.1);
+        }
+        .logo { font-size: 1.2rem; font-weight: 900; display: flex; align-items: center; gap: 8px; }
+        .header-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+        .header-actions button {
+            background: rgba(255,255,255,0.15);
+            color: white;
+            border: none;
+            padding: 6px 14px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .header-actions button:hover { background: rgba(255,255,255,0.3); }
+        
+        .tabs {
+            margin-top: 68px;
+            background: white;
+            padding: 0 5%;
+            display: flex;
+            gap: 3px;
+            overflow-x: auto;
+            border-bottom: 2px solid #e0e0e0;
+            position: sticky;
+            top: 58px;
+            z-index: 90;
+        }
+        .tab {
+            padding: 12px 16px;
+            cursor: pointer;
+            font-weight: 700;
+            color: #666;
+            border-bottom: 3px solid transparent;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.85rem;
+        }
+        .tab.active { color: var(--primary); border-bottom-color: var(--primary); }
+        .tab.admin-tab.active { color: var(--purple); border-bottom-color: var(--purple); }
+        
+        .container { padding: 20px 5%; max-width: 1400px; margin: 0 auto; }
+        .page { display: none; }
+        .page.active { display: block; }
+        
+        .summary-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .summary-card {
+            background: white;
+            padding: 18px;
+            border-radius: 15px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.05);
+            text-align: center;
+            border-top: 4px solid var(--primary);
+        }
+        .summary-card.income { border-top-color: var(--success); }
+        .summary-card.expense { border-top-color: var(--danger); }
+        .summary-card.remaining { border-top-color: var(--warning); }
+        .summary-card h3 { font-size: 1.5rem; margin-bottom: 5px; }
+        .summary-card p { color: #666; font-size: 0.85rem; }
+        
+        .secret-value {
+            cursor: pointer;
+            transition: 0.2s;
+            user-select: none;
+        }
+        .secret-value.locked {
+            color: #999 !important;
+            font-family: monospace;
+            letter-spacing: 2px;
+        }
+        .secret-value.locked::after {
+            content: ' 🔒';
+            font-size: 0.7em;
+        }
+        
+        .table-container {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+        }
+        .table-header {
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+        th, td { padding: 10px 12px; text-align: right; border-bottom: 1px solid #eee; }
+        th { background: var(--light); font-weight: 700; color: var(--primary); font-size: 0.85rem; }
+        .total-row { background: #fff3cd !important; font-weight: 900; }
+        
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 0.85rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-success { background: var(--success); color: white; }
+        .btn-danger { background: var(--danger); color: white; }
+        .btn-warning { background: var(--warning); color: white; }
+        .btn-purple { background: var(--purple); color: white; }
+        .btn-sm { padding: 4px 10px; font-size: 0.75rem; }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.7);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .modal.active { display: flex; }
+        .modal-box {
+            background: white;
+            border-radius: 20px;
+            width: 100%;
+            max-width: 550px;
+            max-height: 90vh;
+            overflow-y: auto;
+            padding: 25px;
+        }
+        .modal-box h2 { color: var(--primary); margin-bottom: 20px; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: 600; font-size: 0.9rem; }
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 10px;
+            border-radius: 10px;
+            border: 1px solid #ddd;
+            font-family: inherit;
+        }
+        .form-group input:focus { outline: none; border-color: var(--primary); }
+        .modal-actions { display: flex; gap: 10px; margin-top: 20px; justify-content: flex-end; }
+        
+        .payment-options { display: flex; gap: 10px; margin-top: 5px; }
+        .payment-option {
+            flex: 1;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            cursor: pointer;
+            text-align: center;
+            font-weight: 700;
+        }
+        .payment-option.selected { border-color: var(--success); background: #e8f8f0; color: var(--success); }
+        
+        .search-box { display: flex; gap: 10px; margin-bottom: 20px; }
+        .search-box input {
+            flex: 1;
+            padding: 12px 20px;
+            border-radius: 30px;
+            border: 2px solid #ddd;
+            font-size: 1rem;
+        }
+        
+        .status-badge {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 8px 16px;
+            border-radius: 25px;
+            font-weight: 700;
+            font-size: 0.8rem;
+            z-index: 200;
+        }
+        .status-online { background: var(--success); color: white; }
+        .status-offline { background: var(--warning); color: white; }
+        
+        .admin-gate {
+            text-align: center;
+            padding: 50px 20px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            max-width: 400px;
+            margin: 50px auto;
+        }
+        .admin-gate i { font-size: 4rem; color: var(--purple); margin-bottom: 20px; }
+        .admin-gate h2 { color: var(--purple); margin-bottom: 15px; }
+        .admin-gate input {
+            width: 100%;
+            padding: 12px;
+            border-radius: 10px;
+            border: 2px solid #ddd;
+            text-align: center;
+            font-size: 1.2rem;
+            letter-spacing: 5px;
+            margin-bottom: 15px;
+        }
+        
+        .workshop-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .workshop-card {
+            background: linear-gradient(135deg, var(--purple), #6c3483);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+        }
+        .workshop-card h3 { font-size: 1.8rem; margin-bottom: 5px; }
+        .workshop-card p { font-size: 0.85rem; opacity: 0.9; }
+        
+        .week-card {
+            background: white;
+            border: 2px solid var(--primary);
+            border-radius: 15px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+        .week-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .week-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 10px;
+        }
+        .week-stat {
+            background: var(--light);
+            padding: 10px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        .week-stat .val { font-size: 1.2rem; font-weight: 900; }
+        .week-stat .lbl { font-size: 0.75rem; color: #666; }
+        .week-stat.income .val { color: var(--success); }
+        .week-stat.expense .val { color: var(--danger); }
+        .week-stat.remaining .val { color: var(--warning); }
+        
+        @media (max-width: 700px) {
+            .table-container { overflow-x: auto; }
+            table { min-width: 550px; }
+            .payment-options { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="logo"><i class="fas fa-utensils"></i> حسابات ألمونتال</div>
+    <div class="header-actions">
+        <button onclick="toggleSecret()" id="secretBtn"><i class="fas fa-eye"></i> إظهار الأرقام</button>
+        <button onclick="window.print()"><i class="fas fa-print"></i> طباعة</button>
+    </div>
+</header>
+
+<div class="tabs">
+    <div class="tab active" onclick="showPage('dashboard', this)"><i class="fas fa-chart-pie"></i> لوحة التحكم</div>
+    <div class="tab" onclick="showPage('weekly', this)"><i class="fas fa-calendar-week"></i> الدخل الأسبوعي</div>
+    <div class="tab" onclick="showPage('income', this)"><i class="fas fa-arrow-down"></i> الداخل</div>
+    <div class="tab" onclick="showPage('expense', this)"><i class="fas fa-arrow-up"></i> الخارج</div>
+    <div class="tab" onclick="showPage('search', this)"><i class="fas fa-search"></i> البحث</div>
+    <div class="tab admin-tab" onclick="showPage('admin', this)"><i class="fas fa-lock"></i> الإدارة</div>
+</div>
+
+<div class="container">
+
+    <div class="page active" id="dashboard">
+        <div class="summary-cards">
+            <div class="summary-card income"><h3 id="totalIncome" class="secret-value locked">•••••</h3><p>إجمالي الداخل</p></div>
+            <div class="summary-card expense"><h3 id="totalExpense" class="secret-value locked">•••••</h3><p>إجمالي الخارج</p></div>
+            <div class="summary-card remaining"><h3 id="totalRemaining" class="secret-value locked">•••••</h3><p>الباقي</p></div>
+        </div>
+    </div>
+
+    <div class="page" id="weekly">
+        <div class="table-container">
+            <div class="table-header">
+                <h2><i class="fas fa-calendar-week"></i> الدخل الأسبوعي (السبت - الخميس)</h2>
+                <button class="btn btn-primary" onclick="addWeek()"><i class="fas fa-plus"></i> أسبوع جديد</button>
+            </div>
+            <div style="padding:15px;" id="weeksList"></div>
+        </div>
+    </div>
+
+    <div class="page" id="income">
+        <div class="summary-cards">
+            <div class="summary-card income"><h3 id="incomeTotal" class="secret-value locked">•••••</h3><p>إجمالي الداخل</p></div>
+        </div>
+        <div class="table-container">
+            <div class="table-header">
+                <h2><i class="fas fa-arrow-down"></i> سجل الداخل</h2>
+                <button class="btn btn-success" onclick="openIncomeModal()"><i class="fas fa-plus"></i> إضافة دخل</button>
+            </div>
+            <div style="overflow-x:auto;">
+                <table>
+                    <thead><tr><th>#</th><th>اسم العميل</th><th>السعر</th><th>طريقة الدفع</th><th>التاريخ</th><th>حذف</th></tr></thead>
+                    <tbody id="incomeTable"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="page" id="expense">
+        <div class="summary-cards">
+            <div class="summary-card expense"><h3 id="expenseTotal" class="secret-value locked">•••••</h3><p>إجمالي الخارج</p></div>
+        </div>
+        <div class="table-container">
+            <div class="table-header">
+                <h2><i class="fas fa-arrow-up"></i> سجل الخارج</h2>
+                <button class="btn btn-danger" onclick="openExpenseModal()"><i class="fas fa-plus"></i> إضافة مصروف</button>
+            </div>
+            <div style="overflow-x:auto;">
+                <table>
+                    <thead><tr><th>#</th><th>السعر</th><th>الجهة</th><th>التاريخ</th><th>طريقة الدفع</th><th>حذف</th></tr></thead>
+                    <tbody id="expenseTable"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="page" id="search">
+        <div class="search-box">
+            <input type="text" id="searchInput" placeholder="🔍 ابحث عن اسم أو مبلغ..." oninput="searchData()">
+        </div>
+        <div class="table-container">
+            <div class="table-header"><h2><i class="fas fa-search"></i> نتائج البحث</h2></div>
+            <div style="overflow-x:auto;">
+                <table>
+                    <thead><tr><th>النوع</th><th>الاسم / الجهة</th><th>المبلغ</th><th>طريقة الدفع</th><th>التاريخ</th></tr></thead>
+                    <tbody id="searchTable"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="page" id="admin">
+        <div id="adminGate" class="admin-gate">
+            <i class="fas fa-lock"></i>
+            <h2>قسم الإدارة</h2>
+            <p style="color:#666; margin-bottom:15px;">أدخل كلمة السر للدخول</p>
+            <input type="password" id="adminPassword" placeholder="••••" maxlength="4">
+            <button class="btn btn-purple" onclick="checkAdminPassword()" style="width:100%; justify-content:center; padding:12px;"><i class="fas fa-unlock"></i> دخول</button>
+        </div>
+        
+        <div id="adminContent" style="display:none;">
+            <div class="workshop-cards">
+                <div class="workshop-card">
+                    <h3 id="workshopBalance" class="secret-value locked">•••••</h3>
+                    <p>باقي في حساب الورشة</p>
+                </div>
+                <div class="workshop-card" style="background:linear-gradient(135deg,#27ae60,#1e8449);">
+                    <h3 id="workshopTotalIncome" class="secret-value locked">•••••</h3>
+                    <p>إجمالي الداخل للورشة</p>
+                </div>
+                <div class="workshop-card" style="background:linear-gradient(135deg,#e74c3c,#c0392b);">
+                    <h3 id="workshopTotalExpense" class="secret-value locked">•••••</h3>
+                    <p>إجمالي المصروف</p>
+                </div>
+            </div>
+            
+            <div class="table-container">
+                <div class="table-header">
+                    <h2><i class="fas fa-edit"></i> تعديل حساب الورشة</h2>
+                </div>
+                <div style="padding:20px;">
+                    <div class="form-group">
+                        <label>الرصيد اليدوي للورشة (جنيه)</label>
+                        <input type="number" id="manualWorkshopBalance" placeholder="0">
+                    </div>
+                    <div class="form-group">
+                        <label>ملاحظات</label>
+                        <input type="text" id="workshopNotes" placeholder="أي ملاحظات...">
+                    </div>
+                    <button class="btn btn-purple" onclick="saveWorkshopBalance()"><i class="fas fa-save"></i> حفظ الرصيد</button>
+                    <button class="btn btn-warning" onclick="resetWorkshopBalance()"><i class="fas fa-redo"></i> تصفير</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<div class="modal" id="incomeModal">
+    <div class="modal-box">
+        <h2><i class="fas fa-arrow-down"></i> إضافة دخل جديد</h2>
+        <div class="form-group">
+            <label>اسم العميل *</label>
+            <input type="text" id="incomeName" placeholder="اسم العميل">
+        </div>
+        <div class="form-group">
+            <label>السعر (جنيه) *</label>
+            <input type="number" id="incomeAmount" placeholder="0">
+        </div>
+        <div class="form-group">
+            <label>طريقة الدفع *</label>
+            <div class="payment-options">
+                <div class="payment-option" data-type="income" data-value="نقدي" onclick="selectPayment(this)">💵 نقدي</div>
+                <div class="payment-option" data-type="income" data-value="تحويل" onclick="selectPayment(this)">🏦 تحويل</div>
+            </div>
+        </div>
+        <div class="modal-actions">
+            <button class="btn btn-success" onclick="saveIncome()"><i class="fas fa-save"></i> حفظ</button>
+            <button class="btn btn-danger" onclick="closeModal('incomeModal')">إلغاء</button>
+        </div>
+    </div>
+</div>
+
+<div class="modal" id="expenseModal">
+    <div class="modal-box">
+        <h2><i class="fas fa-arrow-up"></i> إضافة مصروف جديد</h2>
+        <div class="form-group">
+            <label>السعر (جنيه) *</label>
+            <input type="number" id="expenseAmount" placeholder="0">
+        </div>
+        <div class="form-group">
+            <label>الجهة *</label>
+            <input type="text" id="expenseParty" placeholder="مين اللي اتدفع له؟">
+        </div>
+        <div class="form-group">
+            <label>التاريخ *</label>
+            <input type="date" id="expenseDate">
+        </div>
+        <div class="form-group">
+            <label>طريقة الدفع *</label>
+            <div class="payment-options">
+                <div class="payment-option" data-type="expense" data-value="نقدي" onclick="selectPayment(this)">💵 نقدي</div>
+                <div class="payment-option" data-type="expense" data-value="تحويل" onclick="selectPayment(this)">🏦 تحويل</div>
+            </div>
+        </div>
+        <div class="modal-actions">
+            <button class="btn btn-danger" onclick="saveExpense()"><i class="fas fa-save"></i> حفظ</button>
+            <button class="btn btn-danger" onclick="closeModal('expenseModal')">إلغاء</button>
+        </div>
+    </div>
+</div>
+
+<div class="status-badge status-offline" id="statusBadge">📱 وضع محلي</div>
+
+<script>
+    // ===== Firebase =====
+    let useFirebase = false;
+    let db = null;
+    try {
+        const firebaseConfig = { databaseURL: "https://ded-el-kasr-default-rtdb.firebaseio.com/" };
+        firebase.initializeApp(firebaseConfig);
+        db = firebase.database();
+        useFirebase = true;
+        document.getElementById('statusBadge').className = 'status-badge status-online';
+        document.getElementById('statusBadge').innerText = '☁️ متصل بالسحابة';
+    } catch(e) {}
+
+    // ===== المتغيرات =====
+    let incomeData = JSON.parse(localStorage.getItem('incomeData') || '[]');
+    let expenseData = JSON.parse(localStorage.getItem('expenseData') || '[]');
+    let weeksData = JSON.parse(localStorage.getItem('weeksData') || '[]');
+    let workshopData = JSON.parse(localStorage.getItem('workshopData') || '{"balance":0,"notes":""}');
+    let selectedPaymentIncome = '';
+    let selectedPaymentExpense = '';
+    
+    const ADMIN_PASSWORD = "5802";
+    let numbersVisible = false;
+    let adminUnlocked = false;
+
+    // ===== حفظ =====
+    function saveLocal() {
+        localStorage.setItem('incomeData', JSON.stringify(incomeData));
+        localStorage.setItem('expenseData', JSON.stringify(expenseData));
+        localStorage.setItem('weeksData', JSON.stringify(weeksData));
+        localStorage.setItem('workshopData', JSON.stringify(workshopData));
+    }
+
+    // ===== إظهار/إخفاء الأرقام =====
+    function toggleSecret() {
+        if(!numbersVisible) {
+            const pass = prompt("🔐 أدخل كلمة السر لإظهار الأرقام:");
+            if(pass !== ADMIN_PASSWORD) {
+                if(pass !== null) alert("❌ كلمة سر خاطئة");
+                return;
+            }
+            numbersVisible = true;
+            document.getElementById('secretBtn').innerHTML = '<i class="fas fa-eye-slash"></i> إخفاء الأرقام';
+        } else {
+            numbersVisible = false;
+            document.getElementById('secretBtn').innerHTML = '<i class="fas fa-eye"></i> إظهار الأرقام';
+        }
+        refreshAll();
+    }
+    
+    function applySecretToElement(el, value) {
+        if(!numbersVisible) {
+            el.innerText = '•••••';
+            el.classList.add('locked');
+        } else {
+            el.innerText = value;
+            el.classList.remove('locked');
+        }
+    }
+
+    // ===== التبويبات =====
+    function showPage(pageId, tab) {
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.getElementById(pageId).classList.add('active');
+        tab.classList.add('active');
+        
+        if(pageId === 'dashboard') loadDashboard();
+        if(pageId === 'weekly') loadWeeks();
+        if(pageId === 'income') loadIncome();
+        if(pageId === 'expense') loadExpense();
+        if(pageId === 'search') searchData();
+        if(pageId === 'admin') {
+            if(adminUnlocked) {
+                document.getElementById('adminGate').style.display = 'none';
+                document.getElementById('adminContent').style.display = 'block';
+                loadWorkshop();
+            }
+        }
+    }
+    
+    function refreshAll() {
+        loadDashboard();
+        loadWeeks();
+        loadIncome();
+        loadExpense();
+        if(adminUnlocked) loadWorkshop();
+    }
+
+    // ===== حساب نطاق الأسبوع (السبت - الخميس) بدقة =====
+    function getWeekRange(startDateStr) {
+        // نبدأ من منتصف ليل السبت بالظبط
+        const start = new Date(startDateStr + 'T00:00:00.000');
+        const weekStart = start.getTime();
+        
+        // نهاية الأسبوع = الخميس الساعة 23:59:59.999
+        const end = new Date(startDateStr + 'T00:00:00.000');
+        end.setDate(end.getDate() + 5); // +5 أيام = الخميس
+        end.setHours(23, 59, 59, 999);
+        const weekEnd = end.getTime();
+        
+        return { weekStart, weekEnd };
+    }
+
+    // ===== الدخل الأسبوعي =====
+    function addWeek() {
+        const title = prompt('اسم الأسبوع (مثال: الأسبوع الأول - يناير):');
+        if(!title) return;
+        
+        // حساب أول سبت في الأسبوع الحالي (تلقائي)
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const dayOfWeek = today.getDay(); // 0=الأحد, 1=الاثنين, ..., 6=السبت
+        
+        let daysBack;
+        if(dayOfWeek === 6) {
+            daysBack = 0; // النهارده سبت
+        } else if(dayOfWeek === 5) {
+            daysBack = 6; // النهارده جمعة → السبت اللي فات
+        } else {
+            daysBack = dayOfWeek + 1; // باقي الأيام
+        }
+        
+        const saturday = new Date(today);
+        saturday.setDate(saturday.getDate() - daysBack);
+        
+        // تنسيق التاريخ YYYY-MM-DD
+        const year = saturday.getFullYear();
+        const month = String(saturday.getMonth() + 1).padStart(2, '0');
+        const day = String(saturday.getDate()).padStart(2, '0');
+        const saturdayStr = `${year}-${month}-${day}`;
+        
+        weeksData.push({
+            id: Date.now().toString(),
+            title: title,
+            startDate: saturdayStr,
+            timestamp: Date.now()
+        });
+        saveLocal();
+        loadWeeks();
+        
+        const range = getWeekRange(saturdayStr);
+        alert(`✅ تم إضافة الأسبوع\n\n📅 من السبت: ${new Date(range.weekStart).toLocaleDateString('ar-EG', {weekday:'long', day:'numeric', month:'long', year:'numeric'})}\n📅 إلى الخميس: ${new Date(range.weekEnd).toLocaleDateString('ar-EG', {weekday:'long', day:'numeric', month:'long', year:'numeric'})}`);
+    }
+    
+    function loadWeeks() {
+        const container = document.getElementById('weeksList');
+        if(weeksData.length === 0) {
+            container.innerHTML = '<p style="text-align:center; color:#666;">لا توجد أسابيع مسجلة - اضغط "أسبوع جديد"</p>';
+            return;
+        }
+        let html = '';
+        weeksData.sort((a,b) => b.timestamp - a.timestamp).forEach(week => {
+            let weekStart, weekEnd;
+            if(week.startDate) {
+                const range = getWeekRange(week.startDate);
+                weekStart = range.weekStart;
+                weekEnd = range.weekEnd;
+            } else {
+                weekStart = week.timestamp;
+                weekEnd = weekStart + (6 * 24 * 60 * 60 * 1000);
+            }
+            
+            const weekIncome = incomeData.filter(i => i.timestamp >= weekStart && i.timestamp <= weekEnd);
+            const weekExpense = expenseData.filter(e => e.timestamp >= weekStart && e.timestamp <= weekEnd);
+            
+            const totalInc = weekIncome.reduce((s, i) => s + i.amount, 0);
+            const totalExp = weekExpense.reduce((s, e) => s + e.amount, 0);
+            const remaining = totalInc - totalExp;
+            
+            const startDateObj = new Date(weekStart);
+            const endDateObj = new Date(weekEnd);
+            
+            html += `
+                <div class="week-card">
+                    <div class="week-header">
+                        <h3 style="color:var(--primary);"><i class="fas fa-calendar"></i> ${week.title}</h3>
+                        <div>
+                            <button class="btn btn-primary btn-sm" onclick="filterWeek('${week.id}')"><i class="fas fa-eye"></i> عرض التفاصيل</button>
+                            <button class="btn btn-danger btn-sm" onclick="deleteWeek('${week.id}')"><i class="fas fa-trash"></i></button>
+                        </div>
+                    </div>
+                    <div class="week-stats">
+                        <div class="week-stat income">
+                            <div class="val">${totalInc} ج</div>
+                            <div class="lbl">دخل الأسبوع</div>
+                        </div>
+                        <div class="week-stat expense">
+                            <div class="val">${totalExp} ج</div>
+                            <div class="lbl">مصروف الأسبوع</div>
+                        </div>
+                        <div class="week-stat remaining">
+                            <div class="val">${remaining} ج</div>
+                            <div class="lbl">صافي الأسبوع</div>
+                        </div>
+                    </div>
+                    <div style="margin-top:10px; font-size:0.8rem; color:#666; line-height:1.8;">
+                        📅 من السبت ${startDateObj.toLocaleDateString('ar-EG', {weekday:'long', day:'numeric', month:'long', year:'numeric'})}
+                        <br>📅 إلى الخميس ${endDateObj.toLocaleDateString('ar-EG', {weekday:'long', day:'numeric', month:'long', year:'numeric'})}
+                        <br>🗓️ (${weekIncome.length} دخل، ${weekExpense.length} مصروف)
+                    </div>
+                </div>
+            `;
+        });
+        container.innerHTML = html;
+    }
+    
+    function deleteWeek(id) {
+        if(confirm('حذف هذا الأسبوع؟ (لن يتم حذف العمليات نفسها)')) {
+            weeksData = weeksData.filter(w => w.id !== id);
+            saveLocal();
+            loadWeeks();
+        }
+    }
+    
+    function filterWeek(id) {
+        const week = weeksData.find(w => w.id === id);
+        if(!week) return;
+        
+        let weekStart, weekEnd;
+        if(week.startDate) {
+            const range = getWeekRange(week.startDate);
+            weekStart = range.weekStart;
+            weekEnd = range.weekEnd;
+        } else {
+            weekStart = week.timestamp;
+            weekEnd = weekStart + (6 * 24 * 60 * 60 * 1000);
+        }
+        
+        const weekIncome = incomeData.filter(i => i.timestamp >= weekStart && i.timestamp <= weekEnd);
+        const weekExpense = expenseData.filter(e => e.timestamp >= weekStart && e.timestamp <= weekEnd);
+        
+        let msg = `📅 ${week.title}\n\n`;
+        msg += `📥 الداخل (${weekIncome.length} عملية):\n`;
+        if(weekIncome.length === 0) msg += 'لا يوجد\n';
+        weekIncome.forEach(i => {
+            msg += `- ${i.name}: ${i.amount} ج\n`;
+        });
+        msg += `\n📤 الخارج (${weekExpense.length} عملية):\n`;
+        if(weekExpense.length === 0) msg += 'لا يوجد\n';
+        weekExpense.forEach(e => {
+            msg += `- ${e.party}: ${e.amount} ج\n`;
+        });
+        alert(msg);
+    }
+
+    // ===== الداخل =====
+    function openIncomeModal() {
+        selectedPaymentIncome = '';
+        document.getElementById('incomeName').value = '';
+        document.getElementById('incomeAmount').value = '';
+        document.getElementById('incomeModal').classList.add('active');
+    }
+
+    function saveIncome() {
+        const name = document.getElementById('incomeName').value.trim();
+        const amount = parseFloat(document.getElementById('incomeAmount').value);
+        if(!name || !amount) { alert('أدخل الاسم والسعر'); return; }
+        if(!selectedPaymentIncome) { alert('اختر طريقة الدفع'); return; }
+        
+        const now = new Date();
+        const item = {
+            id: Date.now().toString(),
+            name: name,
+            amount: amount,
+            payment: selectedPaymentIncome,
+            date: now.toLocaleDateString('ar-EG'),
+            time: now.toLocaleTimeString('ar-EG'),
+            timestamp: now.getTime()
+        };
+        
+        incomeData.push(item);
+        saveLocal();
+        if(useFirebase && db) db.ref('income').push(item).catch(e => {});
+        alert('✅ تم الحفظ');
+        closeModal('incomeModal');
+        loadIncome();
+    }
+
+    function loadIncome() {
+        const table = document.getElementById('incomeTable');
+        let html = '';
+        let total = 0;
+        const sorted = [...incomeData].sort((a,b) => b.timestamp - a.timestamp);
+        if(sorted.length === 0) html = '<tr><td colspan="6" style="text-align:center;">لا يوجد دخل</td></tr>';
+        sorted.forEach((item, idx) => {
+            total += item.amount;
+            html += `<tr>
+                <td>${idx+1}</td>
+                <td>${item.name}</td>
+                <td style="color:var(--success); font-weight:700;">${item.amount} ج</td>
+                <td>${item.payment}</td>
+                <td>${item.date} - ${item.time}</td>
+                <td><button class="btn btn-danger btn-sm" onclick="deleteIncome('${item.id}')"><i class="fas fa-trash"></i></button></td>
+            </tr>`;
+        });
+        html += `<tr class="total-row"><td colspan="2">الإجمالي</td><td>${total} ج</td><td colspan="3"></td></tr>`;
+        table.innerHTML = html;
+        applySecretToElement(document.getElementById('incomeTotal'), total + ' ج');
+    }
+
+    function deleteIncome(id) {
+        if(confirm('حذف؟')) {
+            incomeData = incomeData.filter(i => i.id !== id);
+            saveLocal();
+            loadIncome();
+        }
+    }
+
+    // ===== الخارج =====
+    function openExpenseModal() {
+        selectedPaymentExpense = '';
+        document.getElementById('expenseAmount').value = '';
+        document.getElementById('expenseParty').value = '';
+        document.getElementById('expenseDate').value = new Date().toISOString().split('T')[0];
+        document.getElementById('expenseModal').classList.add('active');
+    }
+
+    function saveExpense() {
+        const amount = parseFloat(document.getElementById('expenseAmount').value);
+        const party = document.getElementById('expenseParty').value.trim();
+        const date = document.getElementById('expenseDate').value;
+        if(!amount || !party) { alert('أدخل السعر والجهة'); return; }
+        if(!selectedPaymentExpense) { alert('اختر طريقة الدفع'); return; }
+        
+        const now = new Date();
+        const item = {
+            id: Date.now().toString(),
+            amount: amount,
+            party: party,
+            date: date || now.toLocaleDateString('ar-EG'),
+            payment: selectedPaymentExpense,
+            time: now.toLocaleTimeString('ar-EG'),
+            timestamp: now.getTime()
+        };
+        
+        expenseData.push(item);
+        saveLocal();
+        if(useFirebase && db) db.ref('expense').push(item).catch(e => {});
+        alert('✅ تم الحفظ');
+        closeModal('expenseModal');
+        loadExpense();
+    }
+
+    function loadExpense() {
+        const table = document.getElementById('expenseTable');
+        let html = '';
+        let total = 0;
+        const sorted = [...expenseData].sort((a,b) => b.timestamp - a.timestamp);
+        if(sorted.length === 0) html = '<tr><td colspan="6" style="text-align:center;">لا يوجد مصروفات</td></tr>';
+        sorted.forEach((item, idx) => {
+            total += item.amount;
+            html += `<tr>
+                <td>${idx+1}</td>
+                <td style="color:var(--danger); font-weight:700;">${item.amount} ج</td>
+                <td>${item.party}</td>
+                <td>${item.date}</td>
+                <td>${item.payment}</td>
+                <td><button class="btn btn-danger btn-sm" onclick="deleteExpense('${item.id}')"><i class="fas fa-trash"></i></button></td>
+            </tr>`;
+        });
+        html += `<tr class="total-row"><td>الإجمالي</td><td>${total} ج</td><td colspan="4"></td></tr>`;
+        table.innerHTML = html;
+        applySecretToElement(document.getElementById('expenseTotal'), total + ' ج');
+    }
+
+    function deleteExpense(id) {
+        if(confirm('حذف؟')) {
+            expenseData = expenseData.filter(i => i.id !== id);
+            saveLocal();
+            loadExpense();
+        }
+    }
+
+    // ===== لوحة التحكم =====
+    function loadDashboard() {
+        let totalInc = 0, totalExp = 0;
+        incomeData.forEach(v => totalInc += v.amount);
+        expenseData.forEach(v => totalExp += v.amount);
+        applySecretToElement(document.getElementById('totalIncome'), totalInc + ' ج');
+        applySecretToElement(document.getElementById('totalExpense'), totalExp + ' ج');
+        applySecretToElement(document.getElementById('totalRemaining'), (totalInc - totalExp) + ' ج');
+    }
+
+    // ===== البحث =====
+    function searchData() {
+        const query = document.getElementById('searchInput').value.trim().toLowerCase();
+        if(!query) { document.getElementById('searchTable').innerHTML = '<tr><td colspan="5" style="text-align:center;">اكتب حاجة للبحث</td></tr>'; return; }
+        
+        let results = [];
+        incomeData.forEach(v => {
+            if(v.name.toLowerCase().includes(query) || String(v.amount).includes(query)) {
+                results.push({ type: 'داخل', name: v.name, amount: v.amount, payment: v.payment, date: v.date, time: v.time, timestamp: v.timestamp });
+            }
+        });
+        expenseData.forEach(v => {
+            if(v.party.toLowerCase().includes(query) || String(v.amount).includes(query)) {
+                results.push({ type: 'خارج', name: v.party, amount: v.amount, payment: v.payment, date: v.date, time: v.time, timestamp: v.timestamp });
+            }
+        });
+        results.sort((a, b) => b.timestamp - a.timestamp);
+        let html = '';
+        if(results.length === 0) html = '<tr><td colspan="5" style="text-align:center;">لا توجد نتائج</td></tr>';
+        results.forEach(r => {
+            const color = r.type === 'داخل' ? 'var(--success)' : 'var(--danger)';
+            html += `<tr>
+                <td style="color:${color}; font-weight:700;">${r.type}</td>
+                <td>${r.name}</td>
+                <td>${r.amount} ج</td>
+                <td>${r.payment}</td>
+                <td>${r.date} - ${r.time}</td>
+            </tr>`;
+        });
+        document.getElementById('searchTable').innerHTML = html;
+    }
+
+    // ===== الإدارة =====
+    function checkAdminPassword() {
+        const pass = document.getElementById('adminPassword').value;
+        if(pass === ADMIN_PASSWORD) {
+            adminUnlocked = true;
+            document.getElementById('adminGate').style.display = 'none';
+            document.getElementById('adminContent').style.display = 'block';
+            loadWorkshop();
+        } else {
+            alert('❌ كلمة سر خاطئة');
+        }
+    }
+    
+    function loadWorkshop() {
+        let totalInc = 0, totalExp = 0;
+        incomeData.forEach(v => totalInc += v.amount);
+        expenseData.forEach(v => totalExp += v.amount);
+        const balance = workshopData.balance || 0;
+        const totalInWorkshop = totalInc - totalExp + balance;
+        
+        applySecretToElement(document.getElementById('workshopBalance'), totalInWorkshop + ' ج');
+        applySecretToElement(document.getElementById('workshopTotalIncome'), totalInc + ' ج');
+        applySecretToElement(document.getElementById('workshopTotalExpense'), totalExp + ' ج');
+        document.getElementById('manualWorkshopBalance').value = balance;
+        document.getElementById('workshopNotes').value = workshopData.notes || '';
+    }
+    
+    function saveWorkshopBalance() {
+        workshopData.balance = parseFloat(document.getElementById('manualWorkshopBalance').value) || 0;
+        workshopData.notes = document.getElementById('workshopNotes').value;
+        saveLocal();
+        alert('✅ تم الحفظ');
+        loadWorkshop();
+    }
+    
+    function resetWorkshopBalance() {
+        if(confirm('تصفير الرصيد اليدوي؟')) {
+            workshopData.balance = 0;
+            saveLocal();
+            loadWorkshop();
+        }
+    }
+
+    // ===== أدوات =====
+    function selectPayment(el) {
+        const type = el.dataset.type;
+        el.parentElement.querySelectorAll('.payment-option').forEach(o => o.classList.remove('selected'));
+        el.classList.add('selected');
+        if(type === 'income') selectedPaymentIncome = el.dataset.value;
+        else selectedPaymentExpense = el.dataset.value;
+    }
+
+    function closeModal(id) {
+        document.getElementById(id).classList.remove('active');
+        document.querySelectorAll('.payment-option').forEach(o => o.classList.remove('selected'));
+        selectedPaymentIncome = '';
+        selectedPaymentExpense = '';
+    }
+
+    // ===== التهيئة =====
+    loadDashboard();
+    loadIncome();
+    loadExpense();
+    loadWeeks();
+
+    if('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('sw.js').catch(() => {});
+    }
+</script>
+</body>
+</html>

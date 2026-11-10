@@ -1,0 +1,23 @@
+{
+  "name": "حسابات ألمونتال",
+  "short_name": "ألمونتال",
+  "description": "نظام إدارة حسابات مطابخ ألمونتال",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#f4f6f9",
+  "theme_color": "#1a5276",
+  "lang": "ar",
+  "dir": "rtl",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
