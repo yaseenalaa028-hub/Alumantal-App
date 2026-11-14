@@ -6,6 +6,9 @@
     <title>حسابات مصنع ضجة للمطابخ الألمونتال</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#1a5276">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="ضجة الألمونتال">
     
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
@@ -25,6 +28,7 @@
         }
         body { background: var(--light); overflow-x: hidden; }
 
+        /* ===== شاشة الدخول ===== */
         #loginScreen {
             position: fixed; inset: 0; background: linear-gradient(135deg, #1a5276 0%, #0e2f44 100%);
             z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 20px;
@@ -32,6 +36,11 @@
         .login-box {
             background: white; border-radius: 25px; padding: 35px 25px; width: 100%;
             max-width: 400px; text-align: center; box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+            animation: fadeInUp 0.5s ease;
+        }
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
         }
         .login-box .icon { font-size: 4rem; color: var(--gold); margin-bottom: 15px; }
         .login-box h1 { color: var(--primary); font-size: 1.3rem; margin-bottom: 8px; line-height: 1.4; }
@@ -39,13 +48,20 @@
         .login-box input {
             width: 100%; padding: 15px; border: 2px solid #ddd; border-radius: 15px;
             text-align: center; font-size: 1.5rem; letter-spacing: 8px; font-weight: 700; margin-bottom: 15px;
+            transition: 0.2s;
+        }
+        .login-box input:focus {
+            outline: none; border-color: var(--primary); box-shadow: 0 0 0 4px rgba(26,82,118,0.1);
         }
         .login-box button {
             width: 100%; padding: 15px; background: var(--primary); color: white;
             border: none; border-radius: 15px; font-size: 1rem; font-weight: 700; cursor: pointer;
+            transition: 0.2s;
         }
+        .login-box button:hover { background: #0e2f44; }
         .login-error { color: var(--danger); font-size: 0.85rem; margin-top: 10px; min-height: 20px; font-weight: 600; }
 
+        /* ===== الهيدر ===== */
         header {
             background: var(--primary); color: white; padding: 10px 4%;
             position: fixed; top: 0; width: 100%; z-index: 100;
@@ -59,10 +75,12 @@
             background: rgba(255,255,255,0.15); color: white; border: none;
             padding: 8px 10px; border-radius: 50%; cursor: pointer; font-weight: 600;
             font-size: 0.85rem; display: flex; align-items: center; justify-content: center;
-            width: 38px; height: 38px;
+            width: 38px; height: 38px; transition: 0.2s;
         }
+        .header-actions button:hover { background: rgba(255,255,255,0.35); }
         #installBtn { background: var(--gold) !important; color: #1a5276 !important; display: none; }
 
+        /* ===== التبويبات ===== */
         .tabs {
             margin-top: 60px; background: white; padding: 0 2%;
             display: flex; gap: 2px; overflow-x: auto; border-bottom: 2px solid #e0e0e0;
@@ -74,7 +92,9 @@
             padding: 12px 14px; cursor: pointer; font-weight: 700; color: #666;
             border-bottom: 3px solid transparent; white-space: nowrap;
             display: flex; align-items: center; gap: 5px; font-size: 0.8rem; flex-shrink: 0;
+            transition: 0.2s;
         }
+        .tab i { font-size: 0.9rem; }
         .tab.active { color: var(--primary); border-bottom-color: var(--primary); background: #f0f6fb; }
         .tab.admin-tab.active { color: var(--purple); border-bottom-color: var(--purple); background: #f5eef8; }
 
@@ -97,7 +117,7 @@
         .summary-card h3 { font-size: 1.2rem; margin-bottom: 5px; word-break: break-all; }
         .summary-card p { color: #666; font-size: 0.75rem; }
 
-        .secret-value { cursor: pointer; user-select: none; }
+        .secret-value { cursor: pointer; user-select: none; transition: 0.2s; }
         .secret-value.locked { color: #999 !important; font-family: monospace; letter-spacing: 2px; }
         .secret-value.locked::after { content: ' 🔒'; font-size: 0.7em; }
 
@@ -110,6 +130,7 @@
             align-items: center; flex-wrap: wrap; gap: 8px; border-bottom: 1px solid #eee;
         }
         .table-header h2 { font-size: 0.95rem; color: var(--primary); }
+        .table-header h2 i { margin-left: 5px; }
 
         .table-wrapper { overflow-x: auto; -webkit-overflow-scrolling: touch; }
         table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
@@ -120,7 +141,9 @@
         .btn {
             padding: 9px 16px; border: none; border-radius: 25px; cursor: pointer;
             font-weight: 700; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 5px;
+            transition: 0.2s;
         }
+        .btn:active { transform: scale(0.96); }
         .btn-primary { background: var(--primary); color: white; }
         .btn-success { background: var(--success); color: white; }
         .btn-danger { background: var(--danger); color: white; }
@@ -136,6 +159,7 @@
         .modal-box {
             background: white; border-radius: 20px; width: 100%; max-width: 500px;
             max-height: 90vh; overflow-y: auto; padding: 22px;
+            animation: fadeInUp 0.3s ease;
         }
         .modal-box h2 { color: var(--primary); margin-bottom: 18px; font-size: 1.1rem; }
         .form-group { margin-bottom: 14px; }
@@ -152,6 +176,7 @@
         .payment-option {
             flex: 1; padding: 12px; border: 2px solid #ddd; border-radius: 12px;
             cursor: pointer; text-align: center; font-weight: 700; font-size: 0.9rem;
+            transition: 0.2s;
         }
         .payment-option.selected { border-color: var(--success); background: #e8f8f0; color: var(--success); }
 
@@ -160,6 +185,7 @@
             flex: 1; padding: 14px 18px; border-radius: 30px; border: 2px solid #ddd;
             font-size: 0.95rem; font-family: inherit;
         }
+        .search-box input:focus { outline: none; border-color: var(--primary); }
 
         .status-badge {
             position: fixed; bottom: 15px; right: 15px; padding: 7px 14px;
@@ -210,8 +236,10 @@
         .week-stat.expense .val { color: var(--danger); }
         .week-stat.remaining .val { color: var(--warning); }
 
+        /* ===== تحسينات الموبايل ===== */
         @media (max-width: 600px) {
-            .logo { font-size: 0.8rem; } .logo span { max-width: 130px; }
+            .logo { font-size: 0.8rem; }
+            .logo span { max-width: 130px; }
             .header-actions button { width: 34px; height: 34px; font-size: 0.8rem; }
             .tab { padding: 10px 10px; font-size: 0.72rem; gap: 3px; }
             .tab i { font-size: 0.8rem; }
@@ -224,12 +252,31 @@
             tr { background: white; border: 1px solid #eee; border-radius: 12px; margin-bottom: 10px; padding: 10px; }
             td { border: none; padding: 6px 5px; text-align: right; font-size: 0.85rem; white-space: normal; display: flex; justify-content: space-between; align-items: center; }
             td::before { content: attr(data-label); font-weight: 700; color: #777; font-size: 0.75rem; margin-left: 10px; }
+            .total-row td::before { color: #8a6d0b; }
             
             .btn { font-size: 0.8rem; padding: 8px 12px; }
+            .btn-sm { padding: 6px 8px; font-size: 0.7rem; }
+            .table-header { padding: 10px 12px; }
+            .table-header h2 { font-size: 0.85rem; }
+            
             .payment-options { flex-direction: column; }
+            .modal-box { padding: 18px; }
+            .modal-box h2 { font-size: 1rem; }
+            
             .week-stats { grid-template-columns: repeat(3, 1fr); gap: 6px; }
             .week-stat .val { font-size: 0.85rem; }
+            .week-stat .lbl { font-size: 0.6rem; }
+            .week-header h3 { font-size: 0.8rem; }
+            
+            .admin-gate { margin: 15px auto; padding: 30px 15px; }
             .workshop-cards { grid-template-columns: 1fr; }
+        }
+
+        @media (max-width: 380px) {
+            .logo span { max-width: 100px; font-size: 0.72rem; }
+            .tab { padding: 9px 8px; font-size: 0.68rem; }
+            .tab i { display: none; }
+            .summary-cards { grid-template-columns: 1fr; }
         }
     </style>
     
@@ -237,20 +284,25 @@
         document.addEventListener('contextmenu', e => e.preventDefault());
         document.addEventListener('keydown', e => {
             if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && ['I','J','C'].includes(e.key)) ||
-                (e.ctrlKey && ['u','U','s','S','p','P'].includes(e.key))) {
+                (e.ctrlKey && ['u','U','s','S','p','P'].includes(e.key)) ||
+                (e.metaKey && e.altKey && ['I','J','C'].includes(e.key))) {
                 e.preventDefault(); return false;
             }
         });
+        document.addEventListener('copy', e => e.preventDefault());
+        document.addEventListener('cut', e => e.preventDefault());
+        document.addEventListener('dragstart', e => e.preventDefault());
     </script>
 </head>
 <body>
 
+<!-- ===== شاشة الدخول ===== -->
 <div id="loginScreen">
     <div class="login-box">
         <div class="icon"><i class="fas fa-utensils"></i></div>
         <h1>حسابات مصنع ضجة<br>للمطابخ الألمونتال</h1>
         <p>أدخل كلمة السر للدخول</p>
-        <input type="password" id="loginPassword" maxlength="4" inputmode="numeric" placeholder="••••" autocomplete="off">
+        <input type="password" id="loginPassword" maxlength="5" inputmode="numeric" placeholder="•••••" autocomplete="off">
         <button onclick="checkLogin()"><i class="fas fa-sign-in-alt"></i> دخول</button>
         <div class="login-error" id="loginError"></div>
     </div>
@@ -370,7 +422,7 @@
             <i class="fas fa-lock"></i>
             <h2>قسم الإدارة</h2>
             <p style="color:#666; margin-bottom:15px; font-size:0.85rem;">أدخل كلمة السر للدخول</p>
-            <input type="password" id="adminPassword" placeholder="••••" maxlength="4" inputmode="numeric">
+            <input type="password" id="adminPassword" placeholder="•••••" maxlength="5" inputmode="numeric">
             <button class="btn btn-purple" onclick="checkAdminPassword()"><i class="fas fa-unlock"></i> دخول</button>
         </div>
         
@@ -486,10 +538,11 @@
 
 <script>
     // ===== كلمة السر (مشفرة) =====
-    const _P = [53, 56, 48, 50]; // "5802"
+    // 58022 = [53, 56, 48, 50, 50]
+    const _P = [53, 56, 48, 50, 50];
     function _checkP(input) {
-        if (input.length !== 4) return false;
-        for (let i = 0; i < 4; i++) {
+        if (input.length !== 5) return false;
+        for (let i = 0; i < 5; i++) {
             if (input.charCodeAt(i) !== _P[i]) return false;
         }
         return true;
@@ -531,6 +584,9 @@
             err.textContent = '❌ كلمة السر غير صحيحة';
             document.getElementById('loginPassword').value = '';
             document.getElementById('loginPassword').focus();
+            const box = document.querySelector('.login-box');
+            box.style.animation = 'none';
+            setTimeout(() => box.style.animation = 'fadeInUp 0.3s ease', 10);
         }
     }
     document.getElementById('loginPassword').addEventListener('keypress', e => {
@@ -809,13 +865,10 @@
         };
         
         if (useFirebase && db) {
-            // حفظ في الأرشيف
             db.ref('archive').push(archiveItem).then(() => {
-                // حذف العمليات من الداخل والخارج
                 weekIncome.forEach(i => db.ref('income/' + i.id).remove());
                 weekExpense.forEach(e => db.ref('expense/' + e.id).remove());
                 
-                // تحديث حساب الورشة (بيزيد بصافي الأسبوع)
                 const currentBalance = workshopData.balance || 0;
                 const newBalance = currentBalance + net;
                 db.ref('workshop').set({ 
