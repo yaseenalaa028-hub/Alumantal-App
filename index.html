@@ -6,9 +6,6 @@
     <title>حسابات مصنع ضجة للمطابخ الألمونتال</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#1a5276">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="ضجة الألمونتال">
     
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
@@ -28,30 +25,13 @@
         }
         body { background: var(--light); overflow-x: hidden; }
 
-        /* ===== شاشة الدخول ===== */
         #loginScreen {
-            position: fixed;
-            inset: 0;
-            background: linear-gradient(135deg, #1a5276 0%, #0e2f44 100%);
-            z-index: 9999;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
+            position: fixed; inset: 0; background: linear-gradient(135deg, #1a5276 0%, #0e2f44 100%);
+            z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 20px;
         }
         .login-box {
-            background: white;
-            border-radius: 25px;
-            padding: 35px 25px;
-            width: 100%;
-            max-width: 400px;
-            text-align: center;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.4);
-            animation: fadeInUp 0.5s ease;
-        }
-        @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(30px); }
-            to { opacity: 1; transform: translateY(0); }
+            background: white; border-radius: 25px; padding: 35px 25px; width: 100%;
+            max-width: 400px; text-align: center; box-shadow: 0 20px 60px rgba(0,0,0,0.4);
         }
         .login-box .icon { font-size: 4rem; color: var(--gold); margin-bottom: 15px; }
         .login-box h1 { color: var(--primary); font-size: 1.3rem; margin-bottom: 8px; line-height: 1.4; }
@@ -60,14 +40,12 @@
             width: 100%; padding: 15px; border: 2px solid #ddd; border-radius: 15px;
             text-align: center; font-size: 1.5rem; letter-spacing: 8px; font-weight: 700; margin-bottom: 15px;
         }
-        .login-box input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 4px rgba(26,82,118,0.1); }
         .login-box button {
             width: 100%; padding: 15px; background: var(--primary); color: white;
             border: none; border-radius: 15px; font-size: 1rem; font-weight: 700; cursor: pointer;
         }
         .login-error { color: var(--danger); font-size: 0.85rem; margin-top: 10px; min-height: 20px; font-weight: 600; }
 
-        /* ===== الهيدر ===== */
         header {
             background: var(--primary); color: white; padding: 10px 4%;
             position: fixed; top: 0; width: 100%; z-index: 100;
@@ -83,10 +61,8 @@
             font-size: 0.85rem; display: flex; align-items: center; justify-content: center;
             width: 38px; height: 38px;
         }
-        .header-actions button:hover { background: rgba(255,255,255,0.35); }
         #installBtn { background: var(--gold) !important; color: #1a5276 !important; display: none; }
 
-        /* ===== التبويبات ===== */
         .tabs {
             margin-top: 60px; background: white; padding: 0 2%;
             display: flex; gap: 2px; overflow-x: auto; border-bottom: 2px solid #e0e0e0;
@@ -234,7 +210,6 @@
         .week-stat.expense .val { color: var(--danger); }
         .week-stat.remaining .val { color: var(--warning); }
 
-        /* ===== تحسينات الموبايل ===== */
         @media (max-width: 600px) {
             .logo { font-size: 0.8rem; } .logo span { max-width: 130px; }
             .header-actions button { width: 34px; height: 34px; font-size: 0.8rem; }
@@ -256,32 +231,20 @@
             .week-stat .val { font-size: 0.85rem; }
             .workshop-cards { grid-template-columns: 1fr; }
         }
-
-        @media (max-width: 380px) {
-            .logo span { max-width: 100px; font-size: 0.72rem; }
-            .tab { padding: 9px 8px; font-size: 0.68rem; }
-            .tab i { display: none; }
-            .summary-cards { grid-template-columns: 1fr; }
-        }
     </style>
     
     <script>
         document.addEventListener('contextmenu', e => e.preventDefault());
         document.addEventListener('keydown', e => {
             if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && ['I','J','C'].includes(e.key)) ||
-                (e.ctrlKey && ['u','U','s','S','p','P'].includes(e.key)) ||
-                (e.metaKey && e.altKey && ['I','J','C'].includes(e.key))) {
+                (e.ctrlKey && ['u','U','s','S','p','P'].includes(e.key))) {
                 e.preventDefault(); return false;
             }
         });
-        document.addEventListener('copy', e => e.preventDefault());
-        document.addEventListener('cut', e => e.preventDefault());
-        document.addEventListener('dragstart', e => e.preventDefault());
     </script>
 </head>
 <body>
 
-<!-- ===== شاشة الدخول ===== -->
 <div id="loginScreen">
     <div class="login-box">
         <div class="icon"><i class="fas fa-utensils"></i></div>
@@ -314,20 +277,24 @@
 
 <div class="container">
 
+    <!-- لوحة التحكم -->
     <div class="page active" id="dashboard">
         <div class="summary-cards">
-            <div class="summary-card income"><h3 id="totalIncome" class="secret-value locked">•••••</h3><p>إجمالي الداخل</p></div>
-            <div class="summary-card expense"><h3 id="totalExpense" class="secret-value locked">•••••</h3><p>إجمالي الخارج</p></div>
-            <div class="summary-card remaining"><h3 id="totalRemaining" class="secret-value locked">•••••</h3><p>الباقي</p></div>
+            <div class="summary-card income"><h3 id="totalIncome" class="secret-value locked">•••••</h3><p>إجمالي الداخل (الأسبوع الحالي)</p></div>
+            <div class="summary-card expense"><h3 id="totalExpense" class="secret-value locked">•••••</h3><p>إجمالي الخارج (الأسبوع الحالي)</p></div>
+            <div class="summary-card remaining"><h3 id="totalRemaining" class="secret-value locked">•••••</h3><p>الباقي (الأسبوع الحالي)</p></div>
         </div>
     </div>
 
-    <!-- الجرد الأسبوعي التلقائي -->
+    <!-- الجرد الأسبوعي -->
     <div class="page" id="weekly">
         <div class="table-container">
             <div class="table-header">
                 <h2><i class="fas fa-calendar-week"></i> الجرد الأسبوعي (السبت - الخميس)</h2>
-                <button class="btn btn-primary btn-sm" onclick="generateWeeklyReport()"><i class="fas fa-file-invoice"></i> إنشاء مستخلص الأسبوع</button>
+                <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                    <button class="btn btn-primary btn-sm" onclick="generateWeeklyReport()"><i class="fas fa-file-invoice"></i> معاينة المستخلص</button>
+                    <button class="btn btn-warning btn-sm" onclick="transferWeekToArchive()"><i class="fas fa-exchange-alt"></i> ترحيل للأرشيف</button>
+                </div>
             </div>
             <div style="padding:12px;" id="weeksList"></div>
         </div>
@@ -338,19 +305,19 @@
         <div class="table-container">
             <div class="table-header">
                 <h2><i class="fas fa-archive"></i> أرشيف المستخلصات الأسبوعية</h2>
-                <button class="btn btn-success btn-sm" onclick="exportArchive()"><i class="fas fa-file-excel"></i> تصدير</button>
             </div>
             <div style="padding:12px;" id="archiveList"></div>
         </div>
     </div>
 
+    <!-- الداخل -->
     <div class="page" id="income">
         <div class="summary-cards">
-            <div class="summary-card income"><h3 id="incomeTotal" class="secret-value locked">•••••</h3><p>إجمالي الداخل</p></div>
+            <div class="summary-card income"><h3 id="incomeTotal" class="secret-value locked">•••••</h3><p>إجمالي الداخل (الأسبوع الحالي)</p></div>
         </div>
         <div class="table-container">
             <div class="table-header">
-                <h2><i class="fas fa-arrow-down"></i> سجل الداخل</h2>
+                <h2><i class="fas fa-arrow-down"></i> سجل الداخل (الأسبوع الحالي)</h2>
                 <button class="btn btn-success btn-sm" onclick="openIncomeModal()"><i class="fas fa-plus"></i> إضافة</button>
             </div>
             <div class="table-wrapper">
@@ -362,13 +329,14 @@
         </div>
     </div>
 
+    <!-- الخارج -->
     <div class="page" id="expense">
         <div class="summary-cards">
-            <div class="summary-card expense"><h3 id="expenseTotal" class="secret-value locked">•••••</h3><p>إجمالي الخارج</p></div>
+            <div class="summary-card expense"><h3 id="expenseTotal" class="secret-value locked">•••••</h3><p>إجمالي الخارج (الأسبوع الحالي)</p></div>
         </div>
         <div class="table-container">
             <div class="table-header">
-                <h2><i class="fas fa-arrow-up"></i> سجل الخارج</h2>
+                <h2><i class="fas fa-arrow-up"></i> سجل الخارج (الأسبوع الحالي)</h2>
                 <button class="btn btn-danger btn-sm" onclick="openExpenseModal()"><i class="fas fa-plus"></i> إضافة</button>
             </div>
             <div class="table-wrapper">
@@ -380,6 +348,7 @@
         </div>
     </div>
 
+    <!-- البحث -->
     <div class="page" id="search">
         <div class="search-box">
             <input type="text" id="searchInput" placeholder="🔍 ابحث عن اسم أو مبلغ..." oninput="searchData()">
@@ -395,6 +364,7 @@
         </div>
     </div>
 
+    <!-- الإدارة -->
     <div class="page" id="admin">
         <div id="adminGate" class="admin-gate">
             <i class="fas fa-lock"></i>
@@ -408,15 +378,15 @@
             <div class="workshop-cards">
                 <div class="workshop-card">
                     <h3 id="workshopBalance" class="secret-value locked">•••••</h3>
-                    <p>باقي في حساب الورشة</p>
+                    <p>باقي في حساب الورشة (تراكمي)</p>
                 </div>
                 <div class="workshop-card" style="background:linear-gradient(135deg,#27ae60,#1e8449);">
                     <h3 id="workshopTotalIncome" class="secret-value locked">•••••</h3>
-                    <p>إجمالي الداخل</p>
+                    <p>إجمالي الداخل (الأسبوع الحالي)</p>
                 </div>
                 <div class="workshop-card" style="background:linear-gradient(135deg,#e74c3c,#c0392b);">
                     <h3 id="workshopTotalExpense" class="secret-value locked">•••••</h3>
-                    <p>إجمالي المصروف</p>
+                    <p>إجمالي المصروف (الأسبوع الحالي)</p>
                 </div>
             </div>
             
@@ -616,7 +586,6 @@
             document.getElementById('statusBadge').className = 'status-badge status-online';
             document.getElementById('statusBadge').innerText = '☁️ متصل - البيانات محفوظة';
         } catch(e) {
-            // fallback to local
             incomeData = JSON.parse(localStorage.getItem('incomeData') || '[]');
             expenseData = JSON.parse(localStorage.getItem('expenseData') || '[]');
             workshopData = JSON.parse(localStorage.getItem('workshopData') || '{"balance":0,"notes":""}');
@@ -694,7 +663,7 @@
         if(adminUnlocked) loadWorkshop();
     }
 
-    // ===== الدخل الأسبوعي التلقائي =====
+    // ===== حساب نطاق الأسبوع =====
     function getWeekRange(startDateStr) {
         const start = new Date(startDateStr + 'T00:00:00.000');
         const weekStart = start.getTime();
@@ -724,6 +693,7 @@
         return { saturdayStr, ...getWeekRange(saturdayStr) };
     }
 
+    // ===== الدخل الأسبوعي =====
     function loadWeekly() {
         const container = document.getElementById('weeksList');
         const { weekStart, weekEnd } = getCurrentWeekRange();
@@ -810,6 +780,64 @@
         document.getElementById('reportModal').classList.add('active');
     }
 
+    // ===== ترحيل الأسبوع للأرشيف =====
+    function transferWeekToArchive() {
+        const { saturdayStr, weekStart, weekEnd } = getCurrentWeekRange();
+        const weekIncome = incomeData.filter(i => i.timestamp >= weekStart && i.timestamp <= weekEnd);
+        const weekExpense = expenseData.filter(e => e.timestamp >= weekStart && e.timestamp <= weekEnd);
+        const totalInc = weekIncome.reduce((s, i) => s + i.amount, 0);
+        const totalExp = weekExpense.reduce((s, e) => s + e.amount, 0);
+        const net = totalInc - totalExp;
+        
+        if (weekIncome.length === 0 && weekExpense.length === 0) {
+            alert('⚠️ لا توجد عمليات في الأسبوع الحالي للترحيل');
+            return;
+        }
+        
+        if (!confirm(`⚠️ هل أنت متأكد من ترحيل الأسبوع للأرشيف؟\n\n📥 الداخل: ${totalInc} ج\n📤 الخارج: ${totalExp} ج\n💰 الصافي: ${net} ج\n\nبعد الترحيل:\n- العمليات هتتشال من الجداول الحالية\n- الجداول هتبدأ من صفر\n- حساب الورشة هيزيد بصافي الأسبوع`)) return;
+        
+        const archiveItem = {
+            saturdayStr,
+            weekStart,
+            weekEnd,
+            totalInc,
+            totalExp,
+            net,
+            incomeCount: weekIncome.length,
+            expenseCount: weekExpense.length,
+            savedAt: Date.now()
+        };
+        
+        if (useFirebase && db) {
+            // حفظ في الأرشيف
+            db.ref('archive').push(archiveItem).then(() => {
+                // حذف العمليات من الداخل والخارج
+                weekIncome.forEach(i => db.ref('income/' + i.id).remove());
+                weekExpense.forEach(e => db.ref('expense/' + e.id).remove());
+                
+                // تحديث حساب الورشة (بيزيد بصافي الأسبوع)
+                const currentBalance = workshopData.balance || 0;
+                const newBalance = currentBalance + net;
+                db.ref('workshop').set({ 
+                    balance: newBalance, 
+                    notes: workshopData.notes || '',
+                    lastUpdate: Date.now()
+                });
+                
+                alert('✅ تم الترحيل بنجاح\n- العمليات انتقلت للأرشيف\n- الجداول بدأت من صفر\n- حساب الورشة اتحدث');
+                refreshAll();
+            });
+        } else {
+            archiveData.push({ id: Date.now().toString(), ...archiveItem });
+            incomeData = incomeData.filter(i => !weekIncome.includes(i));
+            expenseData = expenseData.filter(e => !weekExpense.includes(e));
+            workshopData.balance = (workshopData.balance || 0) + net;
+            saveLocal();
+            alert('✅ تم الترحيل بنجاح');
+            refreshAll();
+        }
+    }
+
     function saveReportToArchive() {
         const report = window._currentReport;
         if (!report) return;
@@ -817,12 +845,14 @@
         const exists = archiveData.find(a => a.saturdayStr === report.saturdayStr);
         if (exists) {
             if (!confirm('هذا الأسبوع موجود بالفعل في الأرشيف. تحديث؟')) return;
-            db.ref('archive/' + exists.id).update({
-                totalInc: report.totalInc,
-                totalExp: report.totalExp,
-                net: report.net,
-                savedAt: Date.now()
-            });
+            if (useFirebase && db) {
+                db.ref('archive/' + exists.id).update({
+                    totalInc: report.totalInc,
+                    totalExp: report.totalExp,
+                    net: report.net,
+                    savedAt: Date.now()
+                });
+            }
         } else {
             const newReport = {
                 saturdayStr: report.saturdayStr,
@@ -842,7 +872,7 @@
                 saveLocal();
             }
         }
-        alert('✅ تم حفظ المستخلص في الأرشيف للأبد');
+        alert('✅ تم حفظ المستخلص في الأرشيف');
         closeModal('reportModal');
         setTimeout(loadArchive, 500);
     }
@@ -923,11 +953,14 @@
     }
 
     function loadIncome() {
+        const { weekStart, weekEnd } = getCurrentWeekRange();
+        const weekIncome = incomeData.filter(i => i.timestamp >= weekStart && i.timestamp <= weekEnd);
+        
         const table = document.getElementById('incomeTable');
         let html = '';
         let total = 0;
-        const sorted = [...incomeData].sort((a,b) => b.timestamp - a.timestamp);
-        if(sorted.length === 0) html = '<tr><td colspan="6" style="text-align:center; padding:20px;">لا يوجد دخل</td></tr>';
+        const sorted = [...weekIncome].sort((a,b) => b.timestamp - a.timestamp);
+        if(sorted.length === 0) html = '<tr><td colspan="6" style="text-align:center; padding:20px;">لا يوجد دخل في الأسبوع الحالي</td></tr>';
         sorted.forEach((item, idx) => {
             total += item.amount;
             html += `<tr>
@@ -995,11 +1028,14 @@
     }
 
     function loadExpense() {
+        const { weekStart, weekEnd } = getCurrentWeekRange();
+        const weekExpense = expenseData.filter(e => e.timestamp >= weekStart && e.timestamp <= weekEnd);
+        
         const table = document.getElementById('expenseTable');
         let html = '';
         let total = 0;
-        const sorted = [...expenseData].sort((a,b) => b.timestamp - a.timestamp);
-        if(sorted.length === 0) html = '<tr><td colspan="6" style="text-align:center; padding:20px;">لا يوجد مصروفات</td></tr>';
+        const sorted = [...weekExpense].sort((a,b) => b.timestamp - a.timestamp);
+        if(sorted.length === 0) html = '<tr><td colspan="6" style="text-align:center; padding:20px;">لا يوجد مصروفات في الأسبوع الحالي</td></tr>';
         sorted.forEach((item, idx) => {
             total += item.amount;
             html += `<tr>
@@ -1031,9 +1067,14 @@
 
     // ===== لوحة التحكم =====
     function loadDashboard() {
+        const { weekStart, weekEnd } = getCurrentWeekRange();
+        const weekIncome = incomeData.filter(i => i.timestamp >= weekStart && i.timestamp <= weekEnd);
+        const weekExpense = expenseData.filter(e => e.timestamp >= weekStart && e.timestamp <= weekEnd);
+        
         let totalInc = 0, totalExp = 0;
-        incomeData.forEach(v => totalInc += v.amount);
-        expenseData.forEach(v => totalExp += v.amount);
+        weekIncome.forEach(v => totalInc += v.amount);
+        weekExpense.forEach(v => totalExp += v.amount);
+        
         applySecretToElement(document.getElementById('totalIncome'), totalInc + ' ج');
         applySecretToElement(document.getElementById('totalExpense'), totalExp + ' ج');
         applySecretToElement(document.getElementById('totalRemaining'), (totalInc - totalExp) + ' ج');
@@ -1086,13 +1127,17 @@
     }
     
     function loadWorkshop() {
-        let totalInc = 0, totalExp = 0;
-        incomeData.forEach(v => totalInc += v.amount);
-        expenseData.forEach(v => totalExp += v.amount);
-        const balance = workshopData.balance || 0;
-        const totalInWorkshop = totalInc - totalExp + balance;
+        const { weekStart, weekEnd } = getCurrentWeekRange();
+        const weekIncome = incomeData.filter(i => i.timestamp >= weekStart && i.timestamp <= weekEnd);
+        const weekExpense = expenseData.filter(e => e.timestamp >= weekStart && e.timestamp <= weekEnd);
         
-        applySecretToElement(document.getElementById('workshopBalance'), totalInWorkshop + ' ج');
+        let totalInc = 0, totalExp = 0;
+        weekIncome.forEach(v => totalInc += v.amount);
+        weekExpense.forEach(v => totalExp += v.amount);
+        
+        const balance = workshopData.balance || 0;
+        
+        applySecretToElement(document.getElementById('workshopBalance'), balance + ' ج');
         applySecretToElement(document.getElementById('workshopTotalIncome'), totalInc + ' ج');
         applySecretToElement(document.getElementById('workshopTotalExpense'), totalExp + ' ج');
         document.getElementById('manualWorkshopBalance').value = balance;
